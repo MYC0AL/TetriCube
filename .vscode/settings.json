@@ -1,0 +1,11 @@
+{
+    "idf.portWin": "COM5",
+    "idf.flashType": "UART",
+    "cmake.configureArgs": [
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+    ],
+    "makefile.configurations": [],
+    "files.associations": {
+        "chrono": "cpp"
+    }
+}
