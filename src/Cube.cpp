@@ -228,10 +228,10 @@ void Cube::Rotate(short sidesToMove[5], short sqToMove[3], bool prime) // Front 
     }
     // Replace temp
     for (int i = 0; i < 3; i++)
-        m_cube[sidesToMove[tempOp]][sqToMove[i]] = tempSq[sqToMove[i]];
+        m_cube[sidesToMove[tempOp]][sqToMove[i]] = tempSq[i];
 
     // Rotate host side
-    rotateSide(sidesToMove[4], prime); // prime and cw are inverse
+    //rotateSide(sidesToMove[4], prime); // prime and cw are inverse
 }
 
 void Cube::rotateSide(short sideNum, bool prime)
@@ -317,7 +317,7 @@ void Cube::RightRotation(bool prime)
 void Cube::UpRotation(bool prime)
 {
     Serial.println("Up Rotation\r\n");
-    short sidesToMove[5] = {0, 4, 5, 2, 1};
+    short sidesToMove[5] = {4, 0, 2, 5, 1};
     short sqToMove[3] = {7, 8, 9};
     Rotate(sidesToMove, sqToMove, prime);
 }
@@ -325,7 +325,7 @@ void Cube::UpRotation(bool prime)
 void Cube::BackRotation(bool prime)
 {
     Serial.println("Back Rotation\r\n");
-    short sidesToMove[5] = {4, 3, 2, 1, 5};
+    short sidesToMove[5] = {1, 2, 3, 4, 5};
     short sqToMove[3] = {0, 1, 2};
     Rotate(sidesToMove, sqToMove, prime);
 }
@@ -333,7 +333,7 @@ void Cube::BackRotation(bool prime)
 void Cube::LeftRotation(bool prime)
 {
     Serial.println("Left Rotation\r\n");
-    short sidesToMove[5] = {1, 0, 3, 5, 4};
+    short sidesToMove[5] = {0, 1, 5, 3, 4};
     short sqToMove[3] = {0, 3, 6};
     Rotate(sidesToMove, sqToMove, prime);
 }
@@ -341,7 +341,7 @@ void Cube::LeftRotation(bool prime)
 void Cube::DownRotation(bool prime)
 {
     Serial.println("Down Rotation\r\n");
-    short sidesToMove[5] = {0, 2, 3, 4, 3};
+    short sidesToMove[5] = {4, 0, 2, 5, 3};
     short sqToMove[3] = {0, 1, 2};
     Rotate(sidesToMove, sqToMove, prime);
 }

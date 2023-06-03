@@ -6,7 +6,6 @@
 
 void setup(void)
 {
-  Serial.begin(115200);
   Cube rbx;
   rbx.startGame();
 }
