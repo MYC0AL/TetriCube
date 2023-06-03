@@ -188,7 +188,7 @@ void Cube::resetGlobals()
     prevTouches[0] = prevSq;
     prevTouchCount++;
     prevDist = 0;
-    // prevSq = -1;
+    prevSq = -1;
 }
 
 void Cube::InitCube()
@@ -215,15 +215,19 @@ void Cube::Rotate(short sidesToMove[5], short sqToMove[3], bool prime) // Front 
                              m_cube[sidesToMove[tempIndex]][sqToMove[1]],
                              m_cube[sidesToMove[tempIndex]][sqToMove[2]]};
 
+    short startIndex = !prime ? 0 : 3;
+    short endIndex = !prime ? 3 : 0;
+    short increment = !prime ? 1 : -1;
+
     // Rotate all sides
-    for (int i = 0; i < 4; i++)
+    for (int i = startIndex; i != endIndex; i += increment)
     {
-        for (int j = 0; j < 3; j++) // sqToMove correspond to which sq are changing
+        for (int j = 0; j < 3; j++)
         {
-            if (prime)
-                m_cube[sidesToMove[i]][sqToMove[j]] = m_cube[sidesToMove[i + 1]][sqToMove[j]];
-            else
-                m_cube[sidesToMove[3 - i]][sqToMove[j]] = m_cube[sidesToMove[3 - i + 1]][sqToMove[j]];
+            //if (prime)
+                m_cube[sidesToMove[i]][sqToMove[j]] = m_cube[sidesToMove[i + increment]][sqToMove[j]];
+            //else
+                //m_cube[sidesToMove[2 - i]][sqToMove[j]] = m_cube[sidesToMove[2 - i + 1]][sqToMove[j]];
         }
     }
     // Replace temp
@@ -234,7 +238,7 @@ void Cube::Rotate(short sidesToMove[5], short sqToMove[3], bool prime) // Front 
     //rotateSide(sidesToMove[4], prime); // prime and cw are inverse
 }
 
-void Cube::rotateSide(short sideNum, bool prime)
+void Cube::rotateSide(short sideNum, bool prime) //Refactor to function above
 {
     short rotSeq[8] = {0, 1, 2, 5, 8, 7, 6, 3};
     short tempIndex = prime ? 0 : 3;
@@ -318,7 +322,7 @@ void Cube::UpRotation(bool prime)
 {
     Serial.println("Up Rotation\r\n");
     short sidesToMove[5] = {4, 0, 2, 5, 1};
-    short sqToMove[3] = {7, 8, 9};
+    short sqToMove[3] = {6, 7, 8};
     Rotate(sidesToMove, sqToMove, prime);
 }
 
