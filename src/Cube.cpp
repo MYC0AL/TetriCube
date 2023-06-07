@@ -38,7 +38,6 @@ void Cube::InitDisplay()
 
     // LGFX stuff
     display.setRotation(4);
-    display.setBrightness(128); // 0 - 255
     display.setColorDepth(16);
 }
 
@@ -232,7 +231,9 @@ void Cube::Rotate(short sidesToMove[5], short sqToMove[3], bool prime) // Front 
     }
     // Replace temp
     for (int i = 0; i < 3; i++)
+    {
         m_cube[sidesToMove[tempOp]][sqToMove[i]] = tempSq[i];
+    }
 
     // Rotate host side
     //rotateSide(sidesToMove[4], prime); // prime and cw are inverse
