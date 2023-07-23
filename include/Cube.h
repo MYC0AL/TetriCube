@@ -2,8 +2,8 @@
 #define CUBE_H
 
 #include <Arduino.h>
-#include "LGFX_ESP32S3_RGB_MakerfabsParallelTFTwithTouch40.h"
 #include <Arduino_GFX_Library.h>
+#include "LGFX_ESP32S3_RGB_MakerfabsParallelTFTwithTouch40.h"
 
 /* Direction Code for cube
  *     8 7 6
