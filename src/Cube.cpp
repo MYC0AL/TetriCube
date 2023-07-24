@@ -19,7 +19,7 @@ short x, y;
 
 //Color stuff
 unsigned short color_index = 0;
-int RBX_Colors[6] = {GREEN,WHITE,RED,YELLOW,ORANGE,BLUE};
+int RBX_Colors[6] = {WHITE,BLUE,RED,GREEN,ORANGE,YELLOW};
 
 Cube::Cube()
 {
@@ -223,10 +223,7 @@ void Cube::Rotate(short sidesToMove[5], short sqToMove[3], bool prime) // Front 
     {
         for (int j = 0; j < 3; j++)
         {
-            //if (prime)
-                m_cube[sidesToMove[i]][sqToMove[j]] = m_cube[sidesToMove[i + increment]][sqToMove[j]];
-            //else
-                //m_cube[sidesToMove[2 - i]][sqToMove[j]] = m_cube[sidesToMove[2 - i + 1]][sqToMove[j]];
+            m_cube[sidesToMove[i]][sqToMove[j]] = m_cube[sidesToMove[i + increment]][sqToMove[j]];
         }
     }
     // Replace temp
@@ -236,15 +233,17 @@ void Cube::Rotate(short sidesToMove[5], short sqToMove[3], bool prime) // Front 
     }
 
     // Rotate host side
-    //rotateSide(sidesToMove[4], prime); // prime and cw are inverse
+    //rotateSide(sidesToMove[4], prime); // prime and cw are inverse, sidesToMove[4] is  the face of the roating side.
 }
 
 void Cube::rotateSide(short sideNum, bool prime) //Refactor to function above
 {
-    short rotSeq[8] = {0, 1, 2, 5, 8, 7, 6, 3};
+    short rotSeq[8] = {0, 1, 2, 5, 8, 7, 6, 3}; //Side square numbers
     short tempIndex = prime ? 0 : 3;
     short tempOp = prime ? 3 : 0;
+
     SQ temp = m_cube[sideNum][tempIndex];
+
     for (int i = 0; i < 8; i++)
     {
         if (prime)
@@ -270,7 +269,7 @@ void Cube::DisplayCube()
     }
 }
 
-void Cube::RotateCube(short sideNum, short dirSwiped)
+void Cube::RotateCube(short sideNum, short dirSwiped) //Green is up, white is front
 {
     bool prime;
     if ((sideNum != 5 && sideNum != 0) && (dirSwiped == 0 || dirSwiped == 8)) // F
@@ -280,12 +279,12 @@ void Cube::RotateCube(short sideNum, short dirSwiped)
     }
     else if ((sideNum != 4 && sideNum != 2) && (dirSwiped == 2 || dirSwiped == 6)) // R
     {
-        prime = dirSwiped != 6 ? true : false;
+        prime = dirSwiped != 2 ? true : false;
         RightRotation(prime);
     }
     else if ((sideNum != 3 && sideNum != 1) && (dirSwiped == 9 || dirSwiped == 5)) // U
     {
-        prime = dirSwiped != 9 ? true : false;
+        prime = dirSwiped != 5 ? true : false;
         UpRotation(prime);
     }
     else if ((sideNum != 0 && sideNum != 5) && (dirSwiped == 2 || dirSwiped == 6)) // B
@@ -314,7 +313,7 @@ void Cube::FrontRotation(bool prime)
 void Cube::RightRotation(bool prime)
 {
     Serial.println("Right Rotation\r\n");
-    short sidesToMove[5] = {0, 1, 5, 3, 2};
+    short sidesToMove[5] = {3, 5, 1, 0, 2}; //0 1 5 3
     short sqToMove[3] = {2, 5, 8};
     Rotate(sidesToMove, sqToMove, prime);
 }
@@ -338,7 +337,7 @@ void Cube::BackRotation(bool prime)
 void Cube::LeftRotation(bool prime)
 {
     Serial.println("Left Rotation\r\n");
-    short sidesToMove[5] = {0, 1, 5, 3, 4};
+    short sidesToMove[5] = {3, 5, 1, 0, 4}; //0 1 5 3
     short sqToMove[3] = {0, 3, 6};
     Rotate(sidesToMove, sqToMove, prime);
 }
