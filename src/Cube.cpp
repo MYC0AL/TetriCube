@@ -233,25 +233,26 @@ void Cube::Rotate(short sidesToMove[5], short sqToMove[3], bool prime) // Front 
     }
 
     // Rotate host side
-    //rotateSide(sidesToMove[4], prime); // prime and cw are inverse, sidesToMove[4] is  the face of the roating side.
+    rotateSide(sidesToMove[4], prime); // prime and cw are inverse, sidesToMove[4] is  the face of the roating side.
 }
 
-void Cube::rotateSide(short sideNum, bool prime) //Refactor to function above
+void Cube::rotateSide(short sideNum, bool prime)
 {
-    short rotSeq[8] = {0, 1, 2, 5, 8, 7, 6, 3}; //Side square numbers
-    short tempIndex = prime ? 0 : 3;
-    short tempOp = prime ? 3 : 0;
+    const short sqArrSize = 4;
+    short cornerRotSeq[sqArrSize] = {0, 6, 8, 2};
+    short edgeRotSeq[sqArrSize] = {1, 3, 7, 5};
 
-    SQ temp = m_cube[sideNum][tempIndex];
+    SQ tempCorner = m_cube[sideNum][cornerRotSeq[prime ? 0 : sqArrSize - 1]];
+    SQ tempEdge = m_cube[sideNum][edgeRotSeq[prime ? 0 : sqArrSize - 1]];
 
-    for (int i = 0; i < 8; i++)
+    for (int i = prime ? 0 : sqArrSize - 1; prime ? i < sqArrSize - 1 : i > 0; prime ? i++ : i--)
     {
-        if (prime)
-            m_cube[sideNum][rotSeq[i]] = m_cube[sideNum][rotSeq[(i + 1) % 8]];
-        else
-            m_cube[sideNum][rotSeq[8 - i]] = m_cube[sideNum][rotSeq[8 - i + 1]]; // probably problem
+        m_cube[sideNum][cornerRotSeq[i]] = m_cube[sideNum][cornerRotSeq[i - (prime ? 0 : 1)]];
+        m_cube[sideNum][edgeRotSeq[i]] = m_cube[sideNum][edgeRotSeq[i - (prime ? 0 : 1)]];
     }
-    m_cube[sideNum][tempOp] = temp;
+
+    m_cube[sideNum][cornerRotSeq[prime ? sqArrSize - 1 : 0]] = tempCorner;
+    m_cube[sideNum][edgeRotSeq[prime ? sqArrSize - 1 : 0]] = tempEdge;
 }
 
 void Cube::DisplayCube()
