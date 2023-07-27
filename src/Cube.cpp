@@ -4,7 +4,7 @@
 LGFX display;
 SQ SQ_POS[9] = {{RBX_SQ0},{RBX_SQ1},{RBX_SQ2},{RBX_SQ3},{RBX_SQ4},{RBX_SQ5},{RBX_SQ6},{RBX_SQ7},{RBX_SQ8}};
 
-short DISP_NUM = 0;
+//short DISP_NUM = 0;
 short possibleSwipes[12][SWIPE_SIZE] = { {6,3,0},{7,4,1},{8,5,2}, // 0 1 2
                                          {0,1,2},{3,4,5},{6,7,8}, // 3 4 5
                                          {2,5,8},{1,4,7},{0,3,6}, // 6 7 8
@@ -44,7 +44,7 @@ void Cube::InitDisplay()
 void Cube::startGame()
 {
     // Draw initial rubiks cube
-    drawRubix();
+    drawRubiksSide(SIDE_NUM);
 
     // Infinite game loop
     while (1)
@@ -69,12 +69,13 @@ void Cube::startGame()
                     if (prevTouchCount + 1 == SWIPE_SIZE)
                     {
                         short dir = dirSwiped();
-                        if (dir != -1)
+                        if (dir != SWIPE_ERR)
                         {
-                            RotateCube(DISP_NUM, dir);
+                            RotateCube(SIDE_NUM, dir);
                             resetGlobals();
                             DisplayCube();
-                            drawRubix();
+                            //drawRubiksSide(SIDE_NUM);
+                            drawRubiksCube();
                         }
                         else
                             resetGlobals();
@@ -90,16 +91,26 @@ void Cube::startGame()
     }
 }
 
-void Cube::drawRubix()
+void Cube::drawRubiksSide(int sideNum)
 {
     for (int i = 0; i < NUM_SQUARES; i++)
     {
-        display.fillRect(m_cube[DISP_NUM][i].x,
-                         m_cube[DISP_NUM][i].y,
-                         m_cube[DISP_NUM][i].w,
-                         m_cube[DISP_NUM][i].h,
-                         m_cube[DISP_NUM][i].c);
+        display.fillRect(m_cube[sideNum][i].x,
+                         m_cube[sideNum][i].y,
+                         m_cube[sideNum][i].w,
+                         m_cube[sideNum][i].h,
+                         m_cube[sideNum][i].c);
     }
+}
+
+void Cube::drawRubiksCube()
+{
+    for(int i = 0; i < NUM_SIDES; i++)
+    {
+        drawRubiksSide(i);
+        sleep(4);
+    }
+    drawRubiksSide(SIDE_NUM);
 }
 
 short Cube::sqTapped(short xPos, short yPos)
@@ -108,8 +119,8 @@ short Cube::sqTapped(short xPos, short yPos)
     bool found = false;
     for (int i = 0; i < NUM_SQUARES && !found; i++)
     {
-        if ((xPos > m_cube[DISP_NUM][i].x && xPos < m_cube[DISP_NUM][i].x + m_cube[DISP_NUM][i].w) &&
-            (yPos > m_cube[DISP_NUM][i].y && yPos < m_cube[DISP_NUM][i].y + m_cube[DISP_NUM][i].h))
+        if ((xPos > m_cube[SIDE_NUM][i].x && xPos < m_cube[SIDE_NUM][i].x + m_cube[SIDE_NUM][i].w) &&
+            (yPos > m_cube[SIDE_NUM][i].y && yPos < m_cube[SIDE_NUM][i].y + m_cube[SIDE_NUM][i].h))
         {
             SQ_num = i;
             found = true;
@@ -140,7 +151,7 @@ short Cube::dirSwiped()
         }
     }
     if (dir == 1 || dir == 7 || dir == 10 || dir == 4)
-        dir = -1;
+        dir = SWIPE_ERR;
     return dir;
 }
 
@@ -151,7 +162,7 @@ bool Cube::validTouch()
     if (prevTouchCount == 1)
     {
         if ((abs(prevSq - prevTouches[prevTouchCount - 1]) == 1) &&
-            (m_cube[DISP_NUM][prevSq].y == m_cube[DISP_NUM][prevTouches[prevTouchCount - 1]].y))
+            (m_cube[SIDE_NUM][prevSq].y == m_cube[SIDE_NUM][prevTouches[prevTouchCount - 1]].y))
         {
             validity = true;
             prevDist = 1;
@@ -255,7 +266,7 @@ void Cube::rotateSide(short sideNum, bool prime)
     m_cube[sideNum][edgeRotSeq[prime ? sqArrSize - 1 : 0]] = tempEdge;
 }
 
-void Cube::DisplayCube()
+void Cube::DisplayCube() //Print doesnt work
 {
     for (int i = 0; i < NUM_SIDES; i++)
     {
