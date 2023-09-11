@@ -16,12 +16,19 @@ static int _x, _y, _x_bound, _y_bound;
 static void *jpegOpenFile(const char *szFilename, int32_t *pFileSize)
 {
     // Serial.println("jpegOpenFile");
-
-#if defined(ESP32)
+#if defined(ARDUINO_ARCH_SAMD) && defined(SEEED_GROVE_UI_WIRELESS)
+    _f = SD.open(szFilename, "r");
+#elif defined(ARDUINO_RASPBERRY_PI_PICO) || defined(ARDUINO_RASPBERRY_PI_PICO_W)
+    _f = LittleFS.open(szFilename, "r");
+    // _f = SDFS.open(szFilename, "r");
+#elif defined(ESP32)
     // _f = FFat.open(szFilename, "r");
-    //_f = LittleFS.open(szFilename, "r");
+    _f = LittleFS.open(szFilename, "r");
     // _f = SPIFFS.open(szFilename, "r");
-     _f = SD.open(szFilename, "r");
+    // _f = SD.open(szFilename, "r");
+#elif defined(ESP8266)
+    _f = LittleFS.open(szFilename, "r");
+    // _f = SD.open(szFilename, "r");
 #else
     _f = SD.open(szFilename, FILE_READ);
 #endif

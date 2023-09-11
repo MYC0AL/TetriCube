@@ -1,25 +1,31 @@
 #include "Cube.h"
 
-//Globals for Cube
+// Globals for Cube
 LGFX display;
-SQ SQ_POS[9] = {{RBX_SQ0},{RBX_SQ1},{RBX_SQ2},{RBX_SQ3},{RBX_SQ4},{RBX_SQ5},{RBX_SQ6},{RBX_SQ7},{RBX_SQ8}};
+SQ SQ_POS[9] = {{RBX_SQ0}, {RBX_SQ1}, {RBX_SQ2}, {RBX_SQ3}, {RBX_SQ4}, {RBX_SQ5}, {RBX_SQ6}, {RBX_SQ7}, {RBX_SQ8}};
 
-//short DISP_NUM = 0;
-short possibleSwipes[12][SWIPE_SIZE] = { {6,3,0},{7,4,1},{8,5,2}, // 0 1 2
-                                         {0,1,2},{3,4,5},{6,7,8}, // 3 4 5
-                                         {2,5,8},{1,4,7},{0,3,6}, // 6 7 8
-                                         {8,7,6},{5,4,3},{2,1,0}};// 9 10 11
+// short DISP_NUM = 0;
+short possibleSwipes[12][SWIPE_SIZE] = {{6, 3, 0}, {7, 4, 1}, {8, 5, 2}, // 0 1 2
+                                        {0, 1, 2},
+                                        {3, 4, 5},
+                                        {6, 7, 8}, // 3 4 5
+                                        {2, 5, 8},
+                                        {1, 4, 7},
+                                        {0, 3, 6}, // 6 7 8
+                                        {8, 7, 6},
+                                        {5, 4, 3},
+                                        {2, 1, 0}}; // 9 10 11
 
 short prevSq = -1;
-short prevTouches[PREV_ARR_SIZE] = {-1,-1,-1};
+short prevTouches[PREV_ARR_SIZE] = {-1, -1, -1};
 short prevTouchCount = 0;
 short prevDist = 0;
 bool validity;
 short x, y;
 
-//Color stuff
+// Color stuff
 unsigned short color_index = 0;
-int RBX_Colors[6] = {WHITE,BLUE,RED,GREEN,ORANGE,YELLOW};
+int RBX_Colors[6] = {WHITE, BLUE, RED, GREEN, ORANGE, YELLOW};
 
 Cube::Cube()
 {
@@ -74,7 +80,7 @@ void Cube::startGame()
                             RotateCube(SIDE_NUM, dir);
                             resetGlobals();
                             DisplayCube();
-                            //drawRubiksSide(SIDE_NUM);
+                            // drawRubiksSide(SIDE_NUM);
                             drawRubiksCube();
                         }
                         else
@@ -105,7 +111,7 @@ void Cube::drawRubiksSide(int sideNum)
 
 void Cube::drawRubiksCube()
 {
-    for(int i = 0; i < NUM_SIDES; i++)
+    for (int i = 0; i < NUM_SIDES; i++)
     {
         drawRubiksSide(i);
         sleep(4);
@@ -266,7 +272,7 @@ void Cube::rotateSide(short sideNum, bool prime)
     m_cube[sideNum][edgeRotSeq[prime ? sqArrSize - 1 : 0]] = tempEdge;
 }
 
-void Cube::DisplayCube() //Print doesnt work
+void Cube::DisplayCube() // Print doesnt work
 {
     for (int i = 0; i < NUM_SIDES; i++)
     {
@@ -281,7 +287,7 @@ void Cube::DisplayCube() //Print doesnt work
     }
 }
 
-void Cube::RotateCube(short sideNum, short dirSwiped) //Green is up, white is front
+void Cube::RotateCube(short sideNum, short dirSwiped) // Green is up, white is front
 {
     bool prime;
     if ((sideNum != 5 && sideNum != 0) && (dirSwiped == 0 || dirSwiped == 8)) // F
@@ -325,7 +331,7 @@ void Cube::FrontRotation(bool prime)
 void Cube::RightRotation(bool prime)
 {
     Serial.println("Right Rotation\r\n");
-    short sidesToMove[5] = {3, 5, 1, 0, 2}; //0 1 5 3
+    short sidesToMove[5] = {3, 5, 1, 0, 2}; // 0 1 5 3
     short sqToMove[3] = {2, 5, 8};
     Rotate(sidesToMove, sqToMove, prime);
 }
@@ -349,7 +355,7 @@ void Cube::BackRotation(bool prime)
 void Cube::LeftRotation(bool prime)
 {
     Serial.println("Left Rotation\r\n");
-    short sidesToMove[5] = {3, 5, 1, 0, 4}; //0 1 5 3
+    short sidesToMove[5] = {3, 5, 1, 0, 4}; // 0 1 5 3
     short sqToMove[3] = {0, 3, 6};
     Rotate(sidesToMove, sqToMove, prime);
 }
