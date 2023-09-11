@@ -35,6 +35,7 @@ Cube::Cube()
 
 Cube::~Cube()
 {
+
 }
 
 void Cube::InitDisplay()

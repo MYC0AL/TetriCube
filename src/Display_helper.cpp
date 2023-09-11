@@ -7,9 +7,6 @@ int touch_last_y;
 
 const char* home_screen = "/home_screen.jpg";
 
-// int ColorArray[] = {BLACK, BLUE, GREEN, WHITE, RED, ORANGE, NAVY, DARKGREEN, DARKCYAN, MAROON, PURPLE, OLIVE, LIGHTGREY, DARKCYAN, DARKGREY, MAGENTA, YELLOW, GREENYELLOW, PINK};
-// // int ColorArray[]={BLACK,BLUE,GREEN,WHITE,RED,ORANGE};
-
 // Bus and diaply setup
 Arduino_ESP32RGBPanel *bus = new Arduino_ESP32RGBPanel(
     1 /* CS */, 12 /* SCK */, 11 /* SDA */,
@@ -36,9 +33,9 @@ void touch_init(void)
     delay(100);
 
     digitalWrite(TOUCH_RST, LOW);
-    delay(1000);
+    delay(100);
     digitalWrite(TOUCH_RST, HIGH);
-    delay(1000);
+    delay(100);
 
     // Initialize the touch wires
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
@@ -48,6 +45,7 @@ void touch_init(void)
 
 bool touch_touched(void)
 {
+    bool retValue = false;
     ts.read();
     if (ts.isTouched)
     {
@@ -70,12 +68,9 @@ bool touch_touched(void)
             break;
         }
         ts.isTouched = false;
-        return true;
+        retValue = true;
     }
-    else
-    {
-        return false;
-    }
+    return retValue;
 }
 
 int sd_init(void)
