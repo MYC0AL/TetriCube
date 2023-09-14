@@ -1,13 +1,6 @@
 #include "Display_helper.h"
 
-TAMC_GT911 ts = TAMC_GT911(I2C_SDA_PIN, I2C_SCL_PIN, TOUCH_INT, TOUCH_RST, max(TOUCH_MAP_X1, TOUCH_MAP_X2), max(TOUCH_MAP_Y1, TOUCH_MAP_Y2));
-
-int touch_last_x;
-int touch_last_y;
-
-const char* home_screen = "/home_screen.jpg";
-
-// Bus and diaply setup
+// GFX Bus and display setup
 Arduino_ESP32RGBPanel *bus = new Arduino_ESP32RGBPanel(
     1 /* CS */, 12 /* SCK */, 11 /* SDA */,
     45 /* DE */, 4 /* VSYNC */, 5 /* HSYNC */, 21 /* PCLK */,
@@ -22,20 +15,32 @@ Arduino_ST7701_RGBPanel *gfx = new Arduino_ST7701_RGBPanel(
     st7701_type1_init_operations, sizeof(st7701_type1_init_operations),
     true /* BGR */);
 
-void touch_init(void)
+// Touchscreen driver initialization
+TAMC_GT911 ts = TAMC_GT911(I2C_SDA_PIN, I2C_SCL_PIN, TOUCH_INT, TOUCH_RST, max(TOUCH_MAP_X1, TOUCH_MAP_X2), max(TOUCH_MAP_Y1, TOUCH_MAP_Y2));
+
+
+// Out of class call back function
+static int jpegDrawCallback(JPEGDRAW *pDraw)
+{
+  // Serial.printf("Draw pos = %d,%d. size = %d x %d\n", pDraw->x, pDraw->y, pDraw->iWidth, pDraw->iHeight);
+  gfx->draw16bitBeRGBBitmap(pDraw->x, pDraw->y, pDraw->pPixels, pDraw->iWidth, pDraw->iHeight);
+  return 1;
+}
+
+void DisplayHelper::touch_init(void)
 {
     // Preemptive pin control
     pinMode(TOUCH_RST, OUTPUT);
     delay(100);
     digitalWrite(TOUCH_RST, LOW);
-    delay(100);
+    delay(1000);
     digitalWrite(TOUCH_RST, HIGH);
-    delay(100);
+    delay(1000);
 
     digitalWrite(TOUCH_RST, LOW);
-    delay(100);
+    delay(1000);
     digitalWrite(TOUCH_RST, HIGH);
-    delay(100);
+    delay(1000);
 
     // Initialize the touch wires
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
@@ -43,40 +48,28 @@ void touch_init(void)
     ts.setRotation(TOUCH_ROTATION);
 }
 
-bool touch_touched(void)
+bool DisplayHelper::touch_touched(void)
 {
     bool retValue = false;
     ts.read();
     if (ts.isTouched)
     {
-        for (int i = 0; i < ts.touches; i++)
-        {
-            touch_last_x = map(ts.points[0].x, TOUCH_MAP_X1, TOUCH_MAP_X2, 0, 480 - 1);
-            touch_last_y = map(ts.points[0].y, TOUCH_MAP_Y1, TOUCH_MAP_Y2, 0, 480 - 1);
+        // for (int i = 0; i < ts.touches; i++)
+        // {
+        //     touch_last_x = map(ts.points[0].x, TOUCH_MAP_X1, TOUCH_MAP_X2, 0, 480 - 1);
+        //     touch_last_y = map(ts.points[0].y, TOUCH_MAP_Y1, TOUCH_MAP_Y2, 0, 480 - 1);
 
-            Serial.print("Touch ");
-            Serial.print(i + 1);
-            Serial.print(": ");
-            ;
-            Serial.print("  x: ");
-            Serial.print(ts.points[i].x);
-            Serial.print("  y: ");
-            Serial.print(ts.points[i].y);
-            Serial.print("  size: ");
-            Serial.println(ts.points[i].size);
-            Serial.println(' ');
-            break;
-        }
+        //     break;
+        // }
         ts.isTouched = false;
         retValue = true;
     }
     return retValue;
 }
 
-int sd_init(void)
+int DisplayHelper::sd_init(void)
 {
     int retCode = TC_SUCCESS;
-    gfx->begin();
 
     SPI.begin(SD_SCK, SD_MISO, SD_MOSI);
     if (!SD.begin(SD_CS))
@@ -96,15 +89,23 @@ int sd_init(void)
     return retCode;
 }
 
-static int jpegDrawCallback(JPEGDRAW *pDraw)
-{
-  // Serial.printf("Draw pos = %d,%d. size = %d x %d\n", pDraw->x, pDraw->y, pDraw->iWidth, pDraw->iHeight);
-  gfx->draw16bitBeRGBBitmap(pDraw->x, pDraw->y, pDraw->pPixels, pDraw->iWidth, pDraw->iHeight);
-  return 1;
-}
-
-void drawImage(const char *file_name)
+void DisplayHelper::drawImage(const char *file_name)
 {
   jpegDraw(file_name, jpegDrawCallback, true /* useBigEndian */,
            0 /* x */, 0 /* y */, gfx->width() /* widthLimit */, gfx->height() /* heightLimit */);
+}
+
+void DisplayHelper::clear_screen()
+{
+    gfx->fillScreen(BLACK);
+}
+
+void DisplayHelper::gfx_init()
+{
+    gfx->begin();
+}
+
+void DisplayHelper::gfx_uninit()
+{
+    
 }

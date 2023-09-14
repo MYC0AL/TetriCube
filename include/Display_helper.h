@@ -61,17 +61,47 @@
 #define GFX_BL -1
 #define TFT_BL GFX_BL
 
+// Display number
+#define DISP_NUM 0
+
 // Error Codes
 #define TC_SD_ERR 1
 
-// Success Code
+// Success Codes
 #define TC_SUCCESS 0
 
-// // Function declarations
-void touch_init(void);
-bool touch_touched(void);
-int sd_init(void);
-static int jpegDrawCallback(JPEGDRAW *pDraw);
-void drawImage(const char * file_name);
+// Struct declarations
+struct UIButton {
+    ushort x;
+    ushort y;
+    ushort w;
+    ushort h;
+};
+
+// Declared extern to allow cross-file manipulation
+extern Arduino_ESP32RGBPanel *bus;
+extern Arduino_ST7701_RGBPanel *gfx;
+extern TAMC_GT911 ts;
+
+// Class definition
+class DisplayHelper
+{
+protected:
+
+    // Touchscreen helper variables
+    int touch_last_x;
+    int touch_last_y;
+
+public:
+
+    void gfx_init();
+    void gfx_uninit();
+    void touch_init(void);
+    bool touch_touched(void);
+    int sd_init(void);
+    void drawImage(const char * file_name);
+    void clear_screen();
+
+};
 
 #endif
