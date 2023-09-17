@@ -1,9 +1,4 @@
-#include "Cube.h"
 #include "State_driver.h"
-
-// JPG files
-const char* HOME_SCREEN_FILE = "/home_screen_opt.jpg";
-const char* SELECT_GAME_FILE = "/select_game_opt.jpg";
 
 void setup(void)
 {
@@ -12,19 +7,14 @@ void setup(void)
   // Initialize state driver
   StateDriver drv;
 
-  drv.dHelp.touch_init();
-  drv.dHelp.gfx_init();  
+  //Update start state
+  drv.request_state_change(STATE_START);
 
-  if (drv.dHelp.sd_init() == TC_SUCCESS)
-  {
-    while(1)
-    {
-      drv.dHelp.drawImage(HOME_SCREEN_FILE);
-      sleep(2);
-      drv.dHelp.drawImage(SELECT_GAME_FILE);
-      sleep(2);
-    }
-  }
+  // Infinite state controller
+  drv.state_controller();
+
+  //drv.dHelp.drawImage(HOME_SCREEN_FILE);
+  //sleep(1);
 
   //Initialize rubiks cube object
   //Cube rbx;

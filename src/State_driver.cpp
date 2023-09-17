@@ -1,4 +1,73 @@
 #include "State_driver.h"
+//#include "Cube.h"
+
+/**
+ * State driver default constructor
+*/
+StateDriver::StateDriver()
+{
+    drv_state = STATE_INIT;
+}
+
+/**
+ * Active controller that controlls when states transition
+*/ 
+void StateDriver::state_controller()
+{
+    while(1)
+    {
+        switch (drv_state)
+        {
+            case STATE_START:
+                if (dHelp.touch_touched())
+                {
+                    if (dHelp.touch_decoder(UI_START) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_SELECT_GAME);
+                    }
+                }
+                break;
+
+            case STATE_SELECT_GAME:
+                if (dHelp.touch_touched())
+                {
+                    if (dHelp.touch_decoder(UI_BACK_TO_START) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_START);
+                    }
+                    else if (dHelp.touch_decoder(UI_RUBIKS) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_RUBIKS);
+                    }
+                    else if (dHelp.touch_decoder(UI_TETRIS) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_TETRIS);
+                    }
+                }
+                break;
+
+            case STATE_SETTINGS:
+
+                break;
+
+            case STATE_TETRIS:
+
+                break;
+
+            case STATE_RUBIKS:
+
+                break;
+
+            case STATE_TETRIS_END:
+
+                break;
+
+            case STATE_RUBIKS_END:
+
+                break;
+        }
+    }
+}
 
 /* 
  * This function will update the display and any neccessary
@@ -13,41 +82,48 @@ void StateDriver::update_new_state(state_t new_state)
     switch(new_state)
     {
         case STATE_START:
-            #if DISP_NUM == 0
-
+            #if (DISP_NUM == 0)
+                dHelp.drawImage(SCENE_HOME.image);
+                dHelp.active_ui = SCENE_HOME.ui_elements;
             #endif
             break;
 
         case STATE_SELECT_GAME:
-
+            #if (DISP_NUM == 0)
+                dHelp.drawImage(SCENE_SELECT_GAME.image);
+                dHelp.active_ui = SCENE_SELECT_GAME.ui_elements;
+            #endif
             break;
-
 
         case STATE_SETTINGS:
 
             break;
 
-
         case STATE_TETRIS:
 
             break;
-
 
         case STATE_RUBIKS:
 
             break;
 
-
         case STATE_TETRIS_END:
 
             break;
 
-
         case STATE_RUBIKS_END:
 
             break;
-
     }
+
+    // Update private state variable 
+    drv_state = new_state;
+
+    // -----DEBUG-----
+    dHelp.drawUI();
+
+    // Pause between state transistions
+    sleep(1);
 }
 
 /*
@@ -56,12 +132,19 @@ void StateDriver::update_new_state(state_t new_state)
  * If the transistion was successful, the drv_state will update and
  * any new application updates will be performed. 
 */
-int StateDriver::request_state_change(state_t new_state)
+state_code_t StateDriver::request_state_change(state_t new_state)
 {
     state_code_t retCode = STATE_ERROR;
 
     switch (drv_state)
     {
+        case STATE_INIT:
+            if (new_state == STATE_START)
+            {
+                retCode = STATE_SUCCESS;
+            }
+            break;
+
         case STATE_START:
             if (new_state == STATE_SELECT_GAME)
             {
@@ -130,7 +213,7 @@ int StateDriver::request_state_change(state_t new_state)
 /**
  * Send state update to all displays.
 */
-void broadcast_state_transition(state_t new_state)
+void StateDriver::broadcast_state_transition(state_t new_state)
 {
 
 }

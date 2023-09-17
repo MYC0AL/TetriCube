@@ -11,6 +11,7 @@
 #include "SPI.h"
 #include "FS.h"
 #include "JpegFunc.h"
+#include "UI_Elements.h"
 
 #define LGFX_AUTODETECT
 #define ESP32_8048S043
@@ -18,29 +19,15 @@
 #define I2C_SDA_PIN 17
 #define I2C_SCL_PIN 18
 
-#define JPEG_FILENAME_LOGO "/logo.jpg"
-#define JPEG_FILENAME_COVER "/cover.jpg"
-#define JPEG_FILENAME_COVER_01 "/cover01.jpg"
-
-#define JPEG_FILENAME_01 "/image01.jpg"
-#define JPEG_FILENAME_02 "/image02.jpg"
-#define JPEG_FILENAME_03 "/image03.jpg"
-#define JPEG_FILENAME_04 "/image04.jpg"
-#define JPEG_FILENAME_05 "/image05.jpg"
-#define JPEG_FILENAME_06 "/image06.jpg"
-#define JPEG_FILENAME_07 "/image07.jpg"
-
 //microSD card
 #define SD_SCK  12
 #define SD_MISO 13
 #define SD_MOSI 11
 #define SD_CS   10
 
-#define AUDIO_FILENAME_01   "/ChildhoodMemory.mp3"
-
-#define AUDIO_FILENAME_02   "/SoundofSilence.mp3"
-
-#define AUDIO_FILENAME_03   "/MoonlightBay.mp3"
+// Jpg File Names
+//const char* HOME_SCREEN_FILE = "/home_screen_opt.jpg";
+//const char* SELECT_GAME_FILE = "/select_game_opt.jpg";
 
 //I2S
 #define I2S_DOUT      19
@@ -66,17 +53,14 @@
 
 // Error Codes
 #define TC_SD_ERR 1
+#define TC_NO_UI_TOUCH 2
 
 // Success Codes
 #define TC_SUCCESS 0
+#define TC_UI_TOUCH 0
 
-// Struct declarations
-struct UIButton {
-    ushort x;
-    ushort y;
-    ushort w;
-    ushort h;
-};
+// Typedef for return codes
+typedef short tc_ret_code;
 
 // Declared extern to allow cross-file manipulation
 extern Arduino_ESP32RGBPanel *bus;
@@ -86,21 +70,27 @@ extern TAMC_GT911 ts;
 // Class definition
 class DisplayHelper
 {
-protected:
+
+private:
+    void gfx_init();
+    void touch_init(void);
+    int sd_init(void);
+
+public:
+
+    DisplayHelper();
+    void gfx_uninit();
+    bool touch_touched(void);
+    void drawImage(const char * file_name);
+    void clear_screen();
+    tc_ret_code touch_decoder(UIButton button);
+    void drawUI();
 
     // Touchscreen helper variables
     int touch_last_x;
     int touch_last_y;
 
-public:
-
-    void gfx_init();
-    void gfx_uninit();
-    void touch_init(void);
-    bool touch_touched(void);
-    int sd_init(void);
-    void drawImage(const char * file_name);
-    void clear_screen();
+    std::vector<UIButton> active_ui;
 
 };
 

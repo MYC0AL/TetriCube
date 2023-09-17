@@ -18,7 +18,6 @@ Arduino_ST7701_RGBPanel *gfx = new Arduino_ST7701_RGBPanel(
 // Touchscreen driver initialization
 TAMC_GT911 ts = TAMC_GT911(I2C_SDA_PIN, I2C_SCL_PIN, TOUCH_INT, TOUCH_RST, max(TOUCH_MAP_X1, TOUCH_MAP_X2), max(TOUCH_MAP_Y1, TOUCH_MAP_Y2));
 
-
 // Out of class call back function
 static int jpegDrawCallback(JPEGDRAW *pDraw)
 {
@@ -30,17 +29,17 @@ static int jpegDrawCallback(JPEGDRAW *pDraw)
 void DisplayHelper::touch_init(void)
 {
     // Preemptive pin control
-    pinMode(TOUCH_RST, OUTPUT);
-    delay(100);
-    digitalWrite(TOUCH_RST, LOW);
-    delay(1000);
-    digitalWrite(TOUCH_RST, HIGH);
-    delay(1000);
+    // pinMode(TOUCH_RST, OUTPUT);
+    // delay(100);
+    // digitalWrite(TOUCH_RST, LOW);
+    // delay(1000);
+    // digitalWrite(TOUCH_RST, HIGH);
+    // delay(1000);
 
-    digitalWrite(TOUCH_RST, LOW);
-    delay(1000);
-    digitalWrite(TOUCH_RST, HIGH);
-    delay(1000);
+    // digitalWrite(TOUCH_RST, LOW);
+    // delay(1000);
+    // digitalWrite(TOUCH_RST, HIGH);
+    // delay(1000);
 
     // Initialize the touch wires
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
@@ -61,7 +60,9 @@ bool DisplayHelper::touch_touched(void)
 
         //     break;
         // }
-        ts.isTouched = false;
+        touch_last_x = map(ts.points[0].x, TOUCH_MAP_X1, TOUCH_MAP_X2, 0, 480 - 1);
+        touch_last_y = map(ts.points[0].y, TOUCH_MAP_Y1, TOUCH_MAP_Y2, 0, 480 - 1);
+        
         retValue = true;
     }
     return retValue;
@@ -105,7 +106,43 @@ void DisplayHelper::gfx_init()
     gfx->begin();
 }
 
+DisplayHelper::DisplayHelper()
+{
+    // Initialize display
+    gfx_init();
+
+    // Initialize touch driver
+    touch_init();
+
+    // Initialize SD driver
+    sd_init();
+
+}
+
 void DisplayHelper::gfx_uninit()
 {
     
+}
+
+tc_ret_code DisplayHelper::touch_decoder(UIButton button)
+{
+    tc_ret_code returnCode = TC_NO_UI_TOUCH;
+
+    if (touch_last_x > button.x && 
+        touch_last_x < button.x + button.w &&
+        touch_last_y > button.y &&
+        touch_last_y < button.y + button.h)
+        {
+            returnCode = TC_UI_TOUCH;
+        }
+
+    return returnCode;
+}
+
+void DisplayHelper::drawUI()
+{
+    for (int i = 0; i < active_ui.size(); i++)
+    {
+        gfx->drawRect(active_ui[i].x, active_ui[i].y, active_ui[i].w, active_ui[i].h, PINK);
+    }
 }

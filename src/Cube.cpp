@@ -43,7 +43,7 @@ void Cube::InitDisplay()
     // Init display
     display.init();
 
-    // LGFX stuff
+    // Configure display
     display.setRotation(4);
     display.setColorDepth(16);
 }
