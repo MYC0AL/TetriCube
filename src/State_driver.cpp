@@ -15,7 +15,11 @@ StateDriver::StateDriver()
 void StateDriver::state_controller()
 {
     while(1)
-    {
+    {   
+        gfx->fillCircle(20,230,5,RED);
+        delayMicroseconds(15);
+        gfx->fillCircle(20,230,5,BLACK);
+        delayMicroseconds(15);
         switch (drv_state)
         {
             case STATE_START:
@@ -43,11 +47,21 @@ void StateDriver::state_controller()
                     {
                         request_state_change(STATE_TETRIS);
                     }
+                    else if (dHelp.touch_decoder(UI_SETTINGS) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_SETTINGS);
+                    }
                 }
                 break;
 
             case STATE_SETTINGS:
-
+                if (dHelp.touch_touched())
+                {
+                    if (dHelp.touch_decoder(UI_BACK_TO_SELECT) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_SELECT_GAME);
+                    }
+                }
                 break;
 
             case STATE_TETRIS:
@@ -79,6 +93,9 @@ void StateDriver::update_new_state(state_t new_state)
     // Clear screen to prepare for new state transistion
     dHelp.clear_screen();
 
+    // Reset active ui
+    dHelp.active_ui.clear();
+
     switch(new_state)
     {
         case STATE_START:
@@ -96,7 +113,10 @@ void StateDriver::update_new_state(state_t new_state)
             break;
 
         case STATE_SETTINGS:
-
+            #if (DISP_NUM == 0)
+                dHelp.drawImage(SCENE_SELECT_GAME.image);
+                dHelp.active_ui = SCENE_SETTINGS.ui_elements;
+            #endif             
             break;
 
         case STATE_TETRIS:
@@ -123,7 +143,7 @@ void StateDriver::update_new_state(state_t new_state)
     dHelp.drawUI();
 
     // Pause between state transistions
-    sleep(1);
+    delay(500);
 }
 
 /*
@@ -135,6 +155,8 @@ void StateDriver::update_new_state(state_t new_state)
 state_code_t StateDriver::request_state_change(state_t new_state)
 {
     state_code_t retCode = STATE_ERROR;
+
+    //TODO: Check if bus is available
 
     switch (drv_state)
     {

@@ -1,5 +1,7 @@
 #include "Display_helper.h"
 
+using std::make_pair;
+
 // GFX Bus and display setup
 Arduino_ESP32RGBPanel *bus = new Arduino_ESP32RGBPanel(
     1 /* CS */, 12 /* SCK */, 11 /* SDA */,
@@ -32,19 +34,22 @@ void DisplayHelper::touch_init(void)
     // pinMode(TOUCH_RST, OUTPUT);
     // delay(100);
     // digitalWrite(TOUCH_RST, LOW);
-    // delay(1000);
+    // delay(100);
     // digitalWrite(TOUCH_RST, HIGH);
-    // delay(1000);
-
+    // delay(100);
     // digitalWrite(TOUCH_RST, LOW);
-    // delay(1000);
+    // delay(100);
     // digitalWrite(TOUCH_RST, HIGH);
-    // delay(1000);
+    // delay(100);
 
     // Initialize the touch wires
-    Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+    
     ts.begin();
     ts.setRotation(TOUCH_ROTATION);
+    Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+
+    touch_last_x = -1;
+    touch_last_y = -1;
 }
 
 bool DisplayHelper::touch_touched(void)
@@ -53,18 +58,25 @@ bool DisplayHelper::touch_touched(void)
     ts.read();
     if (ts.isTouched)
     {
-        // for (int i = 0; i < ts.touches; i++)
-        // {
-        //     touch_last_x = map(ts.points[0].x, TOUCH_MAP_X1, TOUCH_MAP_X2, 0, 480 - 1);
-        //     touch_last_y = map(ts.points[0].y, TOUCH_MAP_Y1, TOUCH_MAP_Y2, 0, 480 - 1);
+        // all_touches_x.clear();
+        // all_touches_y.clear();
 
-        //     break;
+        // for (uint8_t i = 0; i < ts.touches; i++)
+        // {
+        //     all_touches_x.push_back(map(ts.points[i].x, TOUCH_MAP_X1, TOUCH_MAP_X2, 0, 480 - 1));
+        //     all_touches_y.push_back(map(ts.points[i].y, TOUCH_MAP_Y1, TOUCH_MAP_Y2, 0, 480 - 1));
+            
+        //     //all_touches[i].first = map(ts.points[i].x, TOUCH_MAP_X1, TOUCH_MAP_X2, 0, 480 - 1);
+        //     //all_touches[i].second = map(ts.points[i].y, TOUCH_MAP_Y1, TOUCH_MAP_Y2, 0, 480 - 1);
         // }
+
         touch_last_x = map(ts.points[0].x, TOUCH_MAP_X1, TOUCH_MAP_X2, 0, 480 - 1);
         touch_last_y = map(ts.points[0].y, TOUCH_MAP_Y1, TOUCH_MAP_Y2, 0, 480 - 1);
         
+        ts.isTouched = false;
         retValue = true;
     }
+
     return retValue;
 }
 
@@ -108,11 +120,11 @@ void DisplayHelper::gfx_init()
 
 DisplayHelper::DisplayHelper()
 {
-    // Initialize display
-    gfx_init();
-
     // Initialize touch driver
     touch_init();
+
+    // Initialize display
+    gfx_init();
 
     // Initialize SD driver
     sd_init();
@@ -128,13 +140,27 @@ tc_ret_code DisplayHelper::touch_decoder(UIButton button)
 {
     tc_ret_code returnCode = TC_NO_UI_TOUCH;
 
+    // for (uint8_t i = 0; i < all_touches_x.size() && returnCode != TC_UI_TOUCH; i++)
+    // {
+    //     if (all_touches_x[i] > button.x && 
+    //         all_touches_x[i] < button.x + button.w &&
+    //         all_touches_y[i] > button.y &&
+    //         all_touches_y[i] < button.y + button.h)
+    //     {
+    //         returnCode = TC_UI_TOUCH;
+    //     }
+    // }
+
     if (touch_last_x > button.x && 
         touch_last_x < button.x + button.w &&
         touch_last_y > button.y &&
         touch_last_y < button.y + button.h)
-        {
-            returnCode = TC_UI_TOUCH;
-        }
+    {
+        returnCode = TC_UI_TOUCH;
+        // Valid touch found, reset touch locations
+        touch_last_x = -1;
+        touch_last_y = -1;
+    }
 
     return returnCode;
 }

@@ -44,6 +44,7 @@
 #define TOUCH_MAP_X2 0
 #define TOUCH_MAP_Y1 480
 #define TOUCH_MAP_Y2 0
+#define TOUCH_MAX 5
 
 #define GFX_BL -1
 #define TFT_BL GFX_BL
@@ -89,6 +90,9 @@ public:
     // Touchscreen helper variables
     int touch_last_x;
     int touch_last_y;
+
+    //std::vector<uint8_t> all_touches_x;
+    //std::vector<uint8_t> all_touches_y;
 
     std::vector<UIButton> active_ui;
 

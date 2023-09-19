@@ -17,12 +17,16 @@ struct Scene {
 };
 
 //All buttons
-const UIButton UI_START = {145,210,200,50};
-const UIButton UI_BACK_TO_START = {10,410,70,70};
+const UIButton UI_START = {145,200,200,70};
+const UIButton UI_BACK_TO_START = {10,395,85,85};
 const UIButton UI_RUBIKS = {60,180,135,135};
 const UIButton UI_TETRIS = {285,180,135,130};
+const UIButton UI_SETTINGS = {140,365,200,60};
+const UIButton UI_BACK_TO_SELECT = {10,395,85,85};
+
 // Home Scene
 const Scene SCENE_HOME = {"/home_screen_opt.jpg", {UI_START} };
-const Scene SCENE_SELECT_GAME = {"/select_game_opt.jpg", {UI_BACK_TO_START, UI_TETRIS, UI_RUBIKS} };
+const Scene SCENE_SELECT_GAME = {"/select_game_opt.jpg", {UI_BACK_TO_START, UI_TETRIS, UI_RUBIKS, UI_SETTINGS} };
+const Scene SCENE_SETTINGS = {"/settings", {UI_BACK_TO_SELECT} };
 
 #endif
