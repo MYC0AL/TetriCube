@@ -30,50 +30,41 @@ static int jpegDrawCallback(JPEGDRAW *pDraw)
 
 void DisplayHelper::touch_init(void)
 {
-    // Preemptive pin control
-    // pinMode(TOUCH_RST, OUTPUT);
-    // delay(100);
-    // digitalWrite(TOUCH_RST, LOW);
-    // delay(100);
-    // digitalWrite(TOUCH_RST, HIGH);
-    // delay(100);
-    // digitalWrite(TOUCH_RST, LOW);
-    // delay(100);
-    // digitalWrite(TOUCH_RST, HIGH);
-    // delay(100);
-
     // Initialize the touch wires
-    
+
     ts.begin();
     ts.setRotation(TOUCH_ROTATION);
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
 
-    touch_last_x = -1;
-    touch_last_y = -1;
+    pinMode(TOUCH_RST, OUTPUT);
 }
 
 bool DisplayHelper::touch_touched(void)
 {
     bool retValue = false;
+
+    // Reset old touches
+    touch_reset();
+
+    // Read current touches
     ts.read();
+
+    // Set touch count
+    touch_count = ts.touches;
+
     if (ts.isTouched)
     {
-        // all_touches_x.clear();
-        // all_touches_y.clear();
+        // Save all current touches
+        for (uint8_t i = 0; i < touch_count; ++i)
+        {
+            current_touches[i].x = map(ts.points[i].x, TOUCH_MAP_X1, TOUCH_MAP_X2, 0, 480 - 1);
+            current_touches[i].y = map(ts.points[i].y, TOUCH_MAP_Y1, TOUCH_MAP_Y2, 0, 480 - 1);
+        }
 
-        // for (uint8_t i = 0; i < ts.touches; i++)
-        // {
-        //     all_touches_x.push_back(map(ts.points[i].x, TOUCH_MAP_X1, TOUCH_MAP_X2, 0, 480 - 1));
-        //     all_touches_y.push_back(map(ts.points[i].y, TOUCH_MAP_Y1, TOUCH_MAP_Y2, 0, 480 - 1));
-            
-        //     //all_touches[i].first = map(ts.points[i].x, TOUCH_MAP_X1, TOUCH_MAP_X2, 0, 480 - 1);
-        //     //all_touches[i].second = map(ts.points[i].y, TOUCH_MAP_Y1, TOUCH_MAP_Y2, 0, 480 - 1);
-        // }
-
-        touch_last_x = map(ts.points[0].x, TOUCH_MAP_X1, TOUCH_MAP_X2, 0, 480 - 1);
-        touch_last_y = map(ts.points[0].y, TOUCH_MAP_Y1, TOUCH_MAP_Y2, 0, 480 - 1);
-        
+        // Reset the 'isTouched' flag
         ts.isTouched = false;
+
+        // Set return value
         retValue = true;
     }
 
@@ -122,12 +113,16 @@ DisplayHelper::DisplayHelper()
 {
     // Initialize touch driver
     touch_init();
+    delay(200);
 
     // Initialize display
     gfx_init();
 
     // Initialize SD driver
     sd_init();
+
+    // Variable initialization
+    touch_count = 0;
 
 }
 
@@ -140,26 +135,19 @@ tc_ret_code DisplayHelper::touch_decoder(UIButton button)
 {
     tc_ret_code returnCode = TC_NO_UI_TOUCH;
 
-    // for (uint8_t i = 0; i < all_touches_x.size() && returnCode != TC_UI_TOUCH; i++)
-    // {
-    //     if (all_touches_x[i] > button.x && 
-    //         all_touches_x[i] < button.x + button.w &&
-    //         all_touches_y[i] > button.y &&
-    //         all_touches_y[i] < button.y + button.h)
-    //     {
-    //         returnCode = TC_UI_TOUCH;
-    //     }
-    // }
-
-    if (touch_last_x > button.x && 
-        touch_last_x < button.x + button.w &&
-        touch_last_y > button.y &&
-        touch_last_y < button.y + button.h)
+    for (uint8_t i = 0; i < touch_count && returnCode != TC_UI_TOUCH; ++i)
     {
-        returnCode = TC_UI_TOUCH;
-        // Valid touch found, reset touch locations
-        touch_last_x = -1;
-        touch_last_y = -1;
+        if (current_touches[i].x > button.x && 
+            current_touches[i].x < button.x + button.w &&
+            current_touches[i].y > button.y &&
+            current_touches[i].y < button.y + button.h)
+        {
+            // Set return code
+            returnCode = TC_UI_TOUCH;
+
+            // Reset touch variables
+            touch_reset();
+        }
     }
 
     return returnCode;
@@ -170,5 +158,17 @@ void DisplayHelper::drawUI()
     for (int i = 0; i < active_ui.size(); i++)
     {
         gfx->drawRect(active_ui[i].x, active_ui[i].y, active_ui[i].w, active_ui[i].h, PINK);
+    }
+}
+
+void DisplayHelper::touch_reset()
+{
+    touch_count = 0;
+    ts.isTouched = false;
+    ts.touches = 0;
+
+    for(int i = 0; i < TOUCH_MAX; ++i)
+    {
+        current_touches[i] = TP_Point();
     }
 }

@@ -143,7 +143,10 @@ void StateDriver::update_new_state(state_t new_state)
     dHelp.drawUI();
 
     // Pause between state transistions
-    delay(500);
+    delay(400);
+
+    // Reset touches
+    dHelp.touch_reset();
 }
 
 /*

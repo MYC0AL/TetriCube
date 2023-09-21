@@ -85,14 +85,12 @@ public:
     void drawImage(const char * file_name);
     void clear_screen();
     tc_ret_code touch_decoder(UIButton button);
+    void touch_reset();
     void drawUI();
 
     // Touchscreen helper variables
-    int touch_last_x;
-    int touch_last_y;
-
-    //std::vector<uint8_t> all_touches_x;
-    //std::vector<uint8_t> all_touches_y;
+    TP_Point current_touches[TOUCH_MAX];
+    uint8_t touch_count;
 
     std::vector<UIButton> active_ui;
 
