@@ -147,6 +147,7 @@ tc_ret_code DisplayHelper::touch_decoder(UIButton button)
 
             // Reset touch variables
             touch_reset();
+
         }
     }
 
@@ -167,8 +168,12 @@ void DisplayHelper::touch_reset()
     ts.isTouched = false;
     ts.touches = 0;
 
+    // Clear ts var by reading
+    ts.read();
+
     for(int i = 0; i < TOUCH_MAX; ++i)
     {
         current_touches[i] = TP_Point();
+        ts.points[i] = TP_Point();
     }
 }
