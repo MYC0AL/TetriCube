@@ -35,7 +35,7 @@ void StateDriver::state_controller()
             case STATE_SELECT_GAME:
                 if (dHelp.touch_touched())
                 {
-                    if (dHelp.touch_decoder(UI_BACK_TO_START) == TC_UI_TOUCH)
+                    if (dHelp.touch_decoder(UI_BACK) == TC_UI_TOUCH)
                     {
                         request_state_change(STATE_START);
                     }
@@ -51,13 +51,27 @@ void StateDriver::state_controller()
                     {
                         request_state_change(STATE_SETTINGS);
                     }
+                    else if (dHelp.touch_decoder(UI_HIGH_SCORES) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_HIGH_SCORES);
+                    }
                 }
                 break;
 
             case STATE_SETTINGS:
                 if (dHelp.touch_touched())
                 {
-                    if (dHelp.touch_decoder(UI_BACK_TO_SELECT) == TC_UI_TOUCH)
+                    if (dHelp.touch_decoder(UI_BACK) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_SELECT_GAME);
+                    }
+                }
+                break;
+
+            case STATE_HIGH_SCORES:
+                if (dHelp.touch_touched())
+                {
+                    if (dHelp.touch_decoder(UI_BACK) == TC_UI_TOUCH)
                     {
                         request_state_change(STATE_SELECT_GAME);
                     }
@@ -91,7 +105,7 @@ void StateDriver::state_controller()
 void StateDriver::update_new_state(state_t new_state)
 {
     // Clear screen to prepare for new state transistion
-    dHelp.clear_screen();
+    //dHelp.clear_screen();
 
     // Reset active ui
     dHelp.active_ui.clear();
@@ -114,9 +128,16 @@ void StateDriver::update_new_state(state_t new_state)
 
         case STATE_SETTINGS:
             #if (DISP_NUM == 0)
-                dHelp.drawImage(SCENE_SELECT_GAME.image);
+                dHelp.drawImage(SCENE_SETTINGS.image);
                 dHelp.active_ui = SCENE_SETTINGS.ui_elements;
             #endif             
+            break;
+
+        case STATE_HIGH_SCORES:
+            #if (DISP_NUM == 0)
+                dHelp.drawImage(SCENE_HIGH_SCORES.image);
+                dHelp.active_ui = SCENE_HIGH_SCORES.ui_elements;
+            #endif
             break;
 
         case STATE_TETRIS:
@@ -140,7 +161,7 @@ void StateDriver::update_new_state(state_t new_state)
     drv_state = new_state;
 
     // -----DEBUG-----
-    dHelp.drawUI();
+    //dHelp.drawUI();
 
     // Pause between state transistions
     delay(400);
@@ -179,7 +200,8 @@ state_code_t StateDriver::request_state_change(state_t new_state)
 
         case STATE_SELECT_GAME:
             if (new_state == STATE_START || new_state == STATE_TETRIS ||
-                new_state == STATE_RUBIKS || new_state == STATE_SETTINGS)
+                new_state == STATE_RUBIKS || new_state == STATE_SETTINGS ||
+                new_state == STATE_HIGH_SCORES)
             {
                 retCode = STATE_SUCCESS;
             }
@@ -190,6 +212,14 @@ state_code_t StateDriver::request_state_change(state_t new_state)
                 new_state == STATE_RUBIKS)
             {
                 retCode = STATE_SUCCESS;
+            }
+            break;
+
+        case STATE_HIGH_SCORES:
+            if (new_state == STATE_SELECT_GAME || new_state == STATE_TETRIS ||
+                new_state == STATE_RUBIKS)
+            {
+                    retCode = STATE_SUCCESS;
             }
             break;
 

@@ -5,7 +5,7 @@
 
 // State definitions
 enum state_t {STATE_INIT, STATE_START, STATE_SELECT_GAME, STATE_SETTINGS,
-            STATE_TETRIS, STATE_TETRIS_END, STATE_RUBIKS, 
+            STATE_HIGH_SCORES, STATE_TETRIS, STATE_TETRIS_END, STATE_RUBIKS, 
             STATE_RUBIKS_END};
 
 // State return codes

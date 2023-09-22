@@ -31,7 +31,6 @@ static int jpegDrawCallback(JPEGDRAW *pDraw)
 void DisplayHelper::touch_init(void)
 {
     // Initialize the touch wires
-
     ts.begin();
     ts.setRotation(TOUCH_ROTATION);
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
