@@ -1,5 +1,4 @@
 #include "State_driver.h"
-//#include "Cube.h"
 
 /**
  * State driver default constructor
@@ -104,8 +103,6 @@ void StateDriver::state_controller()
  */
 void StateDriver::update_new_state(state_t new_state)
 {
-    // Clear screen to prepare for new state transistion
-    //dHelp.clear_screen();
 
     // Reset active ui
     dHelp.active_ui.clear();
@@ -113,48 +110,66 @@ void StateDriver::update_new_state(state_t new_state)
     switch(new_state)
     {
         case STATE_START:
+        {
             #if (DISP_NUM == 0)
                 dHelp.drawImage(SCENE_HOME.image);
                 dHelp.active_ui = SCENE_HOME.ui_elements;
             #endif
             break;
+        }
 
         case STATE_SELECT_GAME:
+        {
             #if (DISP_NUM == 0)
                 dHelp.drawImage(SCENE_SELECT_GAME.image);
                 dHelp.active_ui = SCENE_SELECT_GAME.ui_elements;
             #endif
             break;
+        }
 
         case STATE_SETTINGS:
+        {
             #if (DISP_NUM == 0)
                 dHelp.drawImage(SCENE_SETTINGS.image);
                 dHelp.active_ui = SCENE_SETTINGS.ui_elements;
             #endif             
             break;
+        }
 
         case STATE_HIGH_SCORES:
+        {
             #if (DISP_NUM == 0)
                 dHelp.drawImage(SCENE_HIGH_SCORES.image);
                 dHelp.active_ui = SCENE_HIGH_SCORES.ui_elements;
             #endif
             break;
+        }
 
         case STATE_TETRIS:
-
+        {
             break;
+        }
 
         case STATE_RUBIKS:
+        {// <-- must use brackets here to stop 'switch' related errors
+            // Clear screen to reset background
+            dHelp.clear_screen();
+
+            // Start rubiks cube
+            //rbx.startGame();
 
             break;
+        }
 
         case STATE_TETRIS_END:
-
+        {
             break;
+        }
 
         case STATE_RUBIKS_END:
-
+        {
             break;
+        }
     }
 
     // Update private state variable 

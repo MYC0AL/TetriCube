@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <Arduino_GFX_Library.h>
+//#include "Display_helper.h"
 #include "LGFX_ESP32S3_RGB_MakerfabsParallelTFTwithTouch40.h"
 
 /* Direction Code for cube

@@ -30,7 +30,7 @@ int RBX_Colors[6] = {WHITE, BLUE, RED, GREEN, ORANGE, YELLOW};
 Cube::Cube()
 {
     InitCube();
-    InitDisplay();
+    //InitDisplay();
 }
 
 Cube::~Cube()
@@ -50,6 +50,9 @@ void Cube::InitDisplay()
 
 void Cube::startGame()
 {
+
+    InitDisplay();
+
     // Draw initial rubiks cube
     drawRubiksSide(SIDE_NUM);
 

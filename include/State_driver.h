@@ -2,6 +2,7 @@
 #define STATE_DRIVER_H
 
 #include "Display_helper.h"
+//#include "Cube.h"
 
 // State definitions
 enum state_t {STATE_INIT, STATE_START, STATE_SELECT_GAME, STATE_SETTINGS,
@@ -29,6 +30,9 @@ public:
     StateDriver();
     state_code_t request_state_change(state_t new_state);
     void state_controller();
+
+    // Has-a relationship with Cube
+    //Cube rbx;
 
 };
 
