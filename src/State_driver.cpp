@@ -78,7 +78,7 @@ void StateDriver::state_controller()
                 break;
 
             case STATE_TETRIS:
-
+                
                 break;
 
             case STATE_RUBIKS:
@@ -147,6 +147,8 @@ void StateDriver::update_new_state(state_t new_state)
 
         case STATE_TETRIS:
         {
+            dHelp.clear_screen();
+            tetris.StartGame();
             break;
         }
 
@@ -195,7 +197,7 @@ state_code_t StateDriver::request_state_change(state_t new_state)
 {
     state_code_t retCode = STATE_ERROR;
 
-    //TODO: Check if bus is available
+    //TODO: Check if bus is available and lock it.
 
     switch (drv_state)
     {

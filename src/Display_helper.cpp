@@ -146,7 +146,6 @@ tc_ret_code DisplayHelper::touch_decoder(UIButton button)
 
             // Reset touch variables
             touch_reset();
-
         }
     }
 

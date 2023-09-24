@@ -13,6 +13,8 @@
 #include "JpegFunc.h"
 #include "UI_Elements.h"
 
+#include <unordered_map>
+
 #define LGFX_AUTODETECT
 #define ESP32_8048S043
 
