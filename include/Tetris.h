@@ -14,6 +14,7 @@ using std::queue;
 #define TETRIS_SQ_PXL 48
 #define TETRIS_EMPTY_COLOR DARKGREY
 #define TETRIS_MAX_QUEUE 3
+#define TETRIS_GRAVITY 1
 
 // Tetris error code
 #define TETRIS_SUCCESS 0
@@ -28,15 +29,17 @@ public:
     Tetris();
     ~Tetris();
 
-    void StartGame();
-    tetris_error_t RequestMove(char direction);
+    void PlayGame();
+    tetris_error_t EnqueueMove(char direction);
+    tetris_error_t RequestRotate(char direction);
 
 private:
-    char m_tetris_board[TETRIS_HEIGHT][TETRIS_WIDTH];
-    uint m_gravity;
+    char m_tetris_board[TETRIS_WIDTH][TETRIS_HEIGHT];
+    uint32_t m_move_delay; // In ms
     uint m_round_num;
     bool m_mino_is_active;
 
+    queue<char> m_moves;
     queue<tetromino_t> m_tetromino_queue;
     tetromino_t m_active_mino;
 
@@ -46,8 +49,12 @@ private:
     tetris_error_t EnqueueTetromino();
     tetris_error_t DeployTetromino();
     tetris_error_t RotateTetromino();
+    tetris_error_t RequestMove(char direction);
     tetris_error_t MoveTetromino(char direction);
+    tetris_error_t UpdateBoard(int start_pos_x, int start_pos_y);
     tetris_error_t CollideTetromino();
+
+    void DummyHandler();
 
 };
 
