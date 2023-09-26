@@ -97,9 +97,12 @@ tetris_error_t Tetris::RequestMove(char direction)
 
                     // Iterate over each row first
                     else if (m_active_mino.tetromino[row][col] != ' ' &&
-                            m_tetris_board[row+m_active_mino.x - 1][col+m_active_mino.y] != ' ')
+                            m_tetris_board[row+m_active_mino.x + 1][col+m_active_mino.y] != ' ')
                     {
-                        
+                        if (m_active_mino.tetromino[row+1][col] != ' ')
+                        {
+                            ret_code = TETRIS_MINO_COLLIDE;
+                        }
                     }
                 }
             }

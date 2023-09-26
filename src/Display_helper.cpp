@@ -30,12 +30,21 @@ static int jpegDrawCallback(JPEGDRAW *pDraw)
 
 void DisplayHelper::touch_init(void)
 {
-    // Initialize the touch wires
+    // Configure touch reset
+    pinMode(TOUCH_RST, OUTPUT);
+
+    digitalWrite(TOUCH_RST, LOW);
+    delay(400);
+    digitalWrite(TOUCH_RST, HIGH);
+    delay(400);
+
+    // Initialize the wire library
+    Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+    delay(400);
+
+    // Initialize the touch library
     ts.begin();
     ts.setRotation(TOUCH_ROTATION);
-    Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
-
-    pinMode(TOUCH_RST, OUTPUT);
 }
 
 bool DisplayHelper::touch_touched(void)
@@ -105,14 +114,16 @@ void DisplayHelper::clear_screen()
 
 void DisplayHelper::gfx_init()
 {
+    //TODO: update rotations, (changes where 0,0 is)
+    //gfx->setRotation(2);
     gfx->begin();
+    //gfx->setRotation(2);
 }
 
 DisplayHelper::DisplayHelper()
 {
     // Initialize touch driver
     touch_init();
-    delay(200);
 
     // Initialize display
     gfx_init();
