@@ -178,7 +178,7 @@ void StateDriver::update_new_state(state_t new_state)
     drv_state = new_state;
 
     // -----DEBUG-----
-    //dHelp.drawUI();
+    dHelp.drawUI();
 
     // Pause between state transistions
     delay(400);

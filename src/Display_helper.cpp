@@ -44,7 +44,7 @@ void DisplayHelper::touch_init(void)
 
     // Initialize the touch library
     ts.begin();
-    ts.setRotation(TOUCH_ROTATION);
+    ts.setRotation(ROTATION_INVERTED);
 }
 
 bool DisplayHelper::touch_touched(void)
@@ -115,9 +115,8 @@ void DisplayHelper::clear_screen()
 void DisplayHelper::gfx_init()
 {
     //TODO: update rotations, (changes where 0,0 is)
-    //gfx->setRotation(2);
     gfx->begin();
-    //gfx->setRotation(2);
+    gfx->setRotation(ROTATION_RIGHT);
 }
 
 DisplayHelper::DisplayHelper()

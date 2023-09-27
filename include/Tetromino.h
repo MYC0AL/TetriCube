@@ -6,7 +6,7 @@
 
 #define TETROMINO_COUNT 7
 #define TETROMINO_START_POS_X 3
-#define TETROMINO_START_POS_Y 1
+#define TETROMINO_START_POS_Y 6
 
 typedef unsigned int uint;
 
@@ -21,9 +21,11 @@ struct tetris_sq_t
 
 struct tetromino_t 
 {
-    char tetromino[TETROMINO_WIDTH][TETROMINO_HEIGHT];
-    uint x;
-    uint y;
+    char tetromino[TETROMINO_HEIGHT][TETROMINO_WIDTH];
+    uint x; // X coord on board
+    uint y; // Y coord on board
+    uint width;
+    uint height;
 };
 
 // All 7 Tetrominos Shapes

@@ -110,22 +110,22 @@ tetris_error_t Tetris::RequestMove(char direction)
 
         case 'L':
             // Check if moving to the left would hit a block
-            for (int x = 0; x < TETROMINO_WIDTH && !ret_code; ++x)
+            for (int row = 0; row < TETROMINO_WIDTH && !ret_code; ++row)
             {
-                for (int y = 0; y < TETROMINO_HEIGHT && !ret_code; ++y)
+                for (int col = 0; col < TETROMINO_HEIGHT && !ret_code; ++col)
                 {
                     // Check if move would be in bounds
                     if (m_active_mino.x - 1 < 0)
                         ret_code = TETRIS_ERR;
 
                     // Iterate over each col first 
-                    else if (m_active_mino.tetromino[y][x] != ' ' &&
-                            m_tetris_board[y+m_active_mino.y][x-1+m_active_mino.x] != ' ')
+                    else if (m_active_mino.tetromino[col][row] != ' ' &&
+                            m_tetris_board[col+m_active_mino.y][row-1+m_active_mino.x] != ' ')
                     {
                         // The tetromino square pos and the board pos -1 both have a square,
                         // check if that square is apart of the tetromino. If it is not, than
                         // a barrier is reached.
-                        if (m_active_mino.tetromino[y][x-1] != ' ')
+                        if (m_active_mino.tetromino[col][row-1] != ' ')
                             ret_code = TETRIS_ERR;
                     }
                 }
@@ -146,17 +146,17 @@ tetris_error_t Tetris::RequestMove(char direction)
 
 void Tetris::DisplayTetrisBoard()
 {
-    for (uint x = 0; x < TETRIS_WIDTH; ++x)
+    for (uint row = 0; row < TETRIS_WIDTH; ++row)
     {
-        for (uint y = 0; y < TETRIS_HEIGHT; ++y)
+        for (uint col = 0; col < TETRIS_HEIGHT; ++col)
         {
-            int decode_color = CharToColor(m_tetris_board[x][y]);
+            int decode_color = CharToColor(m_tetris_board[row][col]);
             int temp_color = (decode_color != TETRIS_ERR) ? decode_color : LIGHTGREY;
 
             if (temp_color != TETRIS_EMPTY_COLOR)
             {
-                gfx->fillRect(x*TETRIS_SQ_PXL,
-                              y*TETRIS_SQ_PXL,
+                gfx->fillRect(row*TETRIS_SQ_PXL,
+                              col*TETRIS_SQ_PXL,
                               TETRIS_SQ_PXL,
                               TETRIS_SQ_PXL,
                               temp_color);
@@ -164,15 +164,15 @@ void Tetris::DisplayTetrisBoard()
             else
             {
                 // Clear old squares to black
-                gfx->fillRect(x*TETRIS_SQ_PXL,
-                              y*TETRIS_SQ_PXL,
+                gfx->fillRect(row*TETRIS_SQ_PXL,
+                              col*TETRIS_SQ_PXL,
                               TETRIS_SQ_PXL,
                               TETRIS_SQ_PXL,
                               BLACK);
 
                 // Draw new wire frame square
-                gfx->drawRect(x*TETRIS_SQ_PXL,
-                              y*TETRIS_SQ_PXL,
+                gfx->drawRect(row*TETRIS_SQ_PXL,
+                              col*TETRIS_SQ_PXL,
                               TETRIS_SQ_PXL,
                               TETRIS_SQ_PXL,
                               temp_color);
@@ -242,7 +242,7 @@ void Tetris::DisplayTetrisBoard()
     switch(direction)
     {
         case 'D':
-            m_active_mino.y += TETRIS_GRAVITY;
+            m_active_mino.y -= TETRIS_GRAVITY;
         break;
 
         case 'L':
@@ -255,7 +255,7 @@ void Tetris::DisplayTetrisBoard()
     }
 
     // Update board
-    UpdateBoard(m_active_mino.x,m_active_mino.y);
+    UpdateBoard();
 
     // Display board
     DisplayTetrisBoard();
@@ -263,16 +263,16 @@ void Tetris::DisplayTetrisBoard()
     return TETRIS_SUCCESS;
  }
 
- tetris_error_t Tetris::UpdateBoard(int start_pos_x, int start_pos_y)
+ tetris_error_t Tetris::UpdateBoard()
  {
     // Use active tetrimino and update pos on board
-    for(int x = 0; x < TETROMINO_WIDTH; ++x)
+    for(int row = 0; row < TETROMINO_HEIGHT; ++row)
     {
-        for(int y = 0; y < TETROMINO_HEIGHT; ++y)
+        for(int col = 0; col < TETROMINO_HEIGHT; ++col)
         {
-            if (m_active_mino.tetromino[x][y] != ' ')
+            if (m_active_mino.tetromino[row][col] != ' ')
             {
-                m_tetris_board[x+start_pos_x][y+start_pos_y] = m_active_mino.tetromino[x][y];
+                m_tetris_board[row][col] = m_active_mino.tetromino[row][col];
             }
         }
     }
