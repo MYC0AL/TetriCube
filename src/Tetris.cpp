@@ -62,7 +62,7 @@ void Tetris::PlayGame()
             }
 
             // Apply gravity to tetromino
-            RequestMove('D');
+            EnqueueMove('D');
         }
 
         // Clear mino from queue
@@ -86,20 +86,21 @@ tetris_error_t Tetris::RequestMove(char direction)
     switch(direction)
     {
         case 'D':
-            // Check if moving down would collide with a block
-            for(int row = 0; row < TETROMINO_WIDTH && !ret_code; ++row)
-            {
-                for(int col = 0; col < TETROMINO_HEIGHT && !ret_code; ++row)
-                {
-                    // Check if hitting lower bounds
-                    if (m_active_mino.y + 1 > TETRIS_HEIGHT - 1)
-                        ret_code = TETRIS_MINO_COLLIDE;
+            // Check if hitting lower bounds
+            if (m_active_mino.y - 1 <= 0)
+                ret_code = TETRIS_MINO_COLLIDE;
 
-                    // Iterate over each row first
-                    else if (m_active_mino.tetromino[row][col] != ' ' &&
-                            m_tetris_board[row+m_active_mino.x + 1][col+m_active_mino.y] != ' ')
+            // Check if moving down would collide with a block
+            for(int row = m_active_mino.tetromino.size()-1; row > 0 && !ret_code; --row)
+            {
+                for(int col = 0; col < m_active_mino.tetromino[row].size() && !ret_code; ++col)
+                {
+                    // Iterate over each row, checking for the block below
+                    // if the block below is not part of the tetromino,
+                    // a collision has occured
+                    if (m_active_mino.tetromino[row][col] != ' ' && m_active_mino.tetromino[row-1][col] == ' ')
                     {
-                        if (m_active_mino.tetromino[row+1][col] != ' ')
+                        if (m_tetris_board[row+m_active_mino.y-1][col+m_active_mino.x] != ' ')
                         {
                             ret_code = TETRIS_MINO_COLLIDE;
                         }
@@ -221,7 +222,7 @@ void Tetris::DisplayTetrisBoard()
     // Set active mino from queue
     m_active_mino = m_tetromino_queue.front();
 
-    UpdateBoard(TETROMINO_START_POS_X,TETROMINO_START_POS_Y);
+    UpdateBoard();
 
     // Set active mino flag
     m_mino_is_active = true;
@@ -266,13 +267,13 @@ void Tetris::DisplayTetrisBoard()
  tetris_error_t Tetris::UpdateBoard()
  {
     // Use active tetrimino and update pos on board
-    for(int row = 0; row < TETROMINO_HEIGHT; ++row)
+    for(int row = m_active_mino.tetromino.size()-1; row >= 0 ; --row)
     {
-        for(int col = 0; col < TETROMINO_HEIGHT; ++col)
+        for(int col = 0; col < m_active_mino.tetromino[row].size(); ++col)
         {
             if (m_active_mino.tetromino[row][col] != ' ')
             {
-                m_tetris_board[row][col] = m_active_mino.tetromino[row][col];
+                m_tetris_board[row+m_active_mino.y][col+m_active_mino.x] = m_active_mino.tetromino[row][col];
             }
         }
     }
@@ -286,7 +287,14 @@ void Tetris::DisplayTetrisBoard()
 
     // Reset active mino flag
     m_mino_is_active = false;
-
+    gfx->fillRect(200,200,20,20,RED);
+    delay(200);
+    gfx->fillRect(200,200,20,20,BLACK);
+    delay(200);
+    gfx->fillRect(200,200,20,20,RED);
+    delay(200);
+    gfx->fillRect(200,200,20,20,BLACK);
+    delay(200);
     return TETRIS_SUCCESS;
  }
 

@@ -79,7 +79,7 @@ void StateDriver::state_controller()
 
             case STATE_TETRIS:
                 tetris.PlayGame();
-                tetris.EnqueueMove('L');
+                //tetris.EnqueueMove('D');
                 break;
 
             case STATE_RUBIKS:
