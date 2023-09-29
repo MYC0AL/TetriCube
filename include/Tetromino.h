@@ -5,8 +5,8 @@
 #define TETROMINO_HEIGHT 4
 
 #define TETROMINO_COUNT 7
-#define TETROMINO_START_POS_X 5
-#define TETROMINO_START_POS_Y 5
+#define TETROMINO_START_POS_X 3
+#define TETROMINO_START_POS_Y 0
 
 #include <vector>
 using std::vector;

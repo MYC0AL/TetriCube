@@ -1,5 +1,15 @@
 #include "Tetris.h"
 
+void notify(int color)
+{
+    const int d = 1000;
+    gfx->fillRect(3*48,3*48,48,48,color);
+    delay(d);
+    gfx->fillRect(3*48,3*48,48,48,BLACK);
+    gfx->drawRect(3*48,3*48,48,48,TETRIS_EMPTY_COLOR);
+
+}
+
 Tetris::Tetris() : m_round_num(1), m_move_delay(1000), m_mino_is_active(false)
 {
     //TODO: Randomize the seed
@@ -28,12 +38,11 @@ void Tetris::PlayGame()
 
         // Deploy new mino from queue
         DeployTetromino();
-
         // While the mino is active on the board
         while(m_mino_is_active)
         {
             // Delay between downward movements
-            ulong curr_time = millis();
+            long curr_time = millis();
 
             // Empty out the move queue or wait for delay
             while(millis() < curr_time + m_move_delay)
@@ -54,6 +63,7 @@ void Tetris::PlayGame()
                     else if (valid_move == TETRIS_MINO_COLLIDE)
                     {
                         CollideTetromino();
+                        
                     }
 
                     // Valid or invalid, pop the move
@@ -87,20 +97,20 @@ tetris_error_t Tetris::RequestMove(char direction)
     {
         case 'D':
             // Check if hitting lower bounds
-            if (m_active_mino.y - 1 <= 0)
+            if (m_active_mino.y + TETRIS_GRAVITY + m_active_mino.tetromino.size() > TETRIS_HEIGHT - 1)
                 ret_code = TETRIS_MINO_COLLIDE;
 
             // Check if moving down would collide with a block
-            for(int row = m_active_mino.tetromino.size()-1; row > 0 && !ret_code; --row)
+            for(int row = 0; row < m_active_mino.tetromino.size()-1 && !ret_code; ++row)
             {
                 for(int col = 0; col < m_active_mino.tetromino[row].size() && !ret_code; ++col)
                 {
                     // Iterate over each row, checking for the block below
                     // if the block below is not part of the tetromino,
                     // a collision has occured
-                    if (m_active_mino.tetromino[row][col] != ' ' && m_active_mino.tetromino[row-1][col] == ' ')
+                    if (m_active_mino.tetromino[row][col] != ' ' && m_active_mino.tetromino[row+1][col] == ' ')
                     {
-                        if (m_tetris_board[row+m_active_mino.y-1][col+m_active_mino.x] != ' ')
+                        if (m_tetris_board[row+m_active_mino.y+1][col+m_active_mino.x] != ' ')
                         {
                             ret_code = TETRIS_MINO_COLLIDE;
                         }
@@ -156,8 +166,8 @@ void Tetris::DisplayTetrisBoard()
 
             if (temp_color != TETRIS_EMPTY_COLOR)
             {
-                gfx->fillRect(row*TETRIS_SQ_PXL,
-                              col*TETRIS_SQ_PXL,
+                gfx->fillRect(col*TETRIS_SQ_PXL,
+                              row*TETRIS_SQ_PXL,
                               TETRIS_SQ_PXL,
                               TETRIS_SQ_PXL,
                               temp_color);
@@ -165,15 +175,15 @@ void Tetris::DisplayTetrisBoard()
             else
             {
                 // Clear old squares to black
-                gfx->fillRect(row*TETRIS_SQ_PXL,
-                              col*TETRIS_SQ_PXL,
+                gfx->fillRect(col*TETRIS_SQ_PXL,
+                              row*TETRIS_SQ_PXL,
                               TETRIS_SQ_PXL,
                               TETRIS_SQ_PXL,
                               BLACK);
 
                 // Draw new wire frame square
-                gfx->drawRect(row*TETRIS_SQ_PXL,
-                              col*TETRIS_SQ_PXL,
+                gfx->drawRect(col*TETRIS_SQ_PXL,
+                              row*TETRIS_SQ_PXL,
                               TETRIS_SQ_PXL,
                               TETRIS_SQ_PXL,
                               temp_color);
@@ -229,21 +239,20 @@ void Tetris::DisplayTetrisBoard()
 
     // Update board
     DisplayTetrisBoard();
-    
+
     return TETRIS_SUCCESS;
  }
 
  tetris_error_t Tetris::MoveTetromino(char direction)
  {
-
-    // Copy position of active tetromino
-    tetromino_t temp_mino = m_active_mino;
+    // Clear old tetromino
+    ClearTetromino();
 
     // Update the position using gravity or direction
     switch(direction)
     {
         case 'D':
-            m_active_mino.y -= TETRIS_GRAVITY;
+            m_active_mino.y += TETRIS_GRAVITY;
         break;
 
         case 'L':
@@ -264,10 +273,26 @@ void Tetris::DisplayTetrisBoard()
     return TETRIS_SUCCESS;
  }
 
+ tetris_error_t Tetris::ClearTetromino()
+ {
+    // Clear active tetromino on board
+    for(int row = 0; row < m_active_mino.tetromino.size(); ++row)
+    {
+        for(int col = 0; col < m_active_mino.tetromino[row].size(); ++col)
+        {
+            if (m_active_mino.tetromino[row][col] != ' ')
+            {
+                m_tetris_board[row+m_active_mino.y][col+m_active_mino.x] = ' ';
+            }
+        }
+    }
+    return TETRIS_SUCCESS;
+ }
+
  tetris_error_t Tetris::UpdateBoard()
  {
     // Use active tetrimino and update pos on board
-    for(int row = m_active_mino.tetromino.size()-1; row >= 0 ; --row)
+    for(int row = 0; row < m_active_mino.tetromino.size(); ++row)
     {
         for(int col = 0; col < m_active_mino.tetromino[row].size(); ++col)
         {

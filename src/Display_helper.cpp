@@ -132,7 +132,6 @@ DisplayHelper::DisplayHelper()
 
     // Variable initialization
     touch_count = 0;
-
 }
 
 void DisplayHelper::gfx_uninit()

@@ -51,6 +51,7 @@ private:
     tetris_error_t RotateTetromino();
     tetris_error_t RequestMove(char direction);
     tetris_error_t MoveTetromino(char direction);
+    tetris_error_t ClearTetromino();
     tetris_error_t UpdateBoard();
     tetris_error_t CollideTetromino();
 
