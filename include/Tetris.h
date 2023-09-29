@@ -54,6 +54,7 @@ private:
     tetris_error_t ClearTetromino();
     tetris_error_t UpdateBoard();
     tetris_error_t CollideTetromino();
+    bool isCollision(int row, int col);
 
     void DummyHandler();
 

@@ -13,7 +13,7 @@ void notify(int color)
 Tetris::Tetris() : m_round_num(1), m_move_delay(1000), m_mino_is_active(false)
 {
     //TODO: Randomize the seed
-
+    srand(2002);
     // Initialize the tetris board to empty spaces
     for (uint x = 0; x < TETRIS_WIDTH; ++x)
     {
@@ -97,23 +97,14 @@ tetris_error_t Tetris::RequestMove(char direction)
     {
         case 'D':
             // Check if hitting lower bounds
-            if (m_active_mino.y + TETRIS_GRAVITY + m_active_mino.tetromino.size() > TETRIS_HEIGHT - 1)
+            if (m_active_mino.y + TETRIS_GRAVITY + m_active_mino.tetromino.size() > TETRIS_HEIGHT)
                 ret_code = TETRIS_MINO_COLLIDE;
 
             // Check if moving down would collide with a block
-            for(int row = 0; row < m_active_mino.tetromino.size()-1 && !ret_code; ++row)
-            {
-                for(int col = 0; col < m_active_mino.tetromino[row].size() && !ret_code; ++col)
-                {
-                    // Iterate over each row, checking for the block below
-                    // if the block below is not part of the tetromino,
-                    // a collision has occured
-                    if (m_active_mino.tetromino[row][col] != ' ' && m_active_mino.tetromino[row+1][col] == ' ')
-                    {
-                        if (m_tetris_board[row+m_active_mino.y+1][col+m_active_mino.x] != ' ')
-                        {
-                            ret_code = TETRIS_MINO_COLLIDE;
-                        }
+            for (int row = 0; row < m_active_mino.tetromino.size() && !ret_code; ++row) {
+                for (int col = 0; col < m_active_mino.tetromino[row].size() && !ret_code; ++col) {
+                    if (isCollision(row, col)) {
+                        ret_code = TETRIS_MINO_COLLIDE;
                     }
                 }
             }
@@ -220,7 +211,7 @@ void Tetris::DisplayTetrisBoard()
     // Add random tetromino to queue
     if (m_tetromino_queue.size() < TETRIS_MAX_QUEUE)
     {
-        m_tetromino_queue.push(ALL_MINOS[rand() % TETROMINO_COUNT+1]);
+        m_tetromino_queue.push(ALL_MINOS[rand() % TETROMINO_COUNT]);
         ret_code = TETRIS_SUCCESS;
     }
 
@@ -307,22 +298,28 @@ void Tetris::DisplayTetrisBoard()
 
  tetris_error_t Tetris::CollideTetromino()
  {
-    // Add current position of active mino
-    // into tetris board
-
-    // Reset active mino flag
+    // Reset active mino flag which 
+    // adds the mino to the tetris board
     m_mino_is_active = false;
-    gfx->fillRect(200,200,20,20,RED);
-    delay(200);
-    gfx->fillRect(200,200,20,20,BLACK);
-    delay(200);
-    gfx->fillRect(200,200,20,20,RED);
-    delay(200);
-    gfx->fillRect(200,200,20,20,BLACK);
-    delay(200);
+
     return TETRIS_SUCCESS;
  }
 
+bool Tetris::isCollision(int row, int col) {
+
+    bool collided = false;
+
+    if (row == m_active_mino.tetromino.size() - 1)
+    {
+        collided = m_tetris_board[row + m_active_mino.y + 1][col + m_active_mino.x] != ' ';
+    }
+    else
+    {
+        collided = m_active_mino.tetromino[row][col] != ' ' && m_active_mino.tetromino[row + 1][col] == ' ' &&
+           m_tetris_board[row + m_active_mino.y + 1][col + m_active_mino.x] != ' ';
+    }
+    return collided;
+}
 
 /**
  * Handle the dev being a dummy.
