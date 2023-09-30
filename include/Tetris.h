@@ -4,6 +4,7 @@
 #include "Display_helper.h"
 #include "Tetromino.h"
 #include <queue>
+#include <ctime>
 
 using std::queue;
 
@@ -54,7 +55,10 @@ private:
     tetris_error_t ClearTetromino();
     tetris_error_t UpdateBoard();
     tetris_error_t CollideTetromino();
-    bool isCollision(int row, int col);
+
+    bool downCollision(int row, int col);
+    bool leftCollision(int row, int col);
+    bool rightCollision(int row, int col);
 
     void DummyHandler();
 
