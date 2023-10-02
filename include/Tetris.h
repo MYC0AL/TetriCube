@@ -21,6 +21,7 @@ using std::queue;
 #define TETRIS_SUCCESS 0
 #define TETRIS_ERR 1
 #define TETRIS_MINO_COLLIDE 2
+#define TETRIS_END_GAME 3
 
 typedef short tetris_error_t;
 
@@ -30,7 +31,7 @@ public:
     Tetris();
     ~Tetris();
 
-    void PlayGame();
+    tetris_error_t PlayGame();
     tetris_error_t EnqueueMove(char direction);
     tetris_error_t RequestRotate(char direction);
 
@@ -55,6 +56,7 @@ private:
     tetris_error_t ClearTetromino();
     tetris_error_t UpdateBoard();
     tetris_error_t CollideTetromino();
+    tetris_error_t CheckGame(tetromino_t new_mino);
 
     bool downCollision(int row, int col);
     bool leftCollision(int row, int col);

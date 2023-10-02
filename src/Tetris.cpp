@@ -13,7 +13,7 @@ void notify(int color)
 Tetris::Tetris() : m_round_num(1), m_move_delay(1000), m_mino_is_active(false)
 {
     // Randomize seed
-    srand(static_cast<unsigned int>(std::time(nullptr)));
+    srand(static_cast<unsigned int>(std::time(0)));
 
     // Initialize the tetris board to empty spaces
     for (uint x = 0; x < TETRIS_WIDTH; ++x)
@@ -30,8 +30,10 @@ Tetris::~Tetris()
     gfx->fillScreen(BLACK);
 }
 
-void Tetris::PlayGame()
+tetris_error_t Tetris::PlayGame()
 {
+    tetris_error_t ret_code = TETRIS_SUCCESS;
+
     if (m_tetromino_queue.empty())
     {
         // Enqueue new random tetromino
@@ -39,6 +41,12 @@ void Tetris::PlayGame()
 
         // Clear old queued moves
         while(!m_moves.empty()) m_moves.pop();
+
+        // Check if game should end
+        if (CheckGame(m_tetromino_queue.front()) == TETRIS_END_GAME)
+        {
+            return TETRIS_END_GAME;
+        };
 
         // Deploy new mino from queue
         DeployTetromino();
@@ -78,12 +86,14 @@ void Tetris::PlayGame()
 
             // Apply gravity to tetromino
             EnqueueMove('D');
-            EnqueueMove('L');
+            //EnqueueMove('L');
         }
 
         // Clear mino from queue
         m_tetromino_queue.pop();
     }
+
+    return ret_code;
 }
 
 tetris_error_t Tetris::EnqueueMove(char direction)
@@ -228,6 +238,8 @@ void Tetris::DisplayTetrisBoard()
 
  tetris_error_t Tetris::DeployTetromino()
  {
+    tetris_error_t ret_code = TETRIS_SUCCESS;
+
     // Clear old active mino
     m_active_mino = {};
 
@@ -243,7 +255,7 @@ void Tetris::DisplayTetrisBoard()
     // Display board
     DisplayTetrisBoard();
 
-    return TETRIS_SUCCESS;
+    return ret_code;
  }
 
  tetris_error_t Tetris::MoveTetromino(char direction)
@@ -315,6 +327,23 @@ void Tetris::DisplayTetrisBoard()
     m_mino_is_active = false;
 
     return TETRIS_SUCCESS;
+ }
+
+
+// Check if piece is on board when a new piece spawns in
+ tetris_error_t Tetris::CheckGame(tetromino_t new_mino)
+ {
+    tetris_error_t ret_code = TETRIS_SUCCESS;
+
+    for (int row = 0; row < new_mino.tetromino.size(); row++) {
+        for (int col = 0; col < new_mino.tetromino[row].size(); col++) {
+            if (m_tetris_board[row + new_mino.y + 1][col + new_mino.x] != ' ') {
+                ret_code = TETRIS_END_GAME;
+            }
+        }
+    }
+
+    return ret_code;
  }
 
 bool Tetris::downCollision(int row, int col) {

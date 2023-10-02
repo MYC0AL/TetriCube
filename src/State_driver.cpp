@@ -78,7 +78,10 @@ void StateDriver::state_controller()
                 break;
 
             case STATE_TETRIS:
-                tetris.PlayGame();
+                if (tetris.PlayGame() == TETRIS_END_GAME)
+                {
+                    request_state_change(STATE_TETRIS_END);
+                }
                 //tetris.EnqueueMove('D');
                 break;
 
@@ -165,6 +168,8 @@ void StateDriver::update_new_state(state_t new_state)
 
         case STATE_TETRIS_END:
         {
+            dHelp.clear_screen();
+            gfx->fillScreen(RED);
             break;
         }
 
@@ -178,7 +183,7 @@ void StateDriver::update_new_state(state_t new_state)
     drv_state = new_state;
 
     // -----DEBUG-----
-    dHelp.drawUI();
+    //dHelp.drawUI();
 
     // Pause between state transistions
     delay(400);
