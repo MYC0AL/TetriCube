@@ -76,7 +76,6 @@ tetris_error_t Tetris::PlayGame()
                     else if (valid_move == TETRIS_MINO_COLLIDE)
                     {
                         CollideTetromino();
-                        
                     }
 
                     // Valid or invalid, pop the move
@@ -86,7 +85,7 @@ tetris_error_t Tetris::PlayGame()
 
             // Apply gravity to tetromino
             EnqueueMove('D');
-            //EnqueueMove('L');
+            EnqueueMove('R');
         }
 
         // Clear mino from queue
@@ -138,7 +137,7 @@ tetris_error_t Tetris::RequestMove(char direction)
                     {
                         if (col == m_active_mino.tetromino[col].size())
                         {
-                            if (m_tetris_board[row + m_active_mino.y][col + m_active_mino.x -1 ] != ' ')
+                            if (m_tetris_board[row + m_active_mino.y][col + m_active_mino.x - 1 ] != ' ')
                                 ret_code = TETRIS_MINO_COLLIDE;
                         }
                         else if (m_active_mino.tetromino[row][col-1] == ' ')
@@ -153,10 +152,36 @@ tetris_error_t Tetris::RequestMove(char direction)
         break;
 
         case 'R':
-            // Check if moving out of bounds
-            if (m_active_mino.x + 1 > TETRIS_HEIGHT-1)
+            // Check each row and verify that each one is not hitting wall
+            for(int row = 0; row < m_active_mino.tetromino.size(); ++row)
             {
-                ret_code = TETRIS_ERR;
+                for (int col = 0; col < m_active_mino.tetromino[row].size(); ++col)
+                {
+                    if (m_active_mino.x + m_active_mino.tetromino[row].size() >= TETRIS_WIDTH)
+                    {
+                        ret_code = TETRIS_ERR;
+                    }
+                }
+            }
+
+            // Check if moving right would collide with a block
+            for (int col = 0; col < m_active_mino.tetromino[col].size() && !ret_code; ++col) {
+                for (int row = 0; row < m_active_mino.tetromino.size() && !ret_code; ++row) {
+                    if (m_active_mino.tetromino[row][col] != ' ')
+                    {
+                        if (col == m_active_mino.tetromino[col].size())
+                        {
+                            if (m_tetris_board[row + m_active_mino.y][col + m_active_mino.x + 1 ] != ' ')
+                                ret_code = TETRIS_MINO_COLLIDE;
+                        }
+                        else if (m_active_mino.tetromino[row][col+1] == ' ')
+                        {
+                            if (m_tetris_board[row + m_active_mino.y + 1][col + m_active_mino.x] != ' ')
+                                ret_code = TETRIS_MINO_COLLIDE;
+                        }
+                    }
+                    
+                }
             }
         break;
     }

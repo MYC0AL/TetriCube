@@ -82,7 +82,6 @@ void StateDriver::state_controller()
                 {
                     request_state_change(STATE_TETRIS_END);
                 }
-                //tetris.EnqueueMove('D');
                 break;
 
             case STATE_RUBIKS:
@@ -118,6 +117,8 @@ void StateDriver::update_new_state(state_t new_state)
             #if (DISP_NUM == 0)
                 dHelp.drawImage(SCENE_HOME.image);
                 dHelp.active_ui = SCENE_HOME.ui_elements;
+            #else
+                dHelp.clear_screen();
             #endif
             break;
         }
@@ -127,6 +128,8 @@ void StateDriver::update_new_state(state_t new_state)
             #if (DISP_NUM == 0)
                 dHelp.drawImage(SCENE_SELECT_GAME.image);
                 dHelp.active_ui = SCENE_SELECT_GAME.ui_elements;
+            #else
+                dHelp.clear_screen();
             #endif
             break;
         }
@@ -136,6 +139,8 @@ void StateDriver::update_new_state(state_t new_state)
             #if (DISP_NUM == 0)
                 dHelp.drawImage(SCENE_SETTINGS.image);
                 dHelp.active_ui = SCENE_SETTINGS.ui_elements;
+            #else
+                dHelp.clear_screen();
             #endif             
             break;
         }
@@ -145,6 +150,8 @@ void StateDriver::update_new_state(state_t new_state)
             #if (DISP_NUM == 0)
                 dHelp.drawImage(SCENE_HIGH_SCORES.image);
                 dHelp.active_ui = SCENE_HIGH_SCORES.ui_elements;
+            #else
+                dHelp.clear_screen();
             #endif
             break;
         }
