@@ -62,6 +62,9 @@ private:
     bool leftCollision(int row, int col);
     bool rightCollision(int row, int col);
 
+    // Debug tool
+    void SquareCheck(int x, int y);
+
     void DummyHandler();
 
 };

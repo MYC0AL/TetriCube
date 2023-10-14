@@ -78,6 +78,7 @@ void StateDriver::state_controller()
                 break;
 
             case STATE_TETRIS:
+                //tetris.EnqueueMove('R');
                 if (tetris.PlayGame() == TETRIS_END_GAME)
                 {
                     request_state_change(STATE_TETRIS_END);
