@@ -59,8 +59,6 @@ private:
     tetris_error_t CheckGame(tetromino_t new_mino);
 
     bool downCollision(int row, int col);
-    bool leftCollision(int row, int col);
-    bool rightCollision(int row, int col);
 
     // Debug tool
     void SquareCheck(int x, int y);

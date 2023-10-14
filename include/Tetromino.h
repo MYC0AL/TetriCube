@@ -63,12 +63,12 @@ const tetromino_t MINO_L = {{
 
 const tetromino_t MINO_S = {{
                             {' ','G','G'},
-                            {'G','G'}},
+                            {'G','G',' '}},
                             TETROMINO_START_POS_X,
                             TETROMINO_START_POS_Y};
 
 const tetromino_t MINO_Z = {{
-                            {'R','R'},
+                            {'R','R',' '},
                             {' ','R','R'}},
                             TETROMINO_START_POS_X,
                             TETROMINO_START_POS_Y};

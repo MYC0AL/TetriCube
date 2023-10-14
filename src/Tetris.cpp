@@ -16,9 +16,9 @@ void Tetris::SquareCheck(int row, int col)
     int tempColor = CharToColor(m_tetris_board[row][col]);
     for(int i = 0; i < 2; i++)
     {
-        gfx->fillRect(row*48,col*48,48,48,MAROON);
+        gfx->fillRect(col*48,row*48,48,48,MAROON);
         delay(d);
-        gfx->fillRect(row*48,col*48,48,48,tempColor);
+        gfx->fillRect(col*48,row*48,48,48,tempColor);
         delay(d);
     }
 
@@ -27,7 +27,7 @@ void Tetris::SquareCheck(int row, int col)
 Tetris::Tetris() : m_round_num(1), m_move_delay(1000), m_mino_is_active(false)
 {
     // Randomize seed
-    srand(static_cast<unsigned int>(std::time(0)));
+    srand(static_cast<unsigned int>(std::time(0)*2));
 
     // Initialize the tetris board to empty spaces
     for (uint x = 0; x < TETRIS_WIDTH; ++x)
@@ -54,7 +54,7 @@ tetris_error_t Tetris::PlayGame()
         EnqueueTetromino();
 
         // Clear old queued moves
-        //while(!m_moves.empty()) m_moves.pop();
+        while(!m_moves.empty()) m_moves.pop();
 
         // Check if game should end
         if (CheckGame(m_tetromino_queue.front()) == TETRIS_END_GAME)
@@ -132,8 +132,24 @@ tetris_error_t Tetris::RequestMove(char direction)
             // Check if moving down would collide with a block
             for (int row = 0; row < m_active_mino.tetromino.size() && !ret_code; ++row) {
                 for (int col = 0; col < m_active_mino.tetromino[row].size() && !ret_code; ++col) {
-                    if (downCollision(row, col)) {
-                        ret_code = TETRIS_MINO_COLLIDE;
+                    if (m_active_mino.tetromino[row][col] != ' ')
+                    {
+                        // Check the square below to see if it is air
+                        if (m_tetris_board[row + m_active_mino.y + 1][col + m_active_mino.x] != ' ')
+                        {
+                            // If last row, and still collide, was not in the tetromino
+                            if (row == m_active_mino.tetromino.size() - 1)
+                            {
+                                SquareCheck(row + m_active_mino.y + 1, col + m_active_mino.x);
+                                ret_code = TETRIS_MINO_COLLIDE;
+                            }
+                            // Check if the block that isnt air, is apart of the tetromino
+                            else if (m_active_mino.tetromino[row + 1][col] == ' ')
+                            {
+                                SquareCheck(row + m_active_mino.y + 1, col + m_active_mino.x);
+                                ret_code = TETRIS_MINO_COLLIDE;
+                            }
+                        }
                     }
                 }
             }
@@ -369,22 +385,6 @@ void Tetris::DisplayTetrisBoard()
 
 bool Tetris::downCollision(int row, int col) {
 
-    bool collided = false;
-
-    if (row == m_active_mino.tetromino.size() - 1)
-    {
-        collided = m_tetris_board[row + m_active_mino.y + 1][col + m_active_mino.x] != ' ';
-    }
-    else
-    {
-        collided = m_active_mino.tetromino[row][col] != ' ' && m_active_mino.tetromino[row + 1][col] == ' ' &&
-           m_tetris_board[row + m_active_mino.y + 1][col + m_active_mino.x] != ' ';
-    }
-    return collided;
-}
-
-bool Tetris::leftCollision(int row, int col)
-{
     bool collided = false;
 
     if (row == m_active_mino.tetromino.size() - 1)
