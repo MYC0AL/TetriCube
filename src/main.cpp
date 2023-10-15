@@ -1,11 +1,6 @@
 #include "State_driver.h"
 //#include "Cube.h"
 
-#define IO20 20
-#define IO19 19
-#define IO18 18
-#define IO17 17
-
 void setup(void)
 {
   Serial.begin(115200);
