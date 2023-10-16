@@ -68,11 +68,13 @@ tetris_error_t Tetris::PlayGame()
         // While the mino is active on the board
         while(m_mino_is_active)
         {
+            EnqueueMove('R');
+
             // Delay between downward movements
             long curr_time = millis();
 
             // Empty out the move queue or wait for delay
-            while(millis() < curr_time + m_move_delay)
+            while(millis() < curr_time + m_move_delay && m_mino_is_active)
             {
                 if (!m_moves.empty())
                 {
@@ -99,7 +101,6 @@ tetris_error_t Tetris::PlayGame()
 
             // Apply gravity to tetromino
             EnqueueMove('D');
-            EnqueueMove('L');
         }
 
         // Clear mino from queue
