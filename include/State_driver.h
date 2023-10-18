@@ -3,7 +3,7 @@
 
 #include "Display_helper.h"
 #include "Tetris.h"
-#include "Comminucation.h"
+#include "External_link.h"
 //#include "Cube.h"
 
 // State definitions
@@ -27,6 +27,10 @@ public:
 
     // Has-a relationship with display helper
     DisplayHelper dHelp;
+
+    // Has-a relationship with Comm
+    ExternalLink el;
+    //Comm sm_RX;
 
     StateDriver();
     state_code_t request_state_change(state_t new_state);

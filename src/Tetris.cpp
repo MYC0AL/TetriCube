@@ -68,7 +68,8 @@ tetris_error_t Tetris::PlayGame()
         // While the mino is active on the board
         while(m_mino_is_active)
         {
-            EnqueueMove('R');
+            EnqueueMove('L');
+            EnqueueMove('D');
 
             // Delay between downward movements
             long curr_time = millis();
