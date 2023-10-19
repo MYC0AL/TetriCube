@@ -35,13 +35,13 @@ public:
 
     el_error_t SendStr(const char* str);
     el_error_t ListenForStr();
-    char* GetStr();
+    std::string GetStr();
 
 private: 
-    //uart_port_t m_uart_num;
-    //int m_gpio_num;
-    //QueueHandle_t m_uart_queue;
-    char* m_last_read_str;
+
+    void UpdateLog(const char* str, int status);
+
+    std::string m_last_read_str;
 };
 
 #endif

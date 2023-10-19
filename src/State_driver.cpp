@@ -176,8 +176,8 @@ void StateDriver::update_new_state(state_t new_state)
 
         case STATE_TETRIS_END:
         {
-            dHelp.clear_screen();
-            gfx->fillScreen(RED);
+            //dHelp.clear_screen();
+            //gfx->fillScreen(RED);
             break;
         }
 

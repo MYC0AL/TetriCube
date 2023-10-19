@@ -25,11 +25,12 @@ private:
 
 public:
 
+    // Has-a relationship with EL
+    ExternalLink el;
+
     // Has-a relationship with display helper
     DisplayHelper dHelp;
 
-    // Has-a relationship with Comm
-    ExternalLink el;
     //Comm sm_RX;
 
     StateDriver();
