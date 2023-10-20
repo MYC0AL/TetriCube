@@ -23,25 +23,12 @@ TAMC_GT911 ts = TAMC_GT911(I2C_SDA_PIN, I2C_SCL_PIN, TOUCH_INT, TOUCH_RST, max(T
 // Out of class call back function
 static int jpegDrawCallback(JPEGDRAW *pDraw)
 {
-  // Serial.printf("Draw pos = %d,%d. size = %d x %d\n", pDraw->x, pDraw->y, pDraw->iWidth, pDraw->iHeight);
   gfx->draw16bitBeRGBBitmap(pDraw->x, pDraw->y, pDraw->pPixels, pDraw->iWidth, pDraw->iHeight);
   return 1;
 }
 
 void DisplayHelper::touch_init(void)
 {
-    // Configure touch reset
-    pinMode(TOUCH_RST, OUTPUT);
-
-    digitalWrite(TOUCH_RST, LOW);
-    delay(400);
-    digitalWrite(TOUCH_RST, HIGH);
-    delay(400);
-
-    // Initialize the wire library
-    Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
-    delay(400);
-
     // Initialize the touch library
     ts.begin();
     ts.setRotation(ROTATION_INVERTED);

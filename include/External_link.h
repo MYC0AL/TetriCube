@@ -25,6 +25,7 @@
 #define UART_PATTERN_NUM 3
 
 #define UART_EOL '\n'
+#define EMPTY_STR "\0"
 
 enum el_error_t {EL_SUCCESS, EL_ERROR};
 
@@ -35,7 +36,7 @@ public:
 
     el_error_t SendStr(const char* str);
     el_error_t ListenForStr();
-    std::string GetStr();
+    std::string PopLastReadStr();
 
 private: 
 

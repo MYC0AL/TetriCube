@@ -8,10 +8,12 @@ ExternalLink::ExternalLink()
     Serial2.begin(UART_BAUD, SERIAL_8N1, EL0_RX, -1);
     log_printf("External Link 1 Started\n");
 
-    el_error_t sendret = SendStr("this is a test\n");
+    delay(100);
+
+    el_error_t sendret = SendStr("L\n");
     log_printf("%d\n",sendret);
     while (ListenForStr() == EL_ERROR);
-    GetStr();
+    PopLastReadStr();
 }
 
 el_error_t ExternalLink::SendStr(const char* str)
@@ -20,14 +22,11 @@ el_error_t ExternalLink::SendStr(const char* str)
 
     if (strlen(str) != 0)
     {
-        log_printf("strlen\n");
         if(Serial1.write(str) > 0)
         {
-            log_printf("serial.write\n");
             retCode = EL_SUCCESS;
         }
     }
-    log_printf("return from sendstr\n");
     return retCode;
 }
 
@@ -43,7 +42,6 @@ el_error_t ExternalLink::ListenForStr()
 
     while (Serial2.available() > 0 && !doneRecv)
     {
-        log_printf("new char\n");
         newChar = Serial2.read();
 
         if (newChar != UART_EOL)
@@ -52,7 +50,6 @@ el_error_t ExternalLink::ListenForStr()
         else if (newChar == UART_EOL)
         {
             doneRecv = true;
-            log_printf("is eol\n");
 
             // Recieved the terminating EOL char
             retCode = EL_SUCCESS;
@@ -63,8 +60,6 @@ el_error_t ExternalLink::ListenForStr()
     {
         m_last_read_str = tempBuff;
 
-
-
         log_printf("%s\n",m_last_read_str.c_str());
 
     }
@@ -72,9 +67,11 @@ el_error_t ExternalLink::ListenForStr()
     return retCode;
 }
 
-std::string ExternalLink::GetStr()
+std::string ExternalLink::PopLastReadStr()
 {
-    return m_last_read_str;
+    std::string tempStr = m_last_read_str;
+    m_last_read_str = EMPTY_STR;
+    return tempStr;
 }
 
 void ExternalLink::UpdateLog(const char *str, int status)

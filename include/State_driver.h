@@ -25,13 +25,11 @@ private:
 
 public:
 
-    // Has-a relationship with EL
-    ExternalLink el;
-
     // Has-a relationship with display helper
     DisplayHelper dHelp;
 
-    //Comm sm_RX;
+    // Has-a relationship with EL
+    ExternalLink el;
 
     StateDriver();
     state_code_t request_state_change(state_t new_state);
