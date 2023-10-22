@@ -24,7 +24,8 @@ void Tetris::SquareCheck(int row, int col)
 
 }
 
-Tetris::Tetris() : m_round_num(1), m_move_delay(1000), m_mino_is_active(false)
+// 7500 as a count, represents ~1 second of delay, aka max delay the game would be
+Tetris::Tetris() : m_round_num(1), m_move_delay(7500), m_mino_is_active(false), m_mino_time(0)
 {
     // Randomize seed
     srand(static_cast<unsigned int>(std::time(0)*2));
@@ -52,57 +53,53 @@ tetris_error_t Tetris::PlayGame()
     {
         // Enqueue new random tetromino
         EnqueueTetromino();
+    }
 
-        // Clear old queued moves
-        while(!m_moves.empty()) m_moves.pop();
+    // While the mino is active on the board
+    if(m_mino_is_active)
+    {
+        // Delay between downward movements
+        //long curr_time = millis();
 
-        // Check if game should end
-        if (CheckGame(m_tetromino_queue.front()) == TETRIS_END_GAME)
+        // Empty out the move queue or wait for delay
+        //while(millis() < curr_time + m_move_delay && m_mino_is_active)
+
+        m_mino_time += 1;
+        log_printf("%d\n",m_mino_time);
+        if (m_mino_time <= m_move_delay)
         {
-            return TETRIS_END_GAME;
-        };
-
-        // Deploy new mino from queue
-        DeployTetromino();
-
-        // While the mino is active on the board
-        while(m_mino_is_active)
-        {
-            // Delay between downward movements
-            long curr_time = millis();
-
-            // Empty out the move queue or wait for delay
-            while(millis() < curr_time + m_move_delay && m_mino_is_active)
+            if (!m_moves.empty())
             {
-                if (!m_moves.empty())
+                // Get next queued move
+                char new_move = m_moves.front();
+
+                // Check if it is valid
+                tetris_error_t valid_move = RequestMove(new_move);
+
+                // If it is valid, move the tetromino
+                if (valid_move == TETRIS_SUCCESS)
                 {
-                    // Get next queued move
-                    char new_move = m_moves.front();
-
-                    // Check if it is valid
-                    tetris_error_t valid_move = RequestMove(new_move);
-
-                    // If it is valid, move the tetromino
-                    if (valid_move == TETRIS_SUCCESS)
-                    {
-                        MoveTetromino(new_move);
-                    }
-                    else if (valid_move == TETRIS_MINO_COLLIDE)
-                    {
-                        CollideTetromino();
-                    }
-
-                    // Valid or invalid, pop the move
-                    m_moves.pop();
+                    MoveTetromino(new_move);
                 }
-            }
+                else if (valid_move == TETRIS_MINO_COLLIDE)
+                {
+                    CollideTetromino();
+                }
 
+                // Valid or invalid, pop the move
+                m_moves.pop();
+            }
+        }
+        else //Time up to apply gravity
+        {
             // Apply gravity to tetromino
             EnqueueMove('D');
+            m_mino_time = 0;
         }
-
-        // Clear mino from queue
-        m_tetromino_queue.pop();
+    }
+    else
+    {
+        ret_code = DeployTetromino();
     }
 
     return ret_code;
@@ -276,11 +273,23 @@ void Tetris::DisplayTetrisBoard()
  {
     tetris_error_t ret_code = TETRIS_SUCCESS;
 
+    // Clear old queued moves
+    while(!m_moves.empty()) m_moves.pop();
+
+    // Check if game should end
+    if (CheckGame(m_tetromino_queue.front()) == TETRIS_END_GAME)
+    {
+        return TETRIS_END_GAME;
+    };
+
     // Clear old active mino
     m_active_mino = {};
 
     // Set active mino from queue
     m_active_mino = m_tetromino_queue.front();
+
+    // Pop the front mino
+    m_tetromino_queue.pop();
 
     // Update virtual board
     UpdateBoard();

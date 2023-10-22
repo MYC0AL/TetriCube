@@ -40,6 +40,7 @@ private:
     uint32_t m_move_delay; // In ms
     uint m_round_num;
     bool m_mino_is_active;
+    uint m_mino_time;
 
     queue<char> m_moves;
     queue<tetromino_t> m_tetromino_queue;

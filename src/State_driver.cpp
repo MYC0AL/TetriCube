@@ -78,7 +78,13 @@ void StateDriver::state_controller()
                 break;
 
             case STATE_TETRIS:
-                //tetris.EnqueueMove('R');
+                if (dHelp.touch_touched())
+                {
+                    if (dHelp.current_touches[0].x < 240)
+                        tetris.EnqueueMove('L');
+                    else
+                        tetris.EnqueueMove('R');
+                }
                 if (tetris.PlayGame() == TETRIS_END_GAME)
                 {
                     request_state_change(STATE_TETRIS_END);
