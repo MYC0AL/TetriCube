@@ -10,23 +10,30 @@ ExternalLink::ExternalLink()
 
     delay(100);
 
-    el_error_t sendret = SendStr("L\n");
-    log_printf("%d\n",sendret);
-    while (ListenForStr() == EL_ERROR);
-    PopLastReadStr();
+    // POC DEBUG
+    // el_error_t sendret = SendStr("L\n");
+    // log_printf("%d\n",sendret);
+    // while (ListenForStr() == EL_ERROR);
+    // PopLastReadStr();
 }
 
-el_error_t ExternalLink::SendStr(const char* str)
+el_error_t ExternalLink::SendStr(std::string str)
 {
     el_error_t retCode = EL_ERROR;
 
-    if (strlen(str) != 0)
+    if (!str.empty())
     {
-        if(Serial1.write(str) > 0)
+        std::string tempStr = str;
+        tempStr += '\n'; // Add the TC-specific EL termination char
+
+        if(Serial1.write(tempStr.c_str()) > 0)
         {
             retCode = EL_SUCCESS;
         }
     }
+
+    delay(20);
+
     return retCode;
 }
 

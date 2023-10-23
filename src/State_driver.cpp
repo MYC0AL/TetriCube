@@ -78,13 +78,27 @@ void StateDriver::state_controller()
                 break;
 
             case STATE_TETRIS:
+                // POC to represent buttons on others displays being pushed
                 if (dHelp.touch_touched())
                 {
-                    if (dHelp.current_touches[0].x < 240)
-                        tetris.EnqueueMove('L');
-                    else
-                        tetris.EnqueueMove('R');
+                    if (dHelp.current_touches[0].y > 360)
+                        el.SendStr("D");
+                    else if (dHelp.current_touches[0].x < 240)
+                        el.SendStr("L");
+                    else if (dHelp.current_touches[0].x > 239)
+                       el.SendStr("R");
                 }
+
+                // Listen for EL update, and translate to Tetris
+                if (el.ListenForStr() == EL_SUCCESS)
+                {
+                    std::string recvStr = el.PopLastReadStr();
+                    //std::string el_str = el.PopLastReadStr();
+                    //if (el_str.size() == 1) // Ensure just a char was sent
+                    tetris.EnqueueMove(recvStr[0]);
+                }
+
+                // Update game
                 if (tetris.PlayGame() == TETRIS_END_GAME)
                 {
                     request_state_change(STATE_TETRIS_END);

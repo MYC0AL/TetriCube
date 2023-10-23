@@ -1,6 +1,11 @@
 #include "State_driver.h"
 //#include "Cube.h"
 
+// TODO: Things to do
+// DEBUG: Code implemented to debug
+// BUG: Code known to be broken
+// POC: Temporary proof of concept code
+
 void setup(void)
 {
   //Serial.begin(9600);

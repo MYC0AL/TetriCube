@@ -34,7 +34,7 @@ class ExternalLink
 public:
     ExternalLink();
 
-    el_error_t SendStr(const char* str);
+    el_error_t SendStr(std::string str);
     el_error_t ListenForStr();
     std::string PopLastReadStr();
 

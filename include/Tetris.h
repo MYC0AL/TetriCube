@@ -40,7 +40,9 @@ private:
     uint32_t m_move_delay; // In ms
     uint m_round_num;
     bool m_mino_is_active;
-    uint m_mino_time;
+    unsigned long m_mino_time;
+
+    bool m_reset_mino_time_flag = true;
 
     queue<char> m_moves;
     queue<tetromino_t> m_tetromino_queue;
@@ -50,6 +52,7 @@ private:
     int CharToColor(char color);
 
     tetris_error_t EnqueueTetromino();
+    tetris_error_t ApplyGravity();
     tetris_error_t DeployTetromino();
     tetris_error_t RotateTetromino();
     tetris_error_t RequestMove(char direction);

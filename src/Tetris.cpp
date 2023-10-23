@@ -24,8 +24,7 @@ void Tetris::SquareCheck(int row, int col)
 
 }
 
-// 7500 as a count, represents ~1 second of delay, aka max delay the game would be
-Tetris::Tetris() : m_round_num(1), m_move_delay(7500), m_mino_is_active(false), m_mino_time(0)
+Tetris::Tetris() : m_round_num(1), m_move_delay(1000), m_mino_is_active(false), m_mino_time(0)
 {
     // Randomize seed
     srand(static_cast<unsigned int>(std::time(0)*2));
@@ -55,18 +54,18 @@ tetris_error_t Tetris::PlayGame()
         EnqueueTetromino();
     }
 
-    // While the mino is active on the board
+    // If the mino is active on the board
     if(m_mino_is_active)
     {
         // Delay between downward movements
-        //long curr_time = millis();
+        if (m_reset_mino_time_flag)
+        {
+            m_mino_time = millis();
+            m_reset_mino_time_flag = false;
+        }
 
-        // Empty out the move queue or wait for delay
-        //while(millis() < curr_time + m_move_delay && m_mino_is_active)
-
-        m_mino_time += 1;
-        log_printf("%d\n",m_mino_time);
-        if (m_mino_time <= m_move_delay)
+        // DEBUG log_printf("%d\n",m_mino_time);
+        if (millis() < m_mino_time + m_move_delay)
         {
             if (!m_moves.empty())
             {
@@ -93,8 +92,8 @@ tetris_error_t Tetris::PlayGame()
         else //Time up to apply gravity
         {
             // Apply gravity to tetromino
-            EnqueueMove('D');
-            m_mino_time = 0;
+            ApplyGravity();
+            m_reset_mino_time_flag = true;
         }
     }
     else
@@ -213,6 +212,11 @@ void Tetris::DisplayTetrisBoard()
                               TETRIS_SQ_PXL,
                               TETRIS_SQ_PXL,
                               temp_color);
+                // POC gfx->drawRect(col*TETRIS_SQ_PXL,
+                //               row*TETRIS_SQ_PXL,
+                //               TETRIS_SQ_PXL,
+                //               TETRIS_SQ_PXL,
+                //               BLACK);
             }
             else
             {
@@ -267,6 +271,21 @@ void Tetris::DisplayTetrisBoard()
     }
 
     return ret_code;
+ }
+
+ tetris_error_t Tetris::ApplyGravity()
+ {
+    if (m_moves.empty())
+    {
+        EnqueueMove('D');
+    }
+    else
+    {
+        // Change first element to be a 'D'
+        m_moves.front() = 'D';
+    }
+
+    return TETRIS_SUCCESS;
  }
 
  tetris_error_t Tetris::DeployTetromino()
