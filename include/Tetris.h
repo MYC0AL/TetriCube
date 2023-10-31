@@ -23,6 +23,18 @@ using std::queue;
 #define TETRIS_MINO_COLLIDE 2
 #define TETRIS_END_GAME 3
 
+// Macros
+#define ITERATE_MINO(mino) \
+    for(int r = 0; r < (mino).tetromino.size(); r++) \
+    { \
+        for(int c = 0; c < (mino).tetromino[r].size(); c++) \
+        { \
+            int& row = r; \
+            int& col = c; \
+            \
+        } \
+    }
+
 typedef short tetris_error_t;
 
 class Tetris
@@ -33,7 +45,6 @@ public:
 
     tetris_error_t PlayGame();
     tetris_error_t EnqueueMove(char direction);
-    tetris_error_t RequestRotate(char direction);
 
 private:
     char m_tetris_board[TETRIS_WIDTH][TETRIS_HEIGHT];
@@ -54,7 +65,8 @@ private:
     tetris_error_t EnqueueTetromino();
     tetris_error_t ApplyGravity();
     tetris_error_t DeployTetromino();
-    tetris_error_t RotateTetromino();
+    tetris_error_t RotateTetromino(tetromino_t& mino);
+    tetris_error_t GetTetrominoSize(tetromino_t mino, int& width, int& height);
     tetris_error_t RequestMove(char direction);
     tetris_error_t MoveTetromino(char direction);
     tetris_error_t ClearTetromino();

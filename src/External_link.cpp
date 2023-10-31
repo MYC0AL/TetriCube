@@ -24,7 +24,7 @@ el_error_t ExternalLink::SendStr(std::string str)
     if (!str.empty())
     {
         std::string tempStr = str;
-        tempStr += '\n'; // Add the TC-specific EL termination char
+        tempStr += UART_EOL; // Add the TC-specific EL termination char
 
         if(Serial1.write(tempStr.c_str()) > 0)
         {
@@ -32,6 +32,7 @@ el_error_t ExternalLink::SendStr(std::string str)
         }
     }
 
+    // Delay to allow for transmission
     delay(20);
 
     return retCode;

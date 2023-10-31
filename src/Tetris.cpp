@@ -110,11 +110,28 @@ tetris_error_t Tetris::EnqueueMove(char direction)
     return TETRIS_SUCCESS;
 }
 
+tetris_error_t Tetris::GetTetrominoSize(tetromino_t mino, int& width, int& height)
+{
+    height = mino.tetromino.size();
+
+    int max_width = 0;
+
+    for (int row = 0; row < m_active_mino.tetromino.size(); ++row) {
+        if (m_active_mino.tetromino[row].size() > max_width) {
+            max_width = m_active_mino.tetromino[row].size();
+        }
+    }
+
+    return TETRIS_SUCCESS;
+}
+
+/**
+ * @brief Verify that a given movement is valid
+ * @param direction direction or rotation desired by user
+ * @return Will return TETRIS_MINO_COLLIDE if collision happened
+*/
 tetris_error_t Tetris::RequestMove(char direction)
 {
-    // Check if move request is valid (D, L, R)
-    // and if moving will result in out of bounds
-    // Will return TETRIS_MINO_COLLIDE if collision happened
     tetris_error_t ret_code = TETRIS_SUCCESS;
 
     switch(direction)
@@ -135,13 +152,13 @@ tetris_error_t Tetris::RequestMove(char direction)
                             // If last row, and still collide, was not in the tetromino
                             if (row == m_active_mino.tetromino.size() - 1)
                             {
-                                SquareCheck(row + m_active_mino.y + 1, col + m_active_mino.x);
+                                //DEBUG SquareCheck(row + m_active_mino.y + 1, col + m_active_mino.x);
                                 ret_code = TETRIS_MINO_COLLIDE;
                             }
                             // Check if the block that isnt air, is apart of the tetromino
                             else if (m_active_mino.tetromino[row + 1][col] == ' ')
                             {
-                                SquareCheck(row + m_active_mino.y + 1, col + m_active_mino.x);
+                                //DEBUG SquareCheck(row + m_active_mino.y + 1, col + m_active_mino.x);
                                 ret_code = TETRIS_MINO_COLLIDE;
                             }
                         }
@@ -161,7 +178,7 @@ tetris_error_t Tetris::RequestMove(char direction)
                 {
                     if (m_tetris_board[row + m_active_mino.y][m_active_mino.x - 1] != ' ')
                     {
-                        //SquareCheck(m_active_mino.tetromino[row].size() + m_active_mino.x, row + m_active_mino.y);
+                        //DEBUG SquareCheck(m_active_mino.tetromino[row].size() + m_active_mino.x, row + m_active_mino.y);
                         ret_code = TETRIS_ERR;
                     }
                 }
@@ -185,12 +202,21 @@ tetris_error_t Tetris::RequestMove(char direction)
                 {
                     if (m_tetris_board[row + m_active_mino.y][m_active_mino.tetromino[row].size() + m_active_mino.x] != ' ')
                     {
-                        //SquareCheck(m_active_mino.tetromino[row].size() + m_active_mino.x, row + m_active_mino.y);
+                        //DEBUG SquareCheck(m_active_mino.tetromino[row].size() + m_active_mino.x, row + m_active_mino.y);
                         ret_code = TETRIS_ERR;
                     }
                 }
             }
         break;
+
+        case '^':
+        {
+            // Check if the height (width-to-be) would collide with the barrier, on all sides
+            int height, width;
+            GetTetrominoSize(m_active_mino, width, height);
+            log_printf("height: %d, width: %d\n",height,width);
+            break;
+        }
     }
 
     return ret_code;
@@ -212,11 +238,6 @@ void Tetris::DisplayTetrisBoard()
                               TETRIS_SQ_PXL,
                               TETRIS_SQ_PXL,
                               temp_color);
-                // POC gfx->drawRect(col*TETRIS_SQ_PXL,
-                //               row*TETRIS_SQ_PXL,
-                //               TETRIS_SQ_PXL,
-                //               TETRIS_SQ_PXL,
-                //               BLACK);
             }
             else
             {
@@ -236,10 +257,10 @@ void Tetris::DisplayTetrisBoard()
             }
         }
     }
- }
+}
 
- int Tetris::CharToColor(char color)
- {
+int Tetris::CharToColor(char color)
+{
     static const std::unordered_map<char, int> colorMap = {
         {'C', CYAN},
         {'Y', YELLOW},
@@ -257,10 +278,10 @@ void Tetris::DisplayTetrisBoard()
     }
 
     return TETRIS_ERR;
- }
+}
 
- tetris_error_t Tetris::EnqueueTetromino()
- {
+tetris_error_t Tetris::EnqueueTetromino()
+{
     tetris_error_t ret_code = TETRIS_ERR;
 
     // Add random tetromino to queue
@@ -271,10 +292,10 @@ void Tetris::DisplayTetrisBoard()
     }
 
     return ret_code;
- }
+}
 
- tetris_error_t Tetris::ApplyGravity()
- {
+tetris_error_t Tetris::ApplyGravity()
+{
     if (m_moves.empty())
     {
         EnqueueMove('D');
@@ -286,10 +307,10 @@ void Tetris::DisplayTetrisBoard()
     }
 
     return TETRIS_SUCCESS;
- }
+}
 
- tetris_error_t Tetris::DeployTetromino()
- {
+tetris_error_t Tetris::DeployTetromino()
+{
     tetris_error_t ret_code = TETRIS_SUCCESS;
 
     // Clear old queued moves
@@ -298,7 +319,7 @@ void Tetris::DisplayTetrisBoard()
     // Check if game should end
     if (CheckGame(m_tetromino_queue.front()) == TETRIS_END_GAME)
     {
-        return TETRIS_END_GAME;
+        ret_code = TETRIS_END_GAME;
     };
 
     // Clear old active mino
@@ -320,10 +341,37 @@ void Tetris::DisplayTetrisBoard()
     DisplayTetrisBoard();
 
     return ret_code;
- }
+}
 
- tetris_error_t Tetris::MoveTetromino(char direction)
- {
+/*********************************************************
+ * @brief Rotate 'mino' 90 degrees in 'dir' direction
+ * @param dir Direction to rotate in
+ * @param mino Mino to preform rotation on
+ ********************************************************/
+tetris_error_t Tetris::RotateTetromino(tetromino_t& mino)
+{
+    tetris_error_t ret = TETRIS_SUCCESS;
+
+    int rows = mino.tetromino.size();
+    int cols = mino.tetromino[0].size();
+
+    // create new vector with swapped dimensions
+    std::vector<std::vector<char>> temp(cols, std::vector<char>(rows));
+
+    // populate the new vector
+    for (int r = 0; r < rows; r++) {
+        for (int c = 0; c < cols; c++) {
+            temp[c][rows-r-1] = mino.tetromino[r][c];
+        }
+    }
+    
+    mino.tetromino = temp;
+
+    return ret;
+}
+
+tetris_error_t Tetris::MoveTetromino(char direction)
+{
     // Clear old tetromino
     ClearTetromino();
 
@@ -341,6 +389,12 @@ void Tetris::DisplayTetrisBoard()
         case 'R':
             m_active_mino.x += 1;
         break;
+
+        // If a rotation, fall through and call rotate on active mino
+        case '^':
+            RotateTetromino(m_active_mino);
+        break;
+
     }
 
     // Update board
@@ -350,10 +404,10 @@ void Tetris::DisplayTetrisBoard()
     DisplayTetrisBoard();
 
     return TETRIS_SUCCESS;
- }
+}
 
- tetris_error_t Tetris::ClearTetromino()
- {
+tetris_error_t Tetris::ClearTetromino()
+{
     // Clear active tetromino on board
     for(int row = 0; row < m_active_mino.tetromino.size(); ++row)
     {
@@ -366,10 +420,10 @@ void Tetris::DisplayTetrisBoard()
         }
     }
     return TETRIS_SUCCESS;
- }
+}
 
- tetris_error_t Tetris::UpdateBoard()
- {
+tetris_error_t Tetris::UpdateBoard()
+{
     // Use active tetrimino and update pos on board
     for(int row = 0; row < m_active_mino.tetromino.size(); ++row)
     {
@@ -382,21 +436,21 @@ void Tetris::DisplayTetrisBoard()
         }
     }
     return TETRIS_SUCCESS;
- }
+}
 
- tetris_error_t Tetris::CollideTetromino()
- {
+tetris_error_t Tetris::CollideTetromino()
+{
     // Reset active mino flag which 
     // adds the mino to the tetris board
     m_mino_is_active = false;
 
     return TETRIS_SUCCESS;
- }
+}
 
 
 // Check if piece is on board when a new piece spawns in
- tetris_error_t Tetris::CheckGame(tetromino_t new_mino)
- {
+tetris_error_t Tetris::CheckGame(tetromino_t new_mino)
+{
     tetris_error_t ret_code = TETRIS_SUCCESS;
 
     for (int row = 0; row < new_mino.tetromino.size(); row++) {
@@ -408,7 +462,7 @@ void Tetris::DisplayTetrisBoard()
     }
 
     return ret_code;
- }
+}
 
 bool Tetris::downCollision(int row, int col) {
 
@@ -430,10 +484,10 @@ bool Tetris::downCollision(int row, int col) {
  * Handle the dev being a dummy.
  * Prevent constant reset. 
 */
- void Tetris::DummyHandler()
- {
+void Tetris::DummyHandler()
+{
     gfx->fillScreen(WHITE);
     gfx->setCursor(gfx->width() / 2, gfx->height() / 2);
     gfx->print("Dummy handler");
     while(1);
- }
+}

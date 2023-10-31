@@ -81,11 +81,13 @@ void StateDriver::state_controller()
                 // POC to represent buttons on others displays being pushed
                 if (dHelp.touch_touched())
                 {
-                    if (dHelp.current_touches[0].y > 360)
+                    if (dHelp.current_touches[0].y > 380)
                         el.SendStr("D");
-                    else if (dHelp.current_touches[0].x < 240)
+                    else if (dHelp.current_touches[0].y < 100)
+                        el.SendStr("^");
+                    else if (dHelp.current_touches[0].x < 100)
                         el.SendStr("L");
-                    else if (dHelp.current_touches[0].x > 239)
+                    else if (dHelp.current_touches[0].x > 380)
                        el.SendStr("R");
                 }
 

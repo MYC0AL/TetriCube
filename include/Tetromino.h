@@ -8,6 +8,8 @@
 #define TETROMINO_START_POS_X 3
 #define TETROMINO_START_POS_Y 0
 
+#define TETROMINO_ROT 4
+
 #include <vector>
 using std::vector;
 
@@ -55,8 +57,8 @@ const tetromino_t MINO_J = {{
                             TETROMINO_START_POS_Y};
 
 const tetromino_t MINO_L = {{
-                            {'O'},
-                            {'O'},
+                            {'O',' '},
+                            {'O',' '},
                             {'O','O'}},
                             TETROMINO_START_POS_X,
                             TETROMINO_START_POS_Y};
