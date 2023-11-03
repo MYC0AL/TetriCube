@@ -10,6 +10,9 @@
 
 #define TETROMINO_ROT 4
 
+#define AIR ' '
+#define GHOST_AIR 'X'
+
 #include <vector>
 using std::vector;
 

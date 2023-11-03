@@ -34,7 +34,7 @@ Tetris::Tetris() : m_round_num(1), m_move_delay(1000), m_mino_is_active(false), 
     {
         for (uint y = 0; y < TETRIS_HEIGHT; ++y)
         {
-            m_tetris_board[x][y] = ' ';
+            m_tetris_board[x][y] = AIR;
         }
     }
 }
@@ -114,11 +114,11 @@ tetris_error_t Tetris::GetTetrominoSize(tetromino_t mino, int& width, int& heigh
 {
     height = mino.tetromino.size();
 
-    int max_width = 0;
+    width = 0;
 
     for (int row = 0; row < m_active_mino.tetromino.size(); ++row) {
-        if (m_active_mino.tetromino[row].size() > max_width) {
-            max_width = m_active_mino.tetromino[row].size();
+        if (m_active_mino.tetromino[row].size() > width) {
+            width = m_active_mino.tetromino[row].size();
         }
     }
 
@@ -144,10 +144,10 @@ tetris_error_t Tetris::RequestMove(char direction)
             // Check if moving down would collide with a block
             for (int row = 0; row < m_active_mino.tetromino.size() && !ret_code; ++row) {
                 for (int col = 0; col < m_active_mino.tetromino[row].size() && !ret_code; ++col) {
-                    if (m_active_mino.tetromino[row][col] != ' ')
+                    if (m_active_mino.tetromino[row][col] != AIR)
                     {
                         // Check the square below to see if it is air
-                        if (m_tetris_board[row + m_active_mino.y + 1][col + m_active_mino.x] != ' ')
+                        if (m_tetris_board[row + m_active_mino.y + 1][col + m_active_mino.x] != AIR)
                         {
                             // If last row, and still collide, was not in the tetromino
                             if (row == m_active_mino.tetromino.size() - 1)
@@ -156,7 +156,7 @@ tetris_error_t Tetris::RequestMove(char direction)
                                 ret_code = TETRIS_MINO_COLLIDE;
                             }
                             // Check if the block that isnt air, is apart of the tetromino
-                            else if (m_active_mino.tetromino[row + 1][col] == ' ')
+                            else if (m_active_mino.tetromino[row + 1][col] == AIR)
                             {
                                 //DEBUG SquareCheck(row + m_active_mino.y + 1, col + m_active_mino.x);
                                 ret_code = TETRIS_MINO_COLLIDE;
@@ -174,9 +174,9 @@ tetris_error_t Tetris::RequestMove(char direction)
 
             for (int row = 0; row < m_active_mino.tetromino.size() && !ret_code; ++row) 
             {
-                if (m_active_mino.tetromino[row].front() != ' ')
+                if (m_active_mino.tetromino[row].front() != AIR)
                 {
-                    if (m_tetris_board[row + m_active_mino.y][m_active_mino.x - 1] != ' ')
+                    if (m_tetris_board[row + m_active_mino.y][m_active_mino.x - 1] != AIR)
                     {
                         //DEBUG SquareCheck(m_active_mino.tetromino[row].size() + m_active_mino.x, row + m_active_mino.y);
                         ret_code = TETRIS_ERR;
@@ -198,9 +198,9 @@ tetris_error_t Tetris::RequestMove(char direction)
             // Check if moving right would collide with a block
             for (int row = 0; row < m_active_mino.tetromino.size() && !ret_code; ++row) 
             {
-                if (m_active_mino.tetromino[row].back() != ' ')
+                if (m_active_mino.tetromino[row].back() != AIR)
                 {
-                    if (m_tetris_board[row + m_active_mino.y][m_active_mino.tetromino[row].size() + m_active_mino.x] != ' ')
+                    if (m_tetris_board[row + m_active_mino.y][m_active_mino.tetromino[row].size() + m_active_mino.x] != AIR)
                     {
                         //DEBUG SquareCheck(m_active_mino.tetromino[row].size() + m_active_mino.x, row + m_active_mino.y);
                         ret_code = TETRIS_ERR;
@@ -211,10 +211,68 @@ tetris_error_t Tetris::RequestMove(char direction)
 
         case '^':
         {
-            // Check if the height (width-to-be) would collide with the barrier, on all sides
+            // Check if the height and width would collide with the barrier, on all sides
             int height, width;
             GetTetrominoSize(m_active_mino, width, height);
-            log_printf("height: %d, width: %d\n",height,width);
+            if (m_active_mino.x + height > TETRIS_HEIGHT || m_active_mino.y + width > TETRIS_WIDTH) {
+                ret_code = TETRIS_ERR;
+            }
+
+            // Capture active mino color
+            char active_color = ' ';
+
+            // Replace active mino with ghost air
+            for(int row = 0; row < m_active_mino.tetromino.size() && !ret_code; ++row)
+            {
+                for(int col = 0; col < m_active_mino.tetromino[row].size(); ++col)
+                {
+                    if (m_active_mino.tetromino[row][col] != AIR) {
+                        // Update active color
+                        active_color = m_tetris_board[row + m_active_mino.y][col + m_active_mino.x];
+
+                        // Fill with ghost air
+                        m_tetris_board[row + m_active_mino.y][col + m_active_mino.x] = GHOST_AIR;
+                    }
+                }
+            }
+
+            // Create ghost tetromino to rotate
+            tetromino_t ghost = m_active_mino;
+
+            // Rotate ghost
+            if (!ret_code)
+                RotateTetromino(ghost);
+
+            // Check if rotated ghost overlaps with existing tetrominos
+            for(int row = 0; row < ghost.tetromino.size() && !ret_code; ++row)
+            {
+                for(int col = 0; col < ghost.tetromino[row].size(); ++col)
+                {
+                    if (ghost.tetromino[row][col] != AIR) {
+                        char check_sq = m_tetris_board[row + ghost.y][col + ghost.x];
+                        if (check_sq != AIR && check_sq != GHOST_AIR) {
+                            ret_code = TETRIS_ERR;
+                        }
+                    }
+                }
+            }
+
+            // Fill ghost air with old mino color if rotation failed
+            // Remove ghost air if rotation was successful
+            for(int row = 0; row < TETRIS_HEIGHT; ++row)
+            {
+                for(int col = 0; col < TETRIS_WIDTH; ++col)
+                {
+                    if (m_tetris_board[row][col] == GHOST_AIR) 
+                    {
+                        if (ret_code)
+                            m_tetris_board[row][col] = active_color;
+                        else
+                            m_tetris_board[row][col] = AIR;
+                    }
+                }
+            }
+
             break;
         }
     }
@@ -269,7 +327,7 @@ int Tetris::CharToColor(char color)
         {'O', ORANGE},
         {'G', GREEN},
         {'R', RED},
-        {' ', TETRIS_EMPTY_COLOR}
+        {AIR, TETRIS_EMPTY_COLOR}
     };
 
     auto it = colorMap.find(color);
@@ -413,9 +471,9 @@ tetris_error_t Tetris::ClearTetromino()
     {
         for(int col = 0; col < m_active_mino.tetromino[row].size(); ++col)
         {
-            if (m_active_mino.tetromino[row][col] != ' ')
+            if (m_active_mino.tetromino[row][col] != AIR)
             {
-                m_tetris_board[row+m_active_mino.y][col+m_active_mino.x] = ' ';
+                m_tetris_board[row+m_active_mino.y][col+m_active_mino.x] = AIR;
             }
         }
     }
@@ -429,7 +487,7 @@ tetris_error_t Tetris::UpdateBoard()
     {
         for(int col = 0; col < m_active_mino.tetromino[row].size(); ++col)
         {
-            if (m_active_mino.tetromino[row][col] != ' ')
+            if (m_active_mino.tetromino[row][col] != AIR)
             {
                 m_tetris_board[row+m_active_mino.y][col+m_active_mino.x] = m_active_mino.tetromino[row][col];
             }
@@ -455,7 +513,7 @@ tetris_error_t Tetris::CheckGame(tetromino_t new_mino)
 
     for (int row = 0; row < new_mino.tetromino.size(); row++) {
         for (int col = 0; col < new_mino.tetromino[row].size(); col++) {
-            if (m_tetris_board[row + new_mino.y][col + new_mino.x] != ' ') {
+            if (m_tetris_board[row + new_mino.y][col + new_mino.x] != AIR) {
                 ret_code = TETRIS_END_GAME;
             }
         }
@@ -470,12 +528,12 @@ bool Tetris::downCollision(int row, int col) {
 
     if (row == m_active_mino.tetromino.size() - 1)
     {
-        collided = m_tetris_board[row + m_active_mino.y + 1][col + m_active_mino.x] != ' ';
+        collided = m_tetris_board[row + m_active_mino.y + 1][col + m_active_mino.x] != AIR;
     }
     else
     {
-        collided = m_active_mino.tetromino[row][col] != ' ' && m_active_mino.tetromino[row + 1][col] == ' ' &&
-           m_tetris_board[row + m_active_mino.y + 1][col + m_active_mino.x] != ' ';
+        collided = m_active_mino.tetromino[row][col] != AIR && m_active_mino.tetromino[row + 1][col] == AIR &&
+           m_tetris_board[row + m_active_mino.y + 1][col + m_active_mino.x] != AIR;
     }
     return collided;
 }
