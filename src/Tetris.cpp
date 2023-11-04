@@ -24,17 +24,20 @@ void Tetris::SquareCheck(int row, int col)
 
 }
 
-Tetris::Tetris() : m_round_num(1), m_move_delay(1000), m_mino_is_active(false), m_mino_time(0)
+Tetris::Tetris() : m_level(0), m_move_delay(1000), m_mino_is_active(false), m_mino_time(0)
 {
     // Randomize seed
     srand(static_cast<unsigned int>(std::time(0)*2));
 
     // Initialize the tetris board to empty spaces
-    for (uint x = 0; x < TETRIS_WIDTH; ++x)
+    for (uint row = 0; row < TETRIS_HEIGHT; ++row)
     {
-        for (uint y = 0; y < TETRIS_HEIGHT; ++y)
+        for (uint col = 0; col < TETRIS_WIDTH; ++col)
         {
-            m_tetris_board[x][y] = AIR;
+            m_tetris_board[row][col] = AIR;
+            if (row > TETRIS_HEIGHT-5 && col < TETRIS_WIDTH - 1)
+                m_tetris_board[row][col] = 'G';
+
         }
     }
 }
@@ -374,6 +377,14 @@ tetris_error_t Tetris::DeployTetromino()
     // Clear old queued moves
     while(!m_moves.empty()) m_moves.pop();
 
+    // Check if line is full
+    vector<int> filled_lines;
+    if (CheckFullLines(filled_lines) == TETRIS_SUCCESS)
+    {
+        // Clear Full lines
+        ClearFullLines(filled_lines);
+    }
+
     // Check if game should end
     if (CheckGame(m_tetromino_queue.front()) == TETRIS_END_GAME)
     {
@@ -522,30 +533,91 @@ tetris_error_t Tetris::CheckGame(tetromino_t new_mino)
     return ret_code;
 }
 
-bool Tetris::downCollision(int row, int col) {
+/**
+ * @brief Check the current tetris board for full lines
+ * @param filled_lines A vector of ints that will populate 
+ * with the index of the lines that are filled
+ * @return TETRIS_SUCCESS if 1 or more lines full,
+ * TETRIS_ERR if 0 lines full 
+*/
+tetris_error_t Tetris::CheckFullLines(vector<int>& filled_lines)
+{
+    tetris_error_t ret_code = TETRIS_ERR;
 
-    bool collided = false;
+    filled_lines.clear();
 
-    if (row == m_active_mino.tetromino.size() - 1)
+    for(int row = 0; row < TETRIS_HEIGHT; ++row)
     {
-        collided = m_tetris_board[row + m_active_mino.y + 1][col + m_active_mino.x] != AIR;
+        bool lineFull = true;
+        for(int col = 0; col < TETRIS_WIDTH && lineFull; ++col)
+        {
+            if (m_tetris_board[row][col] == AIR)
+                lineFull = false;
+        }
+        if (lineFull)
+        {
+            filled_lines.push_back(row);
+            ret_code = TETRIS_SUCCESS;
+        }
     }
-    else
-    {
-        collided = m_active_mino.tetromino[row][col] != AIR && m_active_mino.tetromino[row + 1][col] == AIR &&
-           m_tetris_board[row + m_active_mino.y + 1][col + m_active_mino.x] != AIR;
-    }
-    return collided;
+    return ret_code;
 }
 
 /**
- * Handle the dev being a dummy.
- * Prevent constant reset. 
+ * @brief Clear all full lines and shift down minos
+ * @param filled_lines A vector<int> containing filled lines index
+ * @return Always return TETRIS_SUCCESS
 */
-void Tetris::DummyHandler()
+tetris_error_t Tetris::ClearFullLines(vector<int> filled_lines)
 {
-    gfx->fillScreen(WHITE);
-    gfx->setCursor(gfx->width() / 2, gfx->height() / 2);
-    gfx->print("Dummy handler");
-    while(1);
+    // For each filled line
+    for(int i = 0; i < filled_lines.size(); ++i)
+    {
+        for(int row = filled_lines[i]; row > 0 ; --row)
+        {
+            for(int col = 0; col < TETRIS_WIDTH; ++col)
+                m_tetris_board[row][col] = m_tetris_board[row-1][col];
+
+        }
+        
+        // Fill in row[0] with AIR
+        for(int j = 0; j < TETRIS_WIDTH; ++j)
+        {
+            m_tetris_board[0][j] = AIR;
+        }
+    }
+
+    // Update score
+    UpdateScore(filled_lines.size());
+    
+    return TETRIS_SUCCESS;
+}
+
+/**
+ * @brief Update score based on the combo of lines cleared.
+ * The higher the level, the more points earned
+ * @param rowsCleared Number of rows cleared
+ * @return Always return TETRIS_SUCCESS
+*/
+tetris_error_t Tetris::UpdateScore(int rowsCleared)
+{
+    int score_mult = 0;
+    switch(rowsCleared)
+    {
+        case 1:
+            score_mult = 40;
+            break;
+        case 2:
+            score_mult = 100;
+            break;
+        case 3:
+            score_mult + 300;
+            break;
+        case 4:
+            score_mult + 1200;
+            break;
+    }
+    m_score += score_mult * (m_level + 1);
+    log_printf("SCORE: %d", m_score);
+    return TETRIS_SUCCESS;
 }

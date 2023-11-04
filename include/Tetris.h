@@ -49,9 +49,10 @@ public:
 private:
     char m_tetris_board[TETRIS_WIDTH][TETRIS_HEIGHT];
     uint32_t m_move_delay; // In ms
-    uint m_round_num;
+    uint m_level;
     bool m_mino_is_active;
     unsigned long m_mino_time;
+    unsigned long m_score;
 
     bool m_reset_mino_time_flag = true;
 
@@ -73,14 +74,12 @@ private:
     tetris_error_t UpdateBoard();
     tetris_error_t CollideTetromino();
     tetris_error_t CheckGame(tetromino_t new_mino);
-
-    bool downCollision(int row, int col);
+    tetris_error_t CheckFullLines(vector<int>& filled_lines);
+    tetris_error_t ClearFullLines(vector<int> filled_lines);
+    tetris_error_t UpdateScore(int rowsCleared);
 
     // Debug tool
     void SquareCheck(int x, int y);
-
-    void DummyHandler();
-
 };
 
 #endif
