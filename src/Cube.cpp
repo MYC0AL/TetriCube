@@ -1,7 +1,6 @@
 #include "Cube.h"
-
+#include <iomanip>
 // Globals for Cube
-LGFX display;
 SQ SQ_POS[9] = {{RBX_SQ0}, {RBX_SQ1}, {RBX_SQ2}, {RBX_SQ3}, {RBX_SQ4}, {RBX_SQ5}, {RBX_SQ6}, {RBX_SQ7}, {RBX_SQ8}};
 
 // short DISP_NUM = 0;
@@ -16,21 +15,16 @@ short possibleSwipes[12][SWIPE_SIZE] = {{6, 3, 0}, {7, 4, 1}, {8, 5, 2}, // 0 1 
                                         {5, 4, 3},
                                         {2, 1, 0}}; // 9 10 11
 
-short prevSq = -1;
-short prevTouches[PREV_ARR_SIZE] = {-1, -1, -1};
-short prevTouchCount = 0;
-short prevDist = 0;
-bool validity;
-short x, y;
-
 // Color stuff
 unsigned short color_index = 0;
-int RBX_Colors[6] = {WHITE, BLUE, RED, GREEN, ORANGE, YELLOW};
+int RBX_Colors[6] = {WHITE, BLUE, ORANGE, GREEN, RED, YELLOW};
 
-Cube::Cube()
+Cube::Cube() : m_prevSq(-1), m_prevTouchCount(0), m_prevDist(0), m_swipedFlag(false)
 {
+    for (int i = 0; i < PREV_ARR_SIZE; ++i)
+        m_prevTouches[i] = -1;
+
     InitCube();
-    //InitDisplay();
 }
 
 Cube::~Cube()
@@ -38,66 +32,24 @@ Cube::~Cube()
 
 }
 
-void Cube::InitDisplay()
-{
-    // Init display
-    display.init();
-
-    // Configure display
-    display.setRotation(4);
-    display.setColorDepth(16);
-}
-
-void Cube::startGame()
-{
-
-    InitDisplay();
-
-    // Draw initial rubiks cube
-    drawRubiksSide(SIDE_NUM);
-
-    // Infinite game loop
-    while (1)
+void Cube::PlayGame()
+{    
+    if (m_swipedFlag)
     {
-        // If a touch was detected
-        if (display.getTouch(&x, &y))
+        log_printf("Swiped flag set\n");
+        short dir = dirSwiped();
+        if (dir != SWIPE_ERR)
         {
-            short sqTouch = sqTapped(x, y);
-            if (sqTouch != -1 && sqTouch != prevSq)
-            {
-                prevSq = sqTouch;
-
-                if (prevTouches[0] == -1)
-                {
-                    prevTouches[prevTouchCount] = prevSq;
-                    prevTouchCount = (prevTouchCount + 1) % SWIPE_SIZE;
-                }
-                else if (validTouch())
-                {
-                    prevTouches[prevTouchCount] = prevSq;
-
-                    if (prevTouchCount + 1 == SWIPE_SIZE)
-                    {
-                        short dir = dirSwiped();
-                        if (dir != SWIPE_ERR)
-                        {
-                            RotateCube(SIDE_NUM, dir);
-                            resetGlobals();
-                            DisplayCube();
-                            // drawRubiksSide(SIDE_NUM);
-                            drawRubiksCube();
-                        }
-                        else
-                            resetGlobals();
-                    }
-                    prevTouchCount = (prevTouchCount + 1) % SWIPE_SIZE;
-                }
-                else
-                {
-                    resetGlobals();
-                }
-            }
+            RotateCube(SIDE_NUM, dir);
+            ResetVars();
+            //DEBUG DisplayCube();
+            drawRubiksSide(SIDE_NUM);
+            //DEBUG drawRubiksCube();
         }
+        else
+            ResetVars();
+
+        m_swipedFlag = false;
     }
 }
 
@@ -105,7 +57,7 @@ void Cube::drawRubiksSide(int sideNum)
 {
     for (int i = 0; i < NUM_SQUARES; i++)
     {
-        display.fillRect(m_cube[sideNum][i].x,
+        gfx->fillRect(m_cube[sideNum][i].x,
                          m_cube[sideNum][i].y,
                          m_cube[sideNum][i].w,
                          m_cube[sideNum][i].h,
@@ -149,7 +101,7 @@ short Cube::dirSwiped()
         matchCount = 0;
         for (int j = 0; j < PREV_ARR_SIZE && !found; j++)
         {
-            if (prevTouches[j] == possibleSwipes[i][j])
+            if (m_prevTouches[j] == possibleSwipes[i][j])
             {
                 matchCount++;
             }
@@ -165,27 +117,56 @@ short Cube::dirSwiped()
     return dir;
 }
 
-bool Cube::validTouch()
-{
-    validity = false;
-
-    if (prevTouchCount == 1)
+void Cube::TouchUpdate(uint16_t touch_x, uint16_t touch_y)
+{    
+    short sqTouch = sqTapped(touch_x, touch_y);
+    if (sqTouch != -1 && sqTouch != m_prevSq)
     {
-        if ((abs(prevSq - prevTouches[prevTouchCount - 1]) == 1) &&
-            (m_cube[SIDE_NUM][prevSq].y == m_cube[SIDE_NUM][prevTouches[prevTouchCount - 1]].y))
+        m_prevSq = sqTouch;
+
+        if (m_prevTouches[0] == -1)
         {
-            validity = true;
-            prevDist = 1;
+            m_prevTouches[m_prevTouchCount] = m_prevSq;
+            m_prevTouchCount = (m_prevTouchCount + 1) % SWIPE_SIZE;
         }
-        else if (abs(prevSq - prevTouches[prevTouchCount - 1]) == 3)
+        else if (validTouch())
         {
-            validity = true;
-            prevDist = 3;
+            m_prevTouches[m_prevTouchCount] = m_prevSq;
+
+            if (m_prevTouchCount + 1 == SWIPE_SIZE)
+            {
+                m_swipedFlag = true;
+            }
+            m_prevTouchCount = (m_prevTouchCount + 1) % SWIPE_SIZE;
+        }
+        else
+        {
+            ResetVars();
         }
     }
-    else if (prevTouchCount == 2)
+}
+
+bool Cube::validTouch()
+{
+    bool validity = false;
+
+    if (m_prevTouchCount == 1)
     {
-        if (abs(prevSq - prevTouches[prevTouchCount - 1]) == prevDist)
+        if ((abs(m_prevSq - m_prevTouches[m_prevTouchCount - 1]) == 1) &&
+            (m_cube[SIDE_NUM][m_prevSq].y == m_cube[SIDE_NUM][m_prevTouches[m_prevTouchCount - 1]].y))
+        {
+            validity = true;
+            m_prevDist = 1;
+        }
+        else if (abs(m_prevSq - m_prevTouches[m_prevTouchCount - 1]) == 3)
+        {
+            validity = true;
+            m_prevDist = 3;
+        }
+    }
+    else if (m_prevTouchCount == 2)
+    {
+        if (abs(m_prevSq - m_prevTouches[m_prevTouchCount - 1]) == m_prevDist)
         {
             validity = true;
         }
@@ -193,22 +174,15 @@ bool Cube::validTouch()
     return validity;
 }
 
-void Cube::displayAllData()
-{
-    char buff[200];
-    sprintf(buff, "PrevTouches: %d, %d, %d\nTouchCount: %d\nValidity: %d \n", prevTouches[0], prevTouches[1], prevTouches[2], prevTouchCount, validity);
-    Serial.println(buff);
-}
-
-void Cube::resetGlobals()
+void Cube::ResetVars()
 {
     for (int i = 0; i < SWIPE_SIZE; i++)
-        prevTouches[i] = -1;
-    prevTouchCount = 0;
-    prevTouches[0] = prevSq;
-    prevTouchCount++;
-    prevDist = 0;
-    prevSq = -1;
+        m_prevTouches[i] = -1;
+    m_prevTouchCount = 0;
+    m_prevTouches[0] = m_prevSq;
+    m_prevTouchCount++;
+    m_prevDist = 0;
+    m_prevSq = -1;
 }
 
 void Cube::InitCube()
@@ -253,41 +227,98 @@ void Cube::Rotate(short sidesToMove[5], short sqToMove[3], bool prime) // Front 
         m_cube[sidesToMove[tempOp]][sqToMove[i]] = tempSq[i];
     }
 
+    DisplayCube();
     // Rotate host side
-    rotateSide(sidesToMove[4], prime); // prime and cw are inverse, sidesToMove[4] is  the face of the roating side.
+    //rotateSide(sidesToMove[4], prime); // prime and cw are inverse, sidesToMove[4] is  the face of the roating side.
 }
 
 void Cube::rotateSide(short sideNum, bool prime)
 {
-    const short sqArrSize = 4;
-    short cornerRotSeq[sqArrSize] = {0, 6, 8, 2};
-    short edgeRotSeq[sqArrSize] = {1, 3, 7, 5};
+    // gfx->fillScreen(BLACK);
+    // sleep(1);
+    // drawRubiksSide(sideNum);
+    // sleep(3);
 
-    SQ tempCorner = m_cube[sideNum][cornerRotSeq[prime ? 0 : sqArrSize - 1]];
-    SQ tempEdge = m_cube[sideNum][edgeRotSeq[prime ? 0 : sqArrSize - 1]];
+    // const short sqArrSize = 4;
+    // short cornerRotSeq[sqArrSize] = {0, 6, 8, 2};
+    // short edgeRotSeq[sqArrSize] = {1, 3, 7, 5};
 
-    for (int i = prime ? 0 : sqArrSize - 1; prime ? i < sqArrSize - 1 : i > 0; prime ? i++ : i--)
+    // SQ tempCorner = m_cube[sideNum][cornerRotSeq[prime ? 0 : sqArrSize - 1]];
+    // SQ tempEdge = m_cube[sideNum][edgeRotSeq[prime ? 0 : sqArrSize - 1]];
+
+    // for (int i = prime ? 0 : sqArrSize - 1; prime ? i < sqArrSize - 1 : i > 0; prime ? i++ : i--)
+    // {
+    //     m_cube[sideNum][cornerRotSeq[i]] = m_cube[sideNum][cornerRotSeq[i - (prime ? 0 : 1)]];
+    //     m_cube[sideNum][edgeRotSeq[i]] = m_cube[sideNum][edgeRotSeq[i - (prime ? 0 : 1)]];
+    // }
+
+    // m_cube[sideNum][cornerRotSeq[prime ? sqArrSize - 1 : 0]] = tempCorner;
+    // m_cube[sideNum][edgeRotSeq[prime ? sqArrSize - 1 : 0]] = tempEdge;
+
+    /**
+     * Cube = {
+     *          {0, 1, 2, 
+     *          3, 4, 5,
+     *          6, 7, 8},
+     *          {},
+     *          {},
+     *          {},
+     *          {},
+     *          {}
+     *          }
+    */
+
+    SQ tempSide[NUM_SQUARES];
+    for(int i = 0; i < NUM_SQUARES; ++i)
     {
-        m_cube[sideNum][cornerRotSeq[i]] = m_cube[sideNum][cornerRotSeq[i - (prime ? 0 : 1)]];
-        m_cube[sideNum][edgeRotSeq[i]] = m_cube[sideNum][edgeRotSeq[i - (prime ? 0 : 1)]];
+        tempSide[i] = m_cube[sideNum][i];
     }
 
-    m_cube[sideNum][cornerRotSeq[prime ? sqArrSize - 1 : 0]] = tempCorner;
-    m_cube[sideNum][edgeRotSeq[prime ? sqArrSize - 1 : 0]] = tempEdge;
+    m_cube[sideNum][0] = tempSide[2];
+    m_cube[sideNum][6] = tempSide[0];
+    m_cube[sideNum][8] = tempSide[6];
+    m_cube[sideNum][2] = tempSide[8];
+
+    m_cube[sideNum][1] = tempSide[5];
+    m_cube[sideNum][3] = tempSide[1];
+    m_cube[sideNum][7] = tempSide[3];
+    m_cube[sideNum][5] = tempSide[7];
+
+    for(int s = 0; s < NUM_SIDES; ++s)
+    {
+        log_printf("Side #%d: \n",s);
+        for(int i = 0; i < NUM_SQUARES; ++i)
+        {
+            if (i == 0 || i == 3 || i == 6)
+            {
+                log_printf("%s %s %s\t\t",ColorToStr(m_cube[s][i].c).c_str(),ColorToStr(m_cube[s][i+1].c).c_str(),ColorToStr(m_cube[s][i+2].c).c_str());
+                if (sideNum == s)
+                {
+                    log_printf("%s %s %s",
+                    ColorToStr(tempSide[i].c).c_str(),ColorToStr(tempSide[i+1].c).c_str(),ColorToStr(tempSide[i+2].c).c_str());
+                }
+            log_printf("\n");
+            }
+        }
+    }
+
+    // drawRubiksSide(sideNum);
+    // sleep(3);
 }
 
-void Cube::DisplayCube() // Print doesnt work
+void Cube::DisplayCube()
 {
-    for (int i = 0; i < NUM_SIDES; i++)
+    log_printf("=== Display Cube ===\n");
+    for(int s = 0; s < NUM_SIDES; ++s)
     {
-        Serial.print("Side #");
-        Serial.println(i);
-        for (int j = 0; j < NUM_SQUARES; j++)
+        log_printf("Side #%d: \n",s);
+        for(int i = 0; i < NUM_SQUARES; ++i)
         {
-            Serial.print(m_cube[i][j].c, HEX);
-            Serial.print(" ");
+            if (i == 0 || i == 3 || i == 6)
+            {
+                log_printf("%s %s %s\n",ColorToStr(m_cube[s][i].c).c_str(),ColorToStr(m_cube[s][i+1].c).c_str(),ColorToStr(m_cube[s][i+2].c).c_str());
+            }
         }
-        Serial.println("\n");
     }
 }
 
@@ -359,7 +390,7 @@ void Cube::BackRotation(bool prime)
 void Cube::LeftRotation(bool prime)
 {
     Serial.println("Left Rotation\r\n");
-    short sidesToMove[5] = {3, 5, 1, 0, 4}; // 0 1 5 3
+    short sidesToMove[5] = {3, 5, 1, 0, 4};
     short sqToMove[3] = {0, 3, 6};
     Rotate(sidesToMove, sqToMove, prime);
 }
@@ -370,4 +401,32 @@ void Cube::DownRotation(bool prime)
     short sidesToMove[5] = {4, 0, 2, 5, 3};
     short sqToMove[3] = {0, 1, 2};
     Rotate(sidesToMove, sqToMove, prime);
+}
+
+String Cube::ColorToStr(int color)
+{
+    String retColor;
+    
+    switch(color)
+    {
+        case WHITE:
+            retColor = "W";
+            break;
+        case BLUE:
+            retColor = "B";
+            break;
+        case RED:
+            retColor = "R";
+            break;
+        case GREEN:
+            retColor = "G";
+            break;
+        case ORANGE:
+            retColor = "O";
+            break;
+        case YELLOW:
+            retColor = "Y";
+            break;
+    }
+    return retColor;
 }

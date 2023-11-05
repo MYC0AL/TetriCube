@@ -108,7 +108,12 @@ void StateDriver::state_controller()
                 break;
 
             case STATE_RUBIKS:
-
+                // Start rubiks cube
+                if (dHelp.touch_touched())
+                {
+                    rbx.TouchUpdate(dHelp.current_touches[0].x, dHelp.current_touches[0].y);
+                }
+                rbx.PlayGame();
                 break;
 
             case STATE_TETRIS_END:
@@ -189,10 +194,8 @@ void StateDriver::update_new_state(state_t new_state)
         {// <-- must use brackets here to stop 'switch' related errors
             // Clear screen to reset background
             dHelp.clear_screen();
-
-            // Start rubiks cube
-            //rbx.startGame();
-
+            // Draw initial rubiks cube
+            rbx.drawRubiksSide(SIDE_NUM);
             break;
         }
 

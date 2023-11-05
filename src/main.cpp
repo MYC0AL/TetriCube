@@ -1,6 +1,8 @@
 #include "State_driver.h"
-//#include "Cube.h"
 
+/***********************
+ * Tags applied to code
+************************/
 // TODO: Things to do
 // DEBUG: Code implemented to debug
 // BUG: Code known to be broken
@@ -8,8 +10,6 @@
 
 void setup(void)
 {
-  //Serial.begin(9600);
-
   // Initialize state driver
   StateDriver drv;
 
@@ -18,11 +18,6 @@ void setup(void)
 
   // Infinite state controller
   drv.state_controller();
-
-  //Initialize rubiks cube object
-  //Cube rbx;
-
-  //rbx.startGame();
 }
 
 void loop(void)

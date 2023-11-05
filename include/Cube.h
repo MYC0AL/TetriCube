@@ -1,10 +1,7 @@
 #ifndef CUBE_H
 #define CUBE_H
 
-#include <Arduino.h>
-#include <Arduino_GFX_Library.h>
-//#include "Display_helper.h"
-#include "LGFX_ESP32S3_RGB_MakerfabsParallelTFTwithTouch40.h"
+#include "Display_helper.h"
 
 /* Direction Code for cube
  *     8 7 6
@@ -36,6 +33,8 @@
 
 #define SIDE_NUM 0
 
+enum cube_error_t {CUBE_SUCCESS, CUBE_ERR};
+
 // Struct for Square info
 struct SQ
 {
@@ -50,24 +49,34 @@ class Cube
 {
 private:
   SQ m_cube[NUM_SIDES][NUM_SQUARES];
+  
+  short m_prevSq;
+  short m_prevTouches[PREV_ARR_SIZE];
+  short m_prevTouchCount;
+  short m_prevDist;
+  bool m_validity;  
+  bool m_swipedFlag;
+
 
 public:
   Cube();
   ~Cube();
-  void InitDisplay();
-  void startGame();
+  void PlayGame();
   void drawRubiksSide(int sideNum);
   void drawRubiksCube();
   short sqTapped(short xPos, short yPos);
   short dirSwiped();
+  void TouchUpdate(uint16_t touch_x, uint16_t touch_y);
   bool validTouch();
   void displayAllData();
-  void resetGlobals();
+  void ResetVars();
   void InitCube();
   void Rotate(short sidesToMove[5], short sqToMove[3], bool prime);
   void rotateSide(short sideNum, bool prime);
   void DisplayCube();
   void RotateCube(short sideNum, short dirSwiped);
+
+  String ColorToStr(int color);
 
   void FrontRotation(bool prime);
   void RightRotation(bool prime);
