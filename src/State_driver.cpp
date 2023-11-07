@@ -3,7 +3,7 @@
 /**
  * State driver default constructor
 */
-StateDriver::StateDriver()
+StateDriver::StateDriver() : rbx(0)
 {
     drv_state = STATE_INIT;
 }
@@ -195,7 +195,7 @@ void StateDriver::update_new_state(state_t new_state)
             // Clear screen to reset background
             dHelp.clear_screen();
             // Draw initial rubiks cube
-            rbx.drawRubiksSide(SIDE_NUM);
+            rbx.drawRubiksSide(rbx.GetSideNum());
             break;
         }
 

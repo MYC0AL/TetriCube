@@ -6,9 +6,9 @@
 /* Direction Code for cube
  *     8 7 6
  *     _ _ _
- * 9  |     | 5
- * 10 |     | 4
- * 11 |_ _ _| 3
+ * 9  |0 1 2| 5
+ * 10 |3 4 5| 4
+ * 11 |6 7 8| 3
  *     0 1 2
  */
 
@@ -26,12 +26,11 @@
 
 #define PREV_ARR_SIZE 3
 #define SWIPE_SIZE 3
+#define MOVE_SIZE 4
 #define NUM_SQUARES 9
 #define NUM_SIDES 6
 
 #define SWIPE_ERR -1
-
-#define SIDE_NUM 0
 
 enum cube_error_t {CUBE_SUCCESS, CUBE_ERR};
 
@@ -57,9 +56,10 @@ private:
   bool m_validity;  
   bool m_swipedFlag;
 
+  int m_side_num;
 
 public:
-  Cube();
+  Cube(int side_num);
   ~Cube();
   void PlayGame();
   void drawRubiksSide(int sideNum);
@@ -71,10 +71,12 @@ public:
   void displayAllData();
   void ResetVars();
   void InitCube();
-  void Rotate(short sidesToMove[5], short sqToMove[3], bool prime);
+  void Rotate(int sidesToMove[MOVE_SIZE], int sqToMove[MOVE_SIZE][SWIPE_SIZE], int spinSide, bool prime);
   void rotateSide(short sideNum, bool prime);
   void DisplayCube();
   void RotateCube(short sideNum, short dirSwiped);
+
+  int GetSideNum();
 
   String ColorToStr(int color);
 
