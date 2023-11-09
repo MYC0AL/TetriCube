@@ -66,10 +66,15 @@ void Cube::drawRubiksSide(int sideNum)
 
 void Cube::drawRubiksCube()
 {
+    gfx->setCursor(200,200);
+    gfx->setTextSize(4);
+    gfx->setTextColor(PURPLE);
     for (int i = 0; i < NUM_SIDES; i++)
     {
         drawRubiksSide(i);
-        sleep(4);
+        gfx->print(i);
+        gfx->setCursor(200,200);
+        sleep(2);
     }
     drawRubiksSide(m_side_num);
 }
@@ -203,12 +208,14 @@ void Cube::Rotate(int sidesToMove[MOVE_SIZE], int sqToMove[MOVE_SIZE][SWIPE_SIZE
 {
     if (prime)
     {
-        std::swap(sidesToMove[0],sidesToMove[3]);
-        std::swap(sidesToMove[1],sidesToMove[2]);
+        ReverseArray(sidesToMove, MOVE_SIZE);
+        //std::swap(sidesToMove[0],sidesToMove[3]);
+        //std::swap(sidesToMove[1],sidesToMove[2]);
         std::swap(sqToMove[0],sqToMove[3]);
         std::swap(sqToMove[1],sqToMove[2]);
     }
 
+    // Make a copy of current cube
     int tempCube[NUM_SIDES][NUM_SQUARES];
     for(int si = 0; si < NUM_SIDES; ++si)
         for(int sq = 0; sq < NUM_SQUARES; ++sq)
@@ -223,50 +230,44 @@ void Cube::Rotate(int sidesToMove[MOVE_SIZE], int sqToMove[MOVE_SIZE][SWIPE_SIZE
         }
     }
 
-    //DisplayCube();
-
     // Rotate host side
     rotateSide(spinSide, prime);
+    //drawRubiksCube();
+    PrintCube();
 }
 
 void Cube::rotateSide(short sideNum, bool prime)
 {
+    // Create a temp of the rotating side
     int tempSide[NUM_SQUARES];
     for(int i = 0; i < NUM_SQUARES; ++i)
     {
         tempSide[i] = m_cube[sideNum][i].c;
     }
 
-    m_cube[sideNum][0].c = tempSide[2];
-    m_cube[sideNum][6].c = tempSide[0];
-    m_cube[sideNum][8].c = tempSide[6];
-    m_cube[sideNum][2].c = tempSide[8];
+    const int ROT_COUNT = 4;
 
-    m_cube[sideNum][1].c = tempSide[5];
-    m_cube[sideNum][3].c = tempSide[1];
-    m_cube[sideNum][7].c = tempSide[3];
-    m_cube[sideNum][5].c = tempSide[7];
+    // Indexs for rotation
+    int edgeIdx[ROT_COUNT] = {2,0,6,8};
+    int sideIdx[ROT_COUNT] = {1,3,7,5};
 
-    // for(int s = 0; s < NUM_SIDES; ++s)
-    // {
-    //     log_printf("Side #%d: \n",s);
-    //     for(int i = 0; i < NUM_SQUARES; ++i)
-    //     {
-    //         if (i == 0 || i == 3 || i == 6)
-    //         {
-    //             log_printf("%s %s %s\t\t",ColorToStr(m_cube[s][i].c).c_str(),ColorToStr(m_cube[s][i+1].c).c_str(),ColorToStr(m_cube[s][i+2].c).c_str());
-    //             if (sideNum == s)
-    //             {
-    //                 log_printf("%s %s %s",
-    //                 ColorToStr(tempSide[i]).c_str(),ColorToStr(tempSide[i+1]).c_str(),ColorToStr(tempSide[i+2]).c_str());
-    //             }
-    //         log_printf("\n");
-    //         }
-    //     }
-    // }
+    // Reverse arrays if prime
+    if (prime)
+    {
+        ReverseArray(edgeIdx,ROT_COUNT);
+        ReverseArray(sideIdx,ROT_COUNT);
+    }
+
+    // Rotate the side
+    for(int i = 0; i < ROT_COUNT; ++i)
+    {
+        int nextIdx = (i + 1) % ROT_COUNT;
+        m_cube[sideNum][edgeIdx[i]].c = tempSide[edgeIdx[nextIdx]];
+        m_cube[sideNum][sideIdx[i]].c = tempSide[sideIdx[nextIdx]];
+    }
 }
 
-void Cube::DisplayCube()
+void Cube::PrintCube()
 {
     log_printf("=== Display Cube ===\n");
     for(int s = 0; s < NUM_SIDES; ++s)
@@ -285,36 +286,6 @@ void Cube::DisplayCube()
 void Cube::RotateCube(short sideNum, short dirSwiped) // Green is up, white is front
 {
     bool prime = false;
-    // if ((sideNum != 5 && sideNum != 0) && (dirSwiped == 0 || dirSwiped == 8)) // F
-    // {
-    //     prime = dirSwiped != 0 ? true : false;
-    //     FrontRotation(prime);
-    // }
-    // else if ((sideNum != 4 && sideNum != 2) && (dirSwiped == 2 || dirSwiped == 6)) // R
-    // {
-    //     prime = dirSwiped != 2 ? true : false;
-    //     RightRotation(prime);
-    // }
-    // else if ((sideNum != 3 && sideNum != 1) && (dirSwiped == 9 || dirSwiped == 5)) // U
-    // {
-    //     prime = dirSwiped != 5 ? true : false;
-    //     UpRotation(prime);
-    // }
-    // else if ((sideNum != 0 && sideNum != 5) && (dirSwiped == 2 || dirSwiped == 6)) // B
-    // {
-    //     prime = dirSwiped != 2 ? true : false;
-    //     BackRotation(prime);
-    // }
-    // else if ((sideNum != 2 && sideNum != 4) && (dirSwiped == 0 || dirSwiped == 8)) // L
-    // {
-    //     prime = dirSwiped != 0 ? true : false;
-    //     LeftRotation(prime);
-    // }
-    // else if ((sideNum != 2 && sideNum != 4) && (dirSwiped == 3 || dirSwiped == 11)) // D
-    // {
-    //     prime = dirSwiped != 3 ? true : false;
-    //     DownRotation(prime);
-    // }
 
     log_printf("DirSwiped: %d\n",dirSwiped);
     switch(sideNum)
@@ -322,29 +293,10 @@ void Cube::RotateCube(short sideNum, short dirSwiped) // Green is up, white is f
         case 0:
             switch(dirSwiped)
             {
-                case 5: 
-                    prime = true;
-                case 9: 
-                    UpRotation(prime); 
-                break;
-
-                case 3: 
-                    prime = true;
-                case 11:
-                    DownRotation(prime);
-                break;
-
-                case 8:
-                    prime = true;
-                case 0:
-                    LeftRotation(prime);
-                break;
-
-                case 2:
-                    prime = true;
-                case 6:
-                    RightRotation(prime);
-                break;
+                case 5: prime = true; case 9: UpRotation(prime); break;
+                case 11: prime = true; case 3: DownRotation(prime); break;
+                case 8:prime = true; case 0: LeftRotation(prime); break;
+                case 2:prime = true; case 6: RightRotation(prime); break;
             }
             break;
         case 1:
@@ -405,14 +357,13 @@ void Cube::FrontRotation(bool prime)
         else
             log_printf("Front Rotation\n");
 
-        int sidesToMove[MOVE_SIZE] = {4,3,2,1}; //Normal
-
+        int sidesToMove[MOVE_SIZE] = {1,2,3,4}; //Normal
 
         int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
-                                            {6,7,8},
-                                            {2,5,8},
-                                            {0,1,2},
-                                            {0,3,6}
+                                            {7,8,9}, // 1
+                                            {0,3,6}, // 2
+                                            {0,1,2}, // 3
+                                            {2,5,8}  // 4
                                             };
 
         Rotate(sidesToMove, sqToMove, 0, prime);
@@ -427,11 +378,10 @@ void Cube::RightRotation(bool prime)
 
     int sidesToMove[MOVE_SIZE] = {3,5,1,0}; //Normal
 
-
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
                                           {2,5,8},
-                                          {2,5,8},
                                           {0,3,6},
+                                          {2,5,8},
                                           {2,5,8}
                                           };
 
@@ -446,8 +396,7 @@ void Cube::UpRotation(bool prime)
     else
         log_printf("Up Rotation\n");
 
-    int sidesToMove[MOVE_SIZE] = {5,2,0,4}; //Normal
-
+    int sidesToMove[MOVE_SIZE] = {4,0,2,5}; //Normal
 
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
                                         {0,1,2},
@@ -468,12 +417,11 @@ void Cube::BackRotation(bool prime)
 
     int sidesToMove[MOVE_SIZE] = {4,3,2,1}; //Normal
 
-
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
-                                        {0,1,2},
                                         {0,3,6},
-                                        {6,7,8},
-                                        {2,5,8}
+                                        {7,8,9},
+                                        {2,5,8},
+                                        {0,1,2}
                                         };
 
     Rotate(sidesToMove, sqToMove, 5, prime);
@@ -486,8 +434,7 @@ void Cube::LeftRotation(bool prime)
     else
         log_printf("Left Rotation\n");
 
-    int sidesToMove[MOVE_SIZE] = {3,5,1,0}; //Normal
-
+    int sidesToMove[MOVE_SIZE] = {0,1,5,3}; //Normal
 
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
                                           {0,3,6},
@@ -507,7 +454,6 @@ void Cube::DownRotation(bool prime)
         log_printf("Down Rotation\n");
 
     int sidesToMove[MOVE_SIZE] = {5,2,0,4}; //Normal
-
 
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
                                         {6,7,8},
@@ -545,4 +491,21 @@ String Cube::ColorToStr(int color)
             break;
     }
     return retColor;
+}
+
+void Cube::ReverseArray(int arr[], int length)
+{
+     int start = 0;
+    int end = length - 1;
+
+    while (start < end) {
+        // Swap elements at start and end indices
+        int temp = arr[start];
+        arr[start] = arr[end];
+        arr[end] = temp;
+
+        // Move indices towards the center
+        start++;
+        end--;
+    }
 }

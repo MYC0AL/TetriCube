@@ -68,17 +68,17 @@ public:
   short dirSwiped();
   void TouchUpdate(uint16_t touch_x, uint16_t touch_y);
   bool validTouch();
-  void displayAllData();
   void ResetVars();
   void InitCube();
   void Rotate(int sidesToMove[MOVE_SIZE], int sqToMove[MOVE_SIZE][SWIPE_SIZE], int spinSide, bool prime);
   void rotateSide(short sideNum, bool prime);
-  void DisplayCube();
+  void PrintCube();
   void RotateCube(short sideNum, short dirSwiped);
 
   int GetSideNum();
 
   String ColorToStr(int color);
+  void ReverseArray(int arr[], int length);
 
   void FrontRotation(bool prime);
   void RightRotation(bool prime);
