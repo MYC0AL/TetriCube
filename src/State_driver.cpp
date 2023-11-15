@@ -195,41 +195,6 @@ void StateDriver::update_new_state(state_t new_state)
             // Clear screen to reset background
             dHelp.clear_screen();
 
-            //DEBUG
-            // rbx.RightRotation(false);
-            // rbx.BackRotation(false);
-            // rbx.LeftRotation(false);
-            // rbx.FrontRotation(false);
-            // rbx.RightRotation(false);
-            // rbx.BackRotation(false);
-            // rbx.LeftRotation(false);
-            // rbx.FrontRotation(false);
-            // rbx.RightRotation(false);
-            // rbx.BackRotation(false);
-            // rbx.LeftRotation(false);
-            // rbx.FrontRotation(false);
-            // rbx.RightRotation(false);
-            // rbx.BackRotation(false);
-            // rbx.LeftRotation(false);
-            // rbx.FrontRotation(false);
-            // rbx.RightRotation(false);
-            // rbx.BackRotation(false);
-            // rbx.LeftRotation(false);
-            // rbx.FrontRotation(false);
-
-            rbx.FrontRotation(false);
-            rbx.RightRotation(false);
-            rbx.FrontRotation(false);
-            rbx.RightRotation(false);
-            rbx.FrontRotation(false);
-            rbx.RightRotation(false);
-            rbx.FrontRotation(false);
-            rbx.RightRotation(false);
-            rbx.FrontRotation(false);
-            rbx.RightRotation(false);
-
-            //END DEBUG
-
             // Draw initial rubiks cube
             rbx.drawRubiksSide(rbx.GetSideNum());
 
