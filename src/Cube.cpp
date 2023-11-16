@@ -21,7 +21,7 @@ short possibleSwipes[12][SWIPE_SIZE] = {{0,3,6}, // 0
 unsigned short color_index = 0;
 int RBX_Colors[6] = {GREEN, WHITE, RED, YELLOW, ORANGE, BLUE};
 
-Cube::Cube(int side_num) : m_side_num(side_num), m_prevSq(-1), m_prevTouchCount(0), m_prevDist(0), m_swipedFlag(false)
+Cube::Cube() : m_side_num(0), m_prevSq(-1), m_prevTouchCount(0), m_prevDist(0), m_swipedFlag(false)
 {
     for (int i = 0; i < PREV_ARR_SIZE; ++i)
         m_prevTouches[i] = -1;
@@ -346,6 +346,10 @@ void Cube::RotateCube(short sideNum, short dirSwiped) // Green is up, white is f
             }
             break;
     }
+}
+void Cube::SetSideNum(int side_num)
+{
+    m_side_num = side_num;
 }
 int Cube::GetSideNum()
 {

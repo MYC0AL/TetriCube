@@ -1,7 +1,5 @@
 #include "Display_helper.h"
 
-using std::make_pair;
-
 // GFX Bus and display setup
 Arduino_ESP32RGBPanel *bus = new Arduino_ESP32RGBPanel(
     1 /* CS */, 12 /* SCK */, 11 /* SDA */,

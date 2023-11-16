@@ -6,6 +6,27 @@
 #include "External_link.h"
 #include "Cube.h"
 
+// Transmit data structure
+// Num of sender unit symbol data
+// Ex: 0TR\n
+// Screen 0 sent a tetris update about a right rotation UART_EOL
+
+// Sender range: 0-5
+// Unit symbols:
+//      S: state transition
+//      T: tetris
+//      C: cube
+
+// Data decode:
+//      S: I,S,G,E,H,T,Y,R,F
+//      T: R,L,D,^,
+//      C: F,R,U,B,L,D
+
+// Defines
+#define MSG_SIZE 3
+#define SCREEN_IDX 0
+#define SYMBOL_IDX 1
+#define DATA_IDX 2
 // State definitions
 enum state_t {STATE_INIT, STATE_START, STATE_SELECT_GAME, STATE_SETTINGS,
             STATE_HIGH_SCORES, STATE_TETRIS, STATE_TETRIS_END, STATE_RUBIKS, 
@@ -21,7 +42,8 @@ private:
 
     state_t drv_state;
     void update_new_state(state_t new_state);
-    void broadcast_state_transition(state_t new_state);
+    state_code_t broadcast_state_transition(state_t new_state);
+    state_code_t listen_and_echo();
 
 public:
 
@@ -39,6 +61,8 @@ public:
     Cube rbx;
     Tetris tetris;
 
+    // Screen number
+    int m_screen_num;
 };
 
 #endif

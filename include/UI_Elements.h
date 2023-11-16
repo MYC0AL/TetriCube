@@ -30,4 +30,14 @@ const Scene SCENE_SELECT_GAME = {"/select_game_comp.jpg", {UI_BACK, UI_TETRIS, U
 const Scene SCENE_SETTINGS = {"/settings_comp.jpg", {UI_BACK} };
 const Scene SCENE_HIGH_SCORES = {"/high_scores_comp.jpg", {UI_BACK}};
 
+// DEBUG Screen Num Select
+const UIButton UI_SCREEN_0 = {120,190,100,100};
+const UIButton UI_SCREEN_1 = {120,50,100,100};
+const UIButton UI_SCREEN_2 = {240,190,100,100};
+const UIButton UI_SCREEN_3 = {120,340,100,100};
+const UIButton UI_SCREEN_4 = {0,190,100,100};
+const UIButton UI_SCREEN_5 = {360,190,100,100};
+
+const UIButton UI_SCREENS[6] = {UI_SCREEN_0,UI_SCREEN_1,UI_SCREEN_2,UI_SCREEN_3,UI_SCREEN_4,UI_SCREEN_5};
+
 #endif

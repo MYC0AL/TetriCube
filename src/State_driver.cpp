@@ -3,9 +3,31 @@
 /**
  * State driver default constructor
 */
-StateDriver::StateDriver() : rbx(0)
+StateDriver::StateDriver()
 {
     drv_state = STATE_INIT;
+
+    //DEBUG
+    dHelp.clear_screen();
+    for (int i = 0; i < 6; i++)
+    {
+        gfx->fillRect(UI_SCREENS[i].x,UI_SCREENS[i].y,UI_SCREENS[i].w,UI_SCREENS[i].h,ORANGE);
+    }
+
+    m_screen_num = -1;
+    while(m_screen_num < 0)
+    {
+        for(int i = 0; i < 6; i++)
+        {
+            if (dHelp.touch_touched() && dHelp.touch_decoder(UI_SCREENS[i]) == TC_UI_TOUCH)
+            {
+                m_screen_num = i;
+            }
+        }
+    }
+    //END DEBUG
+
+    rbx.SetSideNum(m_screen_num);
 }
 
 /**
@@ -323,9 +345,65 @@ state_code_t StateDriver::request_state_change(state_t new_state)
 }
 
 /**
- * Send state update to all displays.
+ * @brief Send state update to all displays
+ * @param new_state desired state to transition to
+ * @return STATE_SUCCESS on success otherwise STATE_ERROR
 */
-void StateDriver::broadcast_state_transition(state_t new_state)
+state_code_t StateDriver::broadcast_state_transition(state_t new_state)
 {
+    state_code_t ret_code = STATE_ERROR;
+    bool formedStr = false;
 
+    std::string strToSend;
+    strToSend += m_screen_num;
+    strToSend += 'S';
+    
+    static const std::unordered_map<char, state_t> stateMap = {
+    {'I', STATE_INIT},
+    {'S', STATE_START},
+    {'G', STATE_SELECT_GAME},
+    {'E', STATE_SETTINGS},
+    {'H', STATE_HIGH_SCORES},
+    {'T', STATE_TETRIS},
+    {'Y', STATE_TETRIS_END},
+    {'R', STATE_RUBIKS},
+    {'F', STATE_RUBIKS_END}
+    };
+
+    auto it = stateMap.find(new_state);
+    if (it != stateMap.end()) {
+        strToSend += it->second;
+    }
+
+    if (strToSend.length() == MSG_SIZE)
+    {
+        // Tx string to neighboring EL
+        el.SendStr(strToSend);
+
+        // Listen for feedback signal
+        listen_and_echo();
+    }
+        
+   return ret_code;
+}
+
+state_code_t StateDriver::listen_and_echo()
+{
+    state_code_t ret_code = STATE_ERROR;
+
+    if (el.ListenForStr() == EL_SUCCESS)
+    {
+        // Receive string
+        std::string RxStr = el.PopLastReadStr();
+        
+        // Check if msg received is msg sent
+        if (RxStr[SCREEN_IDX] - '0' == m_screen_num) {
+            ret_code = STATE_SUCCESS;
+        }
+        else {
+            el.SendStr(RxStr);
+        }
+        // If not, echo msg
+    }
+    return STATE_ERROR;
 }

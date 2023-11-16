@@ -59,7 +59,7 @@ private:
   int m_side_num;
 
 public:
-  Cube(int side_num);
+  Cube();
   ~Cube();
   void PlayGame();
   void drawRubiksSide(int sideNum);
@@ -74,6 +74,7 @@ public:
   void rotateSide(short sideNum, bool prime);
   void PrintCube();
   void RotateCube(short sideNum, short dirSwiped);
+  void SetSideNum(int side_num);
 
   int GetSideNum();
 
