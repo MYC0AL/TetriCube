@@ -20,13 +20,14 @@
 // Data decode:
 //      S: I,S,G,E,H,T,Y,R,F
 //      T: R,L,D,^,
-//      C: F,R,U,B,L,D
+//      C: 0,1,2,3,4,5,6,7,8,9,A,B  (A: 10,  B: 11)
 
 // Defines
 #define MSG_SIZE 3
 #define SCREEN_IDX 0
 #define SYMBOL_IDX 1
-#define DATA_IDX 2
+//#define DATA_IDX 2
+
 // State definitions
 enum state_t {STATE_INIT, STATE_START, STATE_SELECT_GAME, STATE_SETTINGS,
             STATE_HIGH_SCORES, STATE_TETRIS, STATE_TETRIS_END, STATE_RUBIKS, 
@@ -43,7 +44,10 @@ private:
     state_t drv_state;
     void update_new_state(state_t new_state);
     state_code_t broadcast_state_transition(state_t new_state);
-    state_code_t listen_and_echo();
+    state_code_t DecodeCMD(std::string CMD);
+
+    char StateToChar(state_t state);
+    state_t CharToState(char ch);
 
 public:
 

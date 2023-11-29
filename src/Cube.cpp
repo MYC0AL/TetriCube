@@ -34,8 +34,9 @@ Cube::~Cube()
 
 }
 
-void Cube::PlayGame()
-{    
+std::string Cube::PlayGame()
+{   
+    std::string cmd;
     if (m_swipedFlag)
     {
         short dir = dirSwiped();
@@ -44,12 +45,18 @@ void Cube::PlayGame()
             RotateCube(m_side_num, dir);
             ResetVars(); //TODO Remove this and combine one below
             drawRubiksSide(m_side_num);
+
+            // Form CMD for ELs
+            cmd += m_side_num + '0';
+            cmd += 'C';
+            cmd += dir + '0';
         }
         else
             ResetVars();
 
         m_swipedFlag = false;
     }
+    return cmd;
 }
 
 void Cube::drawRubiksSide(int sideNum)
@@ -209,8 +216,6 @@ void Cube::Rotate(int sidesToMove[MOVE_SIZE], int sqToMove[MOVE_SIZE][SWIPE_SIZE
     if (prime)
     {
         ReverseArray(sidesToMove, MOVE_SIZE);
-        //std::swap(sidesToMove[0],sidesToMove[3]);
-        //std::swap(sidesToMove[1],sidesToMove[2]);
         std::swap(sqToMove[0],sqToMove[3]);
         std::swap(sqToMove[1],sqToMove[2]);
     }
@@ -232,8 +237,6 @@ void Cube::Rotate(int sidesToMove[MOVE_SIZE], int sqToMove[MOVE_SIZE][SWIPE_SIZE
 
     // Rotate host side
     rotateSide(spinSide, prime);
-    //drawRubiksCube();
-    PrintCube();
 }
 
 void Cube::rotateSide(short sideNum, bool prime)
@@ -288,7 +291,6 @@ void Cube::RotateCube(short sideNum, short dirSwiped) // Green is up, white is f
 {
     bool prime = false;
 
-    log_printf("DirSwiped: %d\n",dirSwiped);
     switch(sideNum)
     {
         case 0:
@@ -357,29 +359,29 @@ int Cube::GetSideNum()
 }
 void Cube::FrontRotation(bool prime)
 {
-    if (prime)
-            log_printf("Prime Front Rotation\n");
-        else
-            log_printf("Front Rotation\n");
+    // if (prime)
+    //         log_printf("Prime Front Rotation\n");
+    //     else
+    //         log_printf("Front Rotation\n");
 
-        int sidesToMove[MOVE_SIZE] = {1,2,3,4}; //Normal
+    int sidesToMove[MOVE_SIZE] = {1,2,3,4}; //Normal
 
-        int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
-                                            {6,7,8}, // 1
-                                            {0,3,6}, // 2
-                                            {2,1,0}, // 3
-                                            {8,5,2}  // 4
-                                            };
+    int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
+                                        {6,7,8}, // 1
+                                        {0,3,6}, // 2
+                                        {2,1,0}, // 3
+                                        {8,5,2}  // 4
+                                        };
 
-        Rotate(sidesToMove, sqToMove, 0, prime);
+    Rotate(sidesToMove, sqToMove, 0, prime);
 }
 
 void Cube::RightRotation(bool prime)
 {
-    if (prime)
-        log_printf("Prime Right Rotation\n");
-    else
-        log_printf("Right Rotation\n");
+    // if (prime)
+    //     log_printf("Prime Right Rotation\n");
+    // else
+    //     log_printf("Right Rotation\n");
 
     int sidesToMove[MOVE_SIZE] = {0,1,5,3}; //Normal
 
@@ -396,10 +398,10 @@ void Cube::RightRotation(bool prime)
 
 void Cube::UpRotation(bool prime)
 {
-    if (prime)
-        log_printf("Prime Up Rotation\n");
-    else
-        log_printf("Up Rotation\n");
+    // if (prime)
+    //     log_printf("Prime Up Rotation\n");
+    // else
+    //     log_printf("Up Rotation\n");
 
     int sidesToMove[MOVE_SIZE] = {0,4,5,2}; //Normal
 
@@ -415,10 +417,10 @@ void Cube::UpRotation(bool prime)
 
 void Cube::BackRotation(bool prime)
 {
-    if (prime)
-        log_printf("Prime Back Rotation\n");
-    else
-        log_printf("Back Rotation\n");
+    // if (prime)
+    //     log_printf("Prime Back Rotation\n");
+    // else
+    //     log_printf("Back Rotation\n");
 
     int sidesToMove[MOVE_SIZE] = {4,3,2,1};
 
@@ -434,10 +436,10 @@ void Cube::BackRotation(bool prime)
 
 void Cube::LeftRotation(bool prime)
 {
-    if (prime)
-        log_printf("Prime Left Rotation\n");
-    else
-        log_printf("Left Rotation\n");
+    // if (prime)
+    //     log_printf("Prime Left Rotation\n");
+    // else
+    //     log_printf("Left Rotation\n");
 
     int sidesToMove[MOVE_SIZE] = {0,3,5,1}; //Normal
 
@@ -453,10 +455,10 @@ void Cube::LeftRotation(bool prime)
 
 void Cube::DownRotation(bool prime)
 {
-    if (prime)
-        log_printf("Prime Down Rotation\n");
-    else
-        log_printf("Down Rotation\n");
+    // if (prime)
+    //     log_printf("Prime Down Rotation\n");
+    // else
+    //     log_printf("Down Rotation\n");
 
     int sidesToMove[MOVE_SIZE] = {0,2,5,4}; //Normal
 

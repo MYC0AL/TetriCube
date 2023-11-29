@@ -61,7 +61,7 @@ private:
 public:
   Cube();
   ~Cube();
-  void PlayGame();
+  std::string PlayGame();
   void drawRubiksSide(int sideNum);
   void drawRubiksCube();
   short sqTapped(short xPos, short yPos);
