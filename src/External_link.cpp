@@ -83,6 +83,7 @@ el_error_t ExternalLink::SendCMD(std::string cmd)
 
             //DEBUG
             log_printf("EL: Sent CMD: %s\n\r",m_loaded_cmd.c_str());
+            log_printf("EL: WAIT to SENT\n\r");
 
             //Request transition to SENT
             RequestState(EL_CMD_SENT);
@@ -161,14 +162,27 @@ el_error_t ExternalLink::StateController()
             if (m_setup_state) {
                 m_loaded_cmd = std::string();
                 m_cmd_ready = false;
+                m_setup_state = false;
 
                 //DEBUG
-                log_printf("EL: State: EL_CMD_WAIT\n\r");
+                log_printf("EL: WAIT\n\r");
             }
 
             // Listen for received CMD
             if (ListenForCMD() == EL_SUCCESS)
             {
+                //DEBUG
+                log_printf("EL: In WAIT Received CMD: %s\n\r",m_last_read_str.c_str());
+                //delay(200);
+                //Echo CMD to next EL
+                m_loaded_cmd = PopLastReadCMD();
+                if (!m_loaded_cmd.empty()){
+                    EchoCMD(m_loaded_cmd);
+                }
+
+                //DEBUG
+                log_printf("EL: WAIT to RECEIVED\n\r");
+
                 RequestState(EL_CMD_RECEIVED);
             }
             break;
@@ -177,16 +191,13 @@ el_error_t ExternalLink::StateController()
             if (m_setup_state)
             {
                 //DEBUG
-                log_printf("EL: State: EL_CMD_RECEIVED\n\r");
-    
-                //Echo CMD to next EL
-                m_loaded_cmd = PopLastReadCMD();
-                if (!m_loaded_cmd.empty()){
-                    EchoCMD(m_loaded_cmd);
-                }
+                log_printf("EL: State: RECEIVED\n\r");
+
+                m_setup_state = false;
+
             }
-            else //Listen for EXE_CMD or ABORT_CMD
-            {
+            //else //Listen for EXE_CMD or ABORT_CMD
+            //{
                 if (ListenForCMD() == EL_SUCCESS)
                 {
                     std::string cmd = PopLastReadCMD();
@@ -211,7 +222,7 @@ el_error_t ExternalLink::StateController()
                         RequestState(EL_CMD_WAIT);
                     }
                 }
-            }
+            //}
             break;
 
         case EL_CMD_SENT:
@@ -250,7 +261,7 @@ el_error_t ExternalLink::StateController()
             {
                 if (ListenForCMD() == EL_SUCCESS)
                 {
-                    if (PopLastReadCMD() == EXE_CMD + UART_EOL)
+                    if (PopLastReadCMD() == EXE_CMD)
                     {
                         m_cmd_ready = true;
                         waitForCMD = false;
@@ -276,7 +287,7 @@ el_error_t ExternalLink::StateController()
             {
                 if (ListenForCMD() == EL_SUCCESS)
                 {
-                    if (PopLastReadCMD() == EXE_CMD + UART_EOL)
+                    if (PopLastReadCMD() == ABORT_CMD)
                     {
                         waitForCMD = false;
                         RequestState(EL_CMD_WAIT);
@@ -286,8 +297,6 @@ el_error_t ExternalLink::StateController()
         }
         break;
     }
-
-    m_setup_state = false;
 
     return EL_SUCCESS;
 }

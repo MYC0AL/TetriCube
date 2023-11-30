@@ -371,7 +371,7 @@ state_code_t StateDriver::request_state_change(state_t new_state)
         log_printf("STATE: Transitioning from %d to %d\n\r",drv_state,new_state);
 
         // Broadcast update to other devices
-        if (m_screen_num == 0 && new_state > 0) {
+        if (m_screen_num == 0 && new_state != STATE_INIT) {
             broadcast_state_transition(new_state);
         }
 
@@ -428,7 +428,7 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
         // Get the unit from the CMD
         char sender_unit = CMD[1];
 
-        switch(CMD[1])
+        switch(sender_unit)
         {
             case 'S':
             {
@@ -451,6 +451,7 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
                     dirSwiped = 11;
                 }
                 rbx.RotateCube(sender_screen,dirSwiped);
+                rbx.drawRubiksSide(m_screen_num);
             }
             break;
 
