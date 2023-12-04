@@ -284,9 +284,10 @@ void StateDriver::update_new_state(state_t new_state)
 */
 state_code_t StateDriver::request_state_change(state_t new_state)
 {
-    state_code_t retCode = STATE_ERROR;
+    //DEBUG
+    log_printf("STATE: Requesting from %d to %d\n\r",drv_state,new_state);
 
-    //TODO: Check if bus is available and lock it.
+    state_code_t retCode = STATE_ERROR;
 
     if (m_screen_num == 0)
     {
@@ -359,23 +360,25 @@ state_code_t StateDriver::request_state_change(state_t new_state)
                 }
                 break;
         }
-    } else {
+    } 
+    else 
+    {
         retCode = STATE_SUCCESS;
     }
 
-    // Valid state transistion
+    //DEBUG
+    if (!retCode)
+    {
+        log_printf("STATE: Transition valid\n\r");
+    }
+    else
+    {
+        log_printf("STATE: Transition invalid\n\r");
+    }
+
     if (retCode == STATE_SUCCESS)
     {
-
-        //DEBUG
-        log_printf("STATE: Transitioning from %d to %d\n\r",drv_state,new_state);
-
-        // Broadcast update to other devices
-        if (m_screen_num == 0 && new_state != STATE_INIT) {
-            broadcast_state_transition(new_state);
-        }
-
-        update_new_state(new_state);
+        broadcast_state_transition(new_state);
     }
 
     return retCode;
@@ -389,23 +392,27 @@ state_code_t StateDriver::request_state_change(state_t new_state)
 state_code_t StateDriver::broadcast_state_transition(state_t new_state)
 {
     state_code_t ret_code = STATE_ERROR;
-    bool formedStr = false;
 
-    std::string cmdToSend;
-    cmdToSend += (m_screen_num + '0');
-    cmdToSend += 'S';
-    cmdToSend += StateToChar(new_state);
-
-    //DEBUG
-    log_printf("STATE: Broadcasting transition to %d\r\n",new_state);
-    log_printf("STATE: Broadcasting CMD: %s\r\n",cmdToSend.c_str());
-
-    ret_code = STATE_SUCCESS;
-
-    // Send CMD to neighboring EL
-    if (el.SendCMD(cmdToSend) == EL_SUCCESS)
+    if (m_screen_num == 0)
     {
+        bool formedStr = false;
+
+        std::string cmdToSend;
+        cmdToSend += (m_screen_num + '0');
+        cmdToSend += 'S';
+        cmdToSend += StateToChar(new_state);
+
+        //DEBUG
+        log_printf("STATE: Broadcasting transition to %d\r\n",new_state);
+        log_printf("STATE: Broadcasting CMD: %s\r\n",cmdToSend.c_str());
+
         ret_code = STATE_SUCCESS;
+
+        // Send CMD to neighboring EL
+        if (el.SendCMD(cmdToSend) == EL_SUCCESS)
+        {
+            ret_code = STATE_SUCCESS;
+        }
     }
         
    return ret_code;
@@ -432,7 +439,7 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
         {
             case 'S':
             {
-                request_state_change(CharToState(CMD[2]));
+                update_new_state(CharToState(CMD[2]));
             }
             break;
 

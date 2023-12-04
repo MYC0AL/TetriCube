@@ -31,6 +31,8 @@
 #define ABORT_CMD "!"
 #define CMD_TIMEOUT 1000
 
+#define RETRY_COUNT 5
+
 enum el_error_t {EL_SUCCESS, EL_ERROR};
 
 enum el_state_t {EL_CMD_WAIT, EL_CMD_RECEIVED, EL_CMD_SENT, EL_CMD_SUCCESS, EL_CMD_ABORT};
@@ -59,6 +61,7 @@ private:
     std::string m_loaded_cmd;
     bool m_cmd_ready;
     bool m_setup_state;
+
 };
 
 #endif

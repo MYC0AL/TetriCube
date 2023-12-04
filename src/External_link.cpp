@@ -124,7 +124,6 @@ el_error_t ExternalLink::ListenForCMD()
         m_last_read_str = tempBuff;
 
         log_printf("EL: CMD Received: %s\n",m_last_read_str.c_str());
-
     }
 
     return retCode;
@@ -146,10 +145,10 @@ std::string ExternalLink::GetCMD()
     std::string ret_cmd;
     if (m_cmd_ready)
     {
+        ret_cmd = m_loaded_cmd;
+        
         //DEBUG
         log_printf("EL: CMD Ready: %s\n\r",ret_cmd.c_str());
-
-        ret_cmd = m_loaded_cmd;
     }
     return ret_cmd;
 }
@@ -171,9 +170,12 @@ el_error_t ExternalLink::StateController()
             // Listen for received CMD
             if (ListenForCMD() == EL_SUCCESS)
             {
+                // With 2 displays, delay or else will break
+                delay(10);
+
                 //DEBUG
                 log_printf("EL: In WAIT Received CMD: %s\n\r",m_last_read_str.c_str());
-                //delay(200);
+
                 //Echo CMD to next EL
                 m_loaded_cmd = PopLastReadCMD();
                 if (!m_loaded_cmd.empty()){
@@ -196,36 +198,34 @@ el_error_t ExternalLink::StateController()
                 m_setup_state = false;
 
             }
-            //else //Listen for EXE_CMD or ABORT_CMD
-            //{
-                if (ListenForCMD() == EL_SUCCESS)
+            if (ListenForCMD() == EL_SUCCESS)
+            {
+                std::string cmd = PopLastReadCMD();
+
+                //DEBUG
+                log_printf("EL: EL_CMD_RECEIVED: cmd: %s\n\r",cmd.c_str());
+
+                if (cmd == ABORT_CMD)
                 {
-                    std::string cmd = PopLastReadCMD();
-
-                    //DEBUG
-                    log_printf("EL: EL_CMD_RECEIVED: cmd: %s\n\r",cmd.c_str());
-
-                    if (cmd == ABORT_CMD)
-                    {
-                        // Echo ABORT_CMD and go to EL_CMD_WAIT
-                        EchoCMD(ABORT_CMD);
-                        RequestState(EL_CMD_WAIT);
-                    }
-                    else if (cmd == EXE_CMD)
-                    {
-                        //Echo EXE_CMD
-                        EchoCMD(EXE_CMD);
-                        
-                        // Set execution flag
-                        m_cmd_ready = true;
-
-                        RequestState(EL_CMD_WAIT);
-                    }
+                    // Echo ABORT_CMD and go to EL_CMD_WAIT
+                    EchoCMD(ABORT_CMD);
+                    RequestState(EL_CMD_WAIT);
                 }
-            //}
+                else if (cmd == EXE_CMD)
+                {
+                    //Echo EXE_CMD
+                    EchoCMD(EXE_CMD);
+                    
+                    // Set execution flag
+                    m_cmd_ready = true;
+
+                    RequestState(EL_CMD_WAIT);
+                }
+            }
             break;
 
         case EL_CMD_SENT:
+        {
             if (ListenForCMD() == EL_SUCCESS)
             {
                 std::string cmd = PopLastReadCMD();
@@ -244,7 +244,8 @@ el_error_t ExternalLink::StateController()
                     RequestState(EL_CMD_ABORT);
                 }
             }
-            break;
+        }
+        break;
 
         case EL_CMD_SUCCESS:
         {
@@ -253,11 +254,10 @@ el_error_t ExternalLink::StateController()
 
             // Send EXE_CMD to all ELs
             EchoCMD(EXE_CMD);
-            
+
             // Block until EXE_CMD is echoed back
             bool waitForCMD = true;
-            unsigned long time = millis();
-            while(waitForCMD && millis() - time <= CMD_TIMEOUT)
+            while(waitForCMD)
             {
                 if (ListenForCMD() == EL_SUCCESS)
                 {
@@ -282,8 +282,7 @@ el_error_t ExternalLink::StateController()
 
             // Block until ABORT_CMD is echoed back
             bool waitForCMD = true;
-            unsigned long time = millis();
-            while(waitForCMD && millis() - time <= CMD_TIMEOUT)
+            while(waitForCMD)
             {
                 if (ListenForCMD() == EL_SUCCESS)
                 {

@@ -42,8 +42,8 @@ class StateDriver
 private:
 
     state_t drv_state;
-    void update_new_state(state_t new_state);
     state_code_t broadcast_state_transition(state_t new_state);
+    void update_new_state(state_t new_state);
     state_code_t DecodeCMD(std::string CMD);
 
     char StateToChar(state_t state);
