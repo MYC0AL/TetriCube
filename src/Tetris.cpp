@@ -411,7 +411,6 @@ tetris_error_t Tetris::DeployTetromino()
 
 /*********************************************************
  * @brief Rotate 'mino' 90 degrees clockwise
- * @param dir Direction to rotate in
  * @param mino Mino to preform rotation on
  ********************************************************/
 tetris_error_t Tetris::RotateTetromino(tetromino_t& mino)

@@ -52,15 +52,20 @@ el_error_t ExternalLink::RequestState(el_state_t new_state)
     if (ret_val == EL_SUCCESS)
     {
         m_state = new_state;
-        m_setup_state = true;
 
-        //DEBUG
-        log_printf("EL: State transition to: %d\n\r",m_state);
+        SetupState();
     }
 
     return ret_val;
 }
 
+/************************************************************
+ * @brief Send a command and trigger the EL FSM or wait
+ * until CMD_TIMEOUT is reached
+ * @param cmd A command to send to all ELs
+ * @return Will return EL_SUCCESS if all sent out CMD
+ * otherwise will return EL_ERROR
+ ************************************************************/
 el_error_t ExternalLink::SendCMD(std::string cmd)
 {
     el_error_t retCode = EL_ERROR;
@@ -146,6 +151,7 @@ std::string ExternalLink::GetCMD()
     if (m_cmd_ready)
     {
         ret_cmd = m_loaded_cmd;
+        m_cmd_ready = false;
         
         //DEBUG
         log_printf("EL: CMD Ready: %s\n\r",ret_cmd.c_str());
@@ -158,19 +164,10 @@ el_error_t ExternalLink::StateController()
     switch(m_state)
     {
         case EL_CMD_WAIT:
-            if (m_setup_state) {
-                m_loaded_cmd = std::string();
-                m_cmd_ready = false;
-                m_setup_state = false;
-
-                //DEBUG
-                log_printf("EL: WAIT\n\r");
-            }
-
             // Listen for received CMD
             if (ListenForCMD() == EL_SUCCESS)
             {
-                // With 2 displays, delay or else will break
+                // With 2 displays, delay or will break
                 delay(10);
 
                 //DEBUG
@@ -190,14 +187,6 @@ el_error_t ExternalLink::StateController()
             break;
 
         case EL_CMD_RECEIVED:
-            if (m_setup_state)
-            {
-                //DEBUG
-                log_printf("EL: State: RECEIVED\n\r");
-
-                m_setup_state = false;
-
-            }
             if (ListenForCMD() == EL_SUCCESS)
             {
                 std::string cmd = PopLastReadCMD();
@@ -226,7 +215,7 @@ el_error_t ExternalLink::StateController()
 
         case EL_CMD_SENT:
         {
-            if (ListenForCMD() == EL_SUCCESS)
+            if (ListenForCMD() == EL_SUCCESS && CheckTimeout() == EL_SUCCESS)
             {
                 std::string cmd = PopLastReadCMD();
 
@@ -249,24 +238,12 @@ el_error_t ExternalLink::StateController()
 
         case EL_CMD_SUCCESS:
         {
-            //DEBUG
-            log_printf("EL: State: EL_CMD_SUCCESS\n\r");
-
-            // Send EXE_CMD to all ELs
-            EchoCMD(EXE_CMD);
-
-            // Block until EXE_CMD is echoed back
-            bool waitForCMD = true;
-            while(waitForCMD)
+            if (ListenForCMD() == EL_SUCCESS)
             {
-                if (ListenForCMD() == EL_SUCCESS)
+                if (PopLastReadCMD() == EXE_CMD)
                 {
-                    if (PopLastReadCMD() == EXE_CMD)
-                    {
-                        m_cmd_ready = true;
-                        waitForCMD = false;
-                        RequestState(EL_CMD_WAIT);
-                    }
+                    m_cmd_ready = true;
+                    RequestState(EL_CMD_WAIT);
                 }
             }
         }
@@ -274,29 +251,63 @@ el_error_t ExternalLink::StateController()
 
         case EL_CMD_ABORT:
         {
-            //DEBUG
-            log_printf("EL: State: EL_CMD_ABORT\n\r");
-
-            // Send ABORT_CMD to all ELs
-            EchoCMD(ABORT_CMD);
-
-            // Block until ABORT_CMD is echoed back
-            bool waitForCMD = true;
-            while(waitForCMD)
+            if (ListenForCMD() == EL_SUCCESS)
             {
-                if (ListenForCMD() == EL_SUCCESS)
+                if (PopLastReadCMD() == ABORT_CMD)
                 {
-                    if (PopLastReadCMD() == ABORT_CMD)
-                    {
-                        waitForCMD = false;
-                        RequestState(EL_CMD_WAIT);
-                    }
+                    RequestState(EL_CMD_WAIT);
                 }
             }
         }
         break;
     }
 
+    return EL_SUCCESS;
+}
+
+el_error_t ExternalLink::SetupState()
+{
+    switch(m_state)
+    {
+        case EL_CMD_WAIT:
+            m_timeout = 0;
+
+            //DEBUG
+            log_printf("EL: WAIT\n\r");
+            break;
+
+        case EL_CMD_RECEIVED:
+            //DEBUG
+            log_printf("EL: RECEIVED\n\r");
+            
+            m_cmd_ready = false;
+            m_timeout = millis();
+            break;
+
+        case EL_CMD_SENT:
+            //DEBUG
+            log_printf("EL: SENT\n\r");
+
+            m_cmd_ready = false;
+            m_timeout = millis();
+        break;
+
+        case EL_CMD_SUCCESS:
+            //DEBUG
+            log_printf("EL: SUCCESS\n\r");
+
+            // Send EXE_CMD to all ELs
+            EchoCMD(EXE_CMD);
+        break;
+
+        case EL_CMD_ABORT:
+            //DEBUG
+            log_printf("EL: ABORT\n\r");
+
+            // Send ABORT_CMD to all ELs
+            EchoCMD(ABORT_CMD);
+        break;
+    }
     return EL_SUCCESS;
 }
 
@@ -320,6 +331,20 @@ el_error_t ExternalLink::EchoCMD(std::string cmd)
     }
 
     return retCode;
+}
+
+el_error_t ExternalLink::CheckTimeout()
+{
+    el_error_t ret = EL_SUCCESS;
+    if (millis() - m_timeout >= CMD_TIMEOUT)
+    {
+        ret = EL_ERROR;
+        //DEBUG
+        log_printf("EL: Timeout expired");
+
+        RequestState(EL_CMD_ABORT);
+    }
+    return ret;
 }
 
 void ExternalLink::UpdateLog(const char *str, int status)

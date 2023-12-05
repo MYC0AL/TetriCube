@@ -16,7 +16,7 @@ struct Scene {
     std::vector<UIButton> ui_elements;
 };
 
-//All buttons
+// All buttons
 const UIButton UI_START = {145,200,200,70};
 const UIButton UI_BACK = {10,395,85,85};
 const UIButton UI_RUBIKS = {60,180,135,135};
@@ -24,11 +24,19 @@ const UIButton UI_TETRIS = {285,180,135,130};
 const UIButton UI_SETTINGS = {140,365,200,60};
 const UIButton UI_HIGH_SCORES = {385,395,85,85};
 
+const UIButton UI_TETRIS_LEFT = {1,1,1,1};
+const UIButton UI_TETRIS_RIGHT = {1,1,1,1};
+const UIButton UI_TETRIS_DOWN = {1,1,1,1};
+const UIButton UI_TETRIS_ROTATE = {1,1,1,1};
+
 // Home Scene
 const Scene SCENE_HOME = {"/home_screen_comp.jpg", {UI_START} };
 const Scene SCENE_SELECT_GAME = {"/select_game_comp.jpg", {UI_BACK, UI_TETRIS, UI_RUBIKS, UI_SETTINGS, UI_HIGH_SCORES} };
 const Scene SCENE_SETTINGS = {"/settings_comp.jpg", {UI_BACK} };
 const Scene SCENE_HIGH_SCORES = {"/high_scores_comp.jpg", {UI_BACK}};
+
+// Tetris Controller
+const Scene SCENE_TETRIS_CONTROLS = {"/tetris_controller", {UI_TETRIS_LEFT, UI_TETRIS_RIGHT, UI_TETRIS_DOWN, UI_TETRIS_ROTATE}};
 
 // DEBUG Screen Num Select
 const UIButton UI_SCREEN_0 = {120,190,100,100};
@@ -37,7 +45,6 @@ const UIButton UI_SCREEN_2 = {240,190,100,100};
 const UIButton UI_SCREEN_3 = {120,340,100,100};
 const UIButton UI_SCREEN_4 = {0,190,100,100};
 const UIButton UI_SCREEN_5 = {360,190,100,100};
-
 const UIButton UI_SCREENS[6] = {UI_SCREEN_0,UI_SCREEN_1,UI_SCREEN_2,UI_SCREEN_3,UI_SCREEN_4,UI_SCREEN_5};
 
 #endif

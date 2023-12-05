@@ -33,7 +33,7 @@
 
 #define RETRY_COUNT 5
 
-enum el_error_t {EL_SUCCESS, EL_ERROR};
+enum el_error_t {EL_SUCCESS, EL_ERROR, EL_TRANSMIT_ERROR};
 
 enum el_state_t {EL_CMD_WAIT, EL_CMD_RECEIVED, EL_CMD_SENT, EL_CMD_SUCCESS, EL_CMD_ABORT};
 
@@ -53,7 +53,9 @@ public:
 private: 
 
     el_state_t m_state;
+    el_error_t SetupState();
     el_error_t EchoCMD(std::string cmd);
+    el_error_t CheckTimeout();
 
     void UpdateLog(const char* str, int status);
 
@@ -61,6 +63,8 @@ private:
     std::string m_loaded_cmd;
     bool m_cmd_ready;
     bool m_setup_state;
+
+    unsigned long m_timeout;
 
 };
 
