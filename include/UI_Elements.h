@@ -24,10 +24,10 @@ const UIButton UI_TETRIS = {285,180,135,130};
 const UIButton UI_SETTINGS = {140,365,200,60};
 const UIButton UI_HIGH_SCORES = {385,395,85,85};
 
-const UIButton UI_TETRIS_LEFT = {1,1,1,1};
-const UIButton UI_TETRIS_RIGHT = {1,1,1,1};
-const UIButton UI_TETRIS_DOWN = {1,1,1,1};
-const UIButton UI_TETRIS_ROTATE = {1,1,1,1};
+const UIButton UI_TETRIS_LEFT = {45,160,100,100};
+const UIButton UI_TETRIS_RIGHT = {335,160,100,100};
+const UIButton UI_TETRIS_DOWN = {190,340,100,100};
+const UIButton UI_TETRIS_ROTATE = {190,160,100,100};
 
 // Home Scene
 const Scene SCENE_HOME = {"/home_screen_comp.jpg", {UI_START} };

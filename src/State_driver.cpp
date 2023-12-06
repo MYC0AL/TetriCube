@@ -28,6 +28,7 @@ StateDriver::StateDriver()
     //END DEBUG
 
     rbx.SetSideNum(m_screen_num);
+    tetris.SetSideNum(m_screen_num);
 }
 
 /**
@@ -114,26 +115,33 @@ void StateDriver::state_controller()
                 break;
 
             case STATE_TETRIS:
-                // POC to represent buttons on others displays being pushed
-                if (dHelp.touch_touched())
+            {
+                if (dHelp.touch_touched() && m_screen_num == 1)
                 {
-                    if (dHelp.current_touches[0].y > 380)
-                        el.SendCMD("D");
-                    else if (dHelp.current_touches[0].y < 100)
-                        el.SendCMD("^");
-                    else if (dHelp.current_touches[0].x < 100)
-                        el.SendCMD("L");
-                    else if (dHelp.current_touches[0].x > 380)
-                       el.SendCMD("R");
-                }
+                    std::string tetris_cmd;
+                    tetris_cmd += m_screen_num + '0';
+                    tetris_cmd += 'T';
 
-                // Listen for EL update, and translate to Tetris
-                if (el.ListenForCMD() == EL_SUCCESS)
-                {
-                    std::string recvStr = el.PopLastReadCMD();
-                    //std::string el_str = el.PopLastReadCMD();
-                    //if (el_str.size() == 1) // Ensure just a char was sent
-                    tetris.EnqueueMove(recvStr[0]);
+                    char dir = '0';
+                    if (dHelp.touch_decoder(UI_TETRIS_LEFT) == TC_UI_TOUCH) {
+                        dir = 'L';
+                    }
+                    else if (dHelp.touch_decoder(UI_TETRIS_RIGHT) == TC_UI_TOUCH) {
+                        dir = 'R';
+                    }
+                    else if (dHelp.touch_decoder(UI_TETRIS_DOWN) == TC_UI_TOUCH) {
+                        dir = 'D';
+                    }
+                    else if (dHelp.touch_decoder(UI_TETRIS_ROTATE) == TC_UI_TOUCH) {
+                        dir = '^';
+                    }
+
+                    tetris_cmd += dir;
+                    if (dir != '0') {
+                        //DEBUG
+                        log_printf("TETRIS: Broadcasting '%c'\n\r",dir);
+                        el.SendCMD(tetris_cmd);
+                    }
                 }
 
                 // Update game
@@ -141,6 +149,7 @@ void StateDriver::state_controller()
                 {
                     request_state_change(STATE_TETRIS_END);
                 }
+            }
                 break;
 
             case STATE_RUBIKS:
@@ -235,7 +244,14 @@ void StateDriver::update_new_state(state_t new_state)
 
         case STATE_TETRIS:
         {
-            dHelp.clear_screen();
+            if (m_screen_num == 1)
+            {
+                dHelp.drawImage(SCENE_SETTINGS.image);
+                dHelp.active_ui = SCENE_TETRIS_CONTROLS.ui_elements;
+            }
+            else {
+                dHelp.clear_screen();
+            }
             break;
         }
 
@@ -267,7 +283,7 @@ void StateDriver::update_new_state(state_t new_state)
     drv_state = new_state;
 
     // -----DEBUG-----
-    //dHelp.drawUI();
+    dHelp.drawUI();
 
     // Pause between state transistions
     delay(400);
@@ -445,6 +461,9 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
 
             case 'T':
             {
+                if (CMD[2] == 'L' || CMD[2] == 'R' || CMD[2] == 'D' || CMD[2] == '^') {
+                    tetris.EnqueueMove(CMD[2]);
+                }
             }
             break;
 

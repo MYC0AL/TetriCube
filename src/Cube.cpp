@@ -352,6 +352,7 @@ void Cube::RotateCube(short sideNum, short dirSwiped) // Green is up, white is f
 void Cube::SetSideNum(int side_num)
 {
     m_side_num = side_num;
+    log_printf("CUBE: SIDE NUM SET TO %d\n\r",m_side_num);
 }
 int Cube::GetSideNum()
 {

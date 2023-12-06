@@ -43,10 +43,13 @@ public:
     Tetris();
     ~Tetris();
 
+    void SetSideNum(int screen_num);
     tetris_error_t PlayGame();
     tetris_error_t EnqueueMove(char direction);
 
 private:
+    int m_screen_num;
+
     char m_tetris_board[TETRIS_WIDTH][TETRIS_HEIGHT];
     uint32_t m_move_delay; // In ms
     uint m_level;

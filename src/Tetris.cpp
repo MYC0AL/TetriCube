@@ -44,6 +44,12 @@ Tetris::~Tetris()
     gfx->fillScreen(BLACK);
 }
 
+void Tetris::SetSideNum(int screen_num)
+{
+    m_screen_num = screen_num;
+    log_printf("TETRIS: SIDE NUM SET TO %d\n\r",m_screen_num);
+}
+
 tetris_error_t Tetris::PlayGame()
 {
     tetris_error_t ret_code = TETRIS_SUCCESS;
@@ -64,7 +70,6 @@ tetris_error_t Tetris::PlayGame()
             m_reset_mino_time_flag = false;
         }
 
-        // DEBUG log_printf("%d\n",m_mino_time);
         if (millis() < m_mino_time + m_move_delay)
         {
             if (!m_moves.empty())
@@ -282,36 +287,39 @@ tetris_error_t Tetris::RequestMove(char direction)
 
 void Tetris::DisplayTetrisBoard()
 {
-    for (uint row = 0; row < TETRIS_WIDTH; ++row)
+    if (m_screen_num != 1 && m_screen_num != 3)
     {
-        for (uint col = 0; col < TETRIS_HEIGHT; ++col)
+        for (uint row = 0; row < TETRIS_WIDTH; ++row)
         {
-            int decode_color = CharToColor(m_tetris_board[row][col]);
-            int temp_color = (decode_color != TETRIS_ERR) ? decode_color : LIGHTGREY;
-
-            if (temp_color != TETRIS_EMPTY_COLOR)
+            for (uint col = 0; col < TETRIS_HEIGHT; ++col)
             {
-                gfx->fillRect(col*TETRIS_SQ_PXL,
-                              row*TETRIS_SQ_PXL,
-                              TETRIS_SQ_PXL,
-                              TETRIS_SQ_PXL,
-                              temp_color);
-            }
-            else
-            {
-                // Clear old squares to black
-                gfx->fillRect(col*TETRIS_SQ_PXL,
-                              row*TETRIS_SQ_PXL,
-                              TETRIS_SQ_PXL,
-                              TETRIS_SQ_PXL,
-                              BLACK);
+                int decode_color = CharToColor(m_tetris_board[row][col]);
+                int temp_color = (decode_color != TETRIS_ERR) ? decode_color : LIGHTGREY;
 
-                // Draw new wire frame square
-                gfx->drawRect(col*TETRIS_SQ_PXL,
-                              row*TETRIS_SQ_PXL,
-                              TETRIS_SQ_PXL,
-                              TETRIS_SQ_PXL,
-                              temp_color);
+                if (temp_color != TETRIS_EMPTY_COLOR)
+                {
+                    gfx->fillRect(col*TETRIS_SQ_PXL,
+                                row*TETRIS_SQ_PXL,
+                                TETRIS_SQ_PXL,
+                                TETRIS_SQ_PXL,
+                                temp_color);
+                }
+                else
+                {
+                    // Clear old squares to black
+                    gfx->fillRect(col*TETRIS_SQ_PXL,
+                                row*TETRIS_SQ_PXL,
+                                TETRIS_SQ_PXL,
+                                TETRIS_SQ_PXL,
+                                BLACK);
+
+                    // Draw new wire frame square
+                    gfx->drawRect(col*TETRIS_SQ_PXL,
+                                row*TETRIS_SQ_PXL,
+                                TETRIS_SQ_PXL,
+                                TETRIS_SQ_PXL,
+                                temp_color);
+                }
             }
         }
     }
