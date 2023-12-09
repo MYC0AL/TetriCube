@@ -65,6 +65,9 @@ public:
     Cube rbx;
     Tetris tetris;
 
+    // Move timer for tetris
+    unsigned long m_tetris_move_timer;
+
     // Screen number
     int m_screen_num;
 };

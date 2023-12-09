@@ -16,6 +16,7 @@ using std::queue;
 #define TETRIS_EMPTY_COLOR DARKGREY
 #define TETRIS_MAX_QUEUE 3
 #define TETRIS_GRAVITY 1
+#define TETRIS_MOVE_DELAY 150
 
 // Tetris error code
 #define TETRIS_SUCCESS 0

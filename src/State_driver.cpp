@@ -116,7 +116,8 @@ void StateDriver::state_controller()
 
             case STATE_TETRIS:
             {
-                if (dHelp.touch_touched() && m_screen_num == 1)
+                if (dHelp.touch_touched() && m_screen_num == 1
+                    && (millis() - m_tetris_move_timer >= TETRIS_MOVE_DELAY))
                 {
                     std::string tetris_cmd;
                     tetris_cmd += m_screen_num + '0';
@@ -142,6 +143,9 @@ void StateDriver::state_controller()
                         log_printf("TETRIS: Broadcasting '%c'\n\r",dir);
                         el.SendCMD(tetris_cmd);
                     }
+
+                    // Reset move timer
+                    m_tetris_move_timer = millis();
                 }
 
                 // Update game
