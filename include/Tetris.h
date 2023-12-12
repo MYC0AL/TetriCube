@@ -4,13 +4,14 @@
 #include "Display_helper.h"
 #include "Tetromino.h"
 #include <queue>
-#include <ctime>
+#include <random>
 
 using std::queue;
 
 // Tetris defines
 #define TETRIS_WIDTH 10
-#define TETRIS_HEIGHT 10
+#define TETRIS_HEIGHT 40
+#define TETRIS_DISP_HEIGHT 10
 #define TETRIS_DISPLAYS 4
 #define TETRIS_SQ_PXL 48
 #define TETRIS_EMPTY_COLOR DARKGREY
@@ -51,7 +52,8 @@ public:
 private:
     int m_screen_num;
 
-    char m_tetris_board[TETRIS_WIDTH][TETRIS_HEIGHT];
+    char m_tetris_board[TETRIS_HEIGHT][TETRIS_WIDTH];
+    int m_subsection;
     uint32_t m_move_delay; // In ms
     uint m_level;
     bool m_mino_is_active;
@@ -81,6 +83,7 @@ private:
     tetris_error_t CheckFullLines(vector<int>& filled_lines);
     tetris_error_t ClearFullLines(vector<int> filled_lines);
     tetris_error_t UpdateScore(int rowsCleared);
+    tetris_error_t MapSubsection();
 
     // Debug tool
     void SquareCheck(int x, int y);

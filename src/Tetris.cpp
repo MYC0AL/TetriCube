@@ -27,7 +27,11 @@ void Tetris::SquareCheck(int row, int col)
 Tetris::Tetris() : m_level(0), m_move_delay(1000), m_mino_is_active(false), m_mino_time(0)
 {
     // Randomize seed
-    srand(static_cast<unsigned int>(std::time(0)*2));
+    // TODO use std::random_device instead to save clock time
+    // std::random_device dev;
+    // std::mt19937 rng(dev());
+    // std::uniform_int_distribution<std::mt19937::result_type> dist6(1,6);
+    srand(42);
 
     // Initialize the tetris board to empty spaces
     for (uint row = 0; row < TETRIS_HEIGHT; ++row)
@@ -48,6 +52,9 @@ void Tetris::SetSideNum(int screen_num)
 {
     m_screen_num = screen_num;
     log_printf("TETRIS: SIDE NUM SET TO %d\n\r",m_screen_num);
+
+    // Map new subsection
+    MapSubsection();
 }
 
 tetris_error_t Tetris::PlayGame()
@@ -289,11 +296,11 @@ void Tetris::DisplayTetrisBoard()
 {
     if (m_screen_num != 1 && m_screen_num != 3)
     {
-        for (uint row = 0; row < TETRIS_WIDTH; ++row)
+        for (uint row = 0; row < TETRIS_DISP_HEIGHT; ++row)
         {
-            for (uint col = 0; col < TETRIS_HEIGHT; ++col)
+            for (uint col = 0; col < TETRIS_WIDTH; ++col)
             {
-                int decode_color = CharToColor(m_tetris_board[row][col]);
+                int decode_color = CharToColor(m_tetris_board[row + m_subsection][col]);
                 int temp_color = (decode_color != TETRIS_ERR) ? decode_color : LIGHTGREY;
 
                 if (temp_color != TETRIS_EMPTY_COLOR)
@@ -623,5 +630,26 @@ tetris_error_t Tetris::UpdateScore(int rowsCleared)
     }
     m_score += score_mult * (m_level + 1);
     log_printf("SCORE: %d", m_score);
+    return TETRIS_SUCCESS;
+}
+
+tetris_error_t Tetris::MapSubsection()
+{
+    m_subsection = 0;
+
+    if (m_screen_num != 1 && m_screen_num != 3)
+    {
+        switch(m_screen_num)
+        {
+            case 4: m_subsection += TETRIS_DISP_HEIGHT; 
+            case 0: m_subsection += TETRIS_DISP_HEIGHT; 
+            case 2: m_subsection += TETRIS_DISP_HEIGHT;
+            case 5: break;
+        }
+
+        // DEBUG
+        log_printf("TETRIS: Subsection: %d\n\r",m_subsection);
+    }
+    
     return TETRIS_SUCCESS;
 }
