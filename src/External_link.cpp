@@ -161,6 +161,7 @@ std::string ExternalLink::GetCMD()
 
 el_error_t ExternalLink::StateController()
 {
+
     switch(m_state)
     {
         case EL_CMD_WAIT:
@@ -187,77 +188,98 @@ el_error_t ExternalLink::StateController()
             break;
 
         case EL_CMD_RECEIVED:
-            if (ListenForCMD() == EL_SUCCESS)
+            do 
             {
-                std::string cmd = PopLastReadCMD();
-
-                //DEBUG
-                log_printf("EL: EL_CMD_RECEIVED: cmd: %s\n\r",cmd.c_str());
-
-                if (cmd == ABORT_CMD)
+                if (ListenForCMD() == EL_SUCCESS)
                 {
-                    // Echo ABORT_CMD and go to EL_CMD_WAIT
-                    EchoCMD(ABORT_CMD);
-                    RequestState(EL_CMD_WAIT);
-                }
-                else if (cmd == EXE_CMD)
-                {
-                    //Echo EXE_CMD
-                    EchoCMD(EXE_CMD);
-                    
-                    // Set execution flag
-                    m_cmd_ready = true;
+                    std::string cmd = PopLastReadCMD();
 
-                    RequestState(EL_CMD_WAIT);
+                    //DEBUG
+                    log_printf("EL: EL_CMD_RECEIVED: cmd: %s\n\r",cmd.c_str());
+
+                    if (cmd == ABORT_CMD)
+                    {
+                        // Echo ABORT_CMD and go to EL_CMD_WAIT
+                        EchoCMD(ABORT_CMD);
+                        RequestState(EL_CMD_WAIT);
+                        m_lock = false;
+                    }
+                    else if (cmd == EXE_CMD)
+                    {
+                        //Echo EXE_CMD
+                        EchoCMD(EXE_CMD);
+                        
+                        // Set execution flag
+                        m_cmd_ready = true;
+
+                        RequestState(EL_CMD_WAIT);
+                        m_lock = false;
+                    }
                 }
             }
-            break;
+            while (m_lock);
+        break;
 
         case EL_CMD_SENT:
         {
-            if (ListenForCMD() == EL_SUCCESS && CheckTimeout() == EL_SUCCESS)
+            do
             {
-                std::string cmd = PopLastReadCMD();
-
-                //DEBUG
-                log_printf("EL: In EL_CMD_SENT comparing: %s to %s\n\r",cmd.c_str(),m_loaded_cmd.c_str());
-
-                if (cmd == m_loaded_cmd)
+                if (ListenForCMD() == EL_SUCCESS && CheckTimeout() == EL_SUCCESS)
                 {
-                    // Correct CMD received
-                    RequestState(EL_CMD_SUCCESS);
-                }
-                else
-                {
-                    // Incorrect CMD received
-                    RequestState(EL_CMD_ABORT);
+                    std::string cmd = PopLastReadCMD();
+
+                    //DEBUG
+                    log_printf("EL: In EL_CMD_SENT comparing: %s to %s\n\r",cmd.c_str(),m_loaded_cmd.c_str());
+
+                    if (cmd == m_loaded_cmd)
+                    {
+                        // Correct CMD received
+                        RequestState(EL_CMD_SUCCESS);
+                        m_lock = false;
+                    }
+                    else
+                    {
+                        // Incorrect CMD received
+                        RequestState(EL_CMD_ABORT);
+                        m_lock = false;
+                    }
                 }
             }
+            while (m_lock);
         }
         break;
 
         case EL_CMD_SUCCESS:
         {
-            if (ListenForCMD() == EL_SUCCESS)
+            do
             {
-                if (PopLastReadCMD() == EXE_CMD)
+                if (ListenForCMD() == EL_SUCCESS)
                 {
-                    m_cmd_ready = true;
-                    RequestState(EL_CMD_WAIT);
+                    if (PopLastReadCMD() == EXE_CMD)
+                    {
+                        m_cmd_ready = true;
+                        RequestState(EL_CMD_WAIT);
+                        m_lock = false;
+                    }
                 }
             }
+            while (m_lock);
         }
         break;
 
         case EL_CMD_ABORT:
         {
-            if (ListenForCMD() == EL_SUCCESS)
+            do
             {
-                if (PopLastReadCMD() == ABORT_CMD)
+                if (ListenForCMD() == EL_SUCCESS)
                 {
-                    RequestState(EL_CMD_WAIT);
+                    if (PopLastReadCMD() == ABORT_CMD)
+                    {
+                        RequestState(EL_CMD_WAIT);
+                    }
                 }
             }
+            while (m_lock);         
         }
         break;
     }
@@ -282,6 +304,7 @@ el_error_t ExternalLink::SetupState()
             
             m_cmd_ready = false;
             m_timeout = millis();
+            m_lock = true;
             break;
 
         case EL_CMD_SENT:
@@ -290,11 +313,14 @@ el_error_t ExternalLink::SetupState()
 
             m_cmd_ready = false;
             m_timeout = millis();
+            m_lock = true;
         break;
 
         case EL_CMD_SUCCESS:
             //DEBUG
             log_printf("EL: SUCCESS\n\r");
+
+            m_lock = true;
 
             // Send EXE_CMD to all ELs
             EchoCMD(EXE_CMD);
@@ -303,6 +329,8 @@ el_error_t ExternalLink::SetupState()
         case EL_CMD_ABORT:
             //DEBUG
             log_printf("EL: ABORT\n\r");
+
+            m_lock = true;
 
             // Send ABORT_CMD to all ELs
             EchoCMD(ABORT_CMD);

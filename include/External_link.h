@@ -63,6 +63,7 @@ private:
     std::string m_loaded_cmd;
     bool m_cmd_ready;
     bool m_setup_state;
+    bool m_lock;
 
     unsigned long m_timeout;
 
