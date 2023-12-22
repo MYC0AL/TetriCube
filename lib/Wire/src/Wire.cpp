@@ -511,6 +511,7 @@ size_t TwoWire::requestFrom(uint16_t address, size_t size, bool sendStop)
         err = i2cRead(num, address, rxBuffer, size, _timeOutMillis, &rxLength);
         if(err){
             log_e("i2cRead returned Error %d", err);
+            
         }
     }
 #if !CONFIG_DISABLE_HAL_LOCKS

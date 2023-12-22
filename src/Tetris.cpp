@@ -226,7 +226,7 @@ tetris_error_t Tetris::RequestMove(char direction)
             // Check if the height and width would collide with the barrier, on all sides
             int height, width;
             GetTetrominoSize(m_active_mino, width, height);
-            if (m_active_mino.x + height > TETRIS_HEIGHT || m_active_mino.y + width > TETRIS_WIDTH) {
+            if (m_active_mino.x + height > TETRIS_WIDTH || m_active_mino.y + width > TETRIS_HEIGHT) {
                 ret_code = TETRIS_ERR;
             }
 
@@ -470,7 +470,6 @@ tetris_error_t Tetris::MoveTetromino(char direction)
             m_active_mino.x += 1;
         break;
 
-        // If a rotation, fall through and call rotate on active mino
         case '^':
             RotateTetromino(m_active_mino);
         break;
