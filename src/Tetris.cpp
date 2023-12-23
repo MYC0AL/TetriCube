@@ -186,11 +186,14 @@ tetris_error_t Tetris::RequestMove(char direction)
 
             for (int row = 0; row < m_active_mino.tetromino.size() && !ret_code; ++row) 
             {
-                if (m_active_mino.tetromino[row].front() != AIR)
+                if (m_tetris_board[row + m_active_mino.y][m_active_mino.x - 1] != AIR)
                 {
-                    if (m_tetris_board[row + m_active_mino.y][m_active_mino.x - 1] != AIR)
+                    if (m_active_mino.tetromino[row].front() != AIR)
                     {
-                        //DEBUG SquareCheck(m_active_mino.tetromino[row].size() + m_active_mino.x, row + m_active_mino.y);
+                        ret_code = TETRIS_ERR;
+                    }
+                    else if (m_tetris_board[row + m_active_mino.y][m_active_mino.x] != AIR)
+                    {
                         ret_code = TETRIS_ERR;
                     }
                 }
@@ -210,11 +213,14 @@ tetris_error_t Tetris::RequestMove(char direction)
             // Check if moving right would collide with a block
             for (int row = 0; row < m_active_mino.tetromino.size() && !ret_code; ++row) 
             {
-                if (m_active_mino.tetromino[row].back() != AIR)
+                if (m_tetris_board[row + m_active_mino.y][m_active_mino.x + m_active_mino.tetromino[row].size()] != AIR)
                 {
-                    if (m_tetris_board[row + m_active_mino.y][m_active_mino.tetromino[row].size() + m_active_mino.x] != AIR)
+                    if (m_active_mino.tetromino[row].back() != AIR)
                     {
-                        //DEBUG SquareCheck(m_active_mino.tetromino[row].size() + m_active_mino.x, row + m_active_mino.y);
+                        ret_code = TETRIS_ERR;
+                    }
+                    else if (m_tetris_board[row + m_active_mino.y][m_active_mino.x + m_active_mino.tetromino[row].size() - 1] != AIR)
+                    {
                         ret_code = TETRIS_ERR;
                     }
                 }
