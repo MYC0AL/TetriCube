@@ -119,33 +119,40 @@ void StateDriver::state_controller()
                 if (dHelp.touch_touched() && m_screen_num == 1
                     && (millis() - m_tetris_move_timer >= TETRIS_MOVE_DELAY))
                 {
-                    std::string tetris_cmd;
-                    tetris_cmd += m_screen_num + '0';
-                    tetris_cmd += 'T';
+                    if (dHelp.touch_decoder(UI_TETRIS_PAUSE) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_SETTINGS);
+                    }
+                    else
+                    {
+                        std::string tetris_cmd;
+                        tetris_cmd += m_screen_num + '0';
+                        tetris_cmd += 'T';
 
-                    char dir = '0';
-                    if (dHelp.touch_decoder(UI_TETRIS_LEFT) == TC_UI_TOUCH) {
-                        dir = 'L';
-                    }
-                    else if (dHelp.touch_decoder(UI_TETRIS_RIGHT) == TC_UI_TOUCH) {
-                        dir = 'R';
-                    }
-                    else if (dHelp.touch_decoder(UI_TETRIS_DOWN) == TC_UI_TOUCH) {
-                        dir = 'D';
-                    }
-                    else if (dHelp.touch_decoder(UI_TETRIS_ROTATE) == TC_UI_TOUCH) {
-                        dir = '^';
-                    }
+                        char dir = '0';
+                        if (dHelp.touch_decoder(UI_TETRIS_LEFT) == TC_UI_TOUCH) {
+                            dir = 'L';
+                        }
+                        else if (dHelp.touch_decoder(UI_TETRIS_RIGHT) == TC_UI_TOUCH) {
+                            dir = 'R';
+                        }
+                        else if (dHelp.touch_decoder(UI_TETRIS_DOWN) == TC_UI_TOUCH) {
+                            dir = 'D';
+                        }
+                        else if (dHelp.touch_decoder(UI_TETRIS_ROTATE) == TC_UI_TOUCH) {
+                            dir = '^';
+                        }
 
-                    tetris_cmd += dir;
-                    if (dir != '0') {
-                        //DEBUG
-                        log_printf("TETRIS: Broadcasting '%c'\n\r",dir);
-                        el.SendCMD(tetris_cmd);
-                    }
+                        tetris_cmd += dir;
+                        if (dir != '0') {
+                            //DEBUG
+                            log_printf("TETRIS: Broadcasting '%c'\n\r",dir);
+                            el.SendCMD(tetris_cmd);
+                        }
 
-                    // Reset move timer
-                    m_tetris_move_timer = millis();
+                        // Reset move timer
+                        m_tetris_move_timer = millis();
+                    }
                 }
 
                 // Update game
@@ -161,7 +168,14 @@ void StateDriver::state_controller()
                 // Start rubiks cube
                 if (dHelp.touch_touched())
                 {
-                    rbx.TouchUpdate(dHelp.current_touches[0].x, dHelp.current_touches[0].y);
+                    if (m_screen_num == 1 && dHelp.touch_decoder(UI_RUBIKS_PAUSE) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_SETTINGS);
+                    }
+                    else
+                    {
+                        rbx.TouchUpdate(dHelp.current_touches[0].x, dHelp.current_touches[0].y);
+                    }
                 }
                 std::string cmd = rbx.PlayGame();
                 if (!cmd.empty())
@@ -266,6 +280,12 @@ void StateDriver::update_new_state(state_t new_state)
 
             // Draw initial rubiks cube
             rbx.drawRubiksSide(rbx.GetSideNum());
+
+            // Draw ui elements
+            if (m_screen_num == 1)
+            {
+                dHelp.active_ui = SCENE_RUBIKS_CONTROLS.ui_elements;
+            }
 
             break;
         }
@@ -413,7 +433,7 @@ state_code_t StateDriver::broadcast_state_transition(state_t new_state)
 {
     state_code_t ret_code = STATE_ERROR;
 
-    if (m_screen_num == 0)
+    if (m_screen_num == 0 || drv_state == STATE_TETRIS || drv_state == STATE_RUBIKS)
     {
         bool formedStr = false;
 
