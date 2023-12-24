@@ -250,7 +250,7 @@ void StateDriver::update_new_state(state_t new_state)
         {
             if (m_screen_num == 1)
             {
-                dHelp.drawImage(SCENE_SETTINGS.image);
+                dHelp.drawImage(SCENE_TETRIS_CONTROLS.image);
                 dHelp.active_ui = SCENE_TETRIS_CONTROLS.ui_elements;
             }
             else {
