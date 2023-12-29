@@ -87,5 +87,8 @@ public:
   void BackRotation(bool prime);
   void LeftRotation(bool prime);
   void DownRotation(bool prime);
+
+  void ScrambleCube();
+  void SolveCube();
 };
 #endif

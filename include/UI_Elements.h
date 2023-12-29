@@ -23,14 +23,20 @@ const UIButton UI_RUBIKS = {60,180,135,135};
 const UIButton UI_TETRIS = {285,180,135,130};
 const UIButton UI_SETTINGS = {140,365,200,60};
 const UIButton UI_HIGH_SCORES = {385,395,85,85};
+const UIButton UI_HOME = {395,395,85,85};
 
 const UIButton UI_TETRIS_LEFT = {30,175,100,100};
 const UIButton UI_TETRIS_RIGHT = {355,175,100,100};
 const UIButton UI_TETRIS_DOWN = {195,340,100,100};
 const UIButton UI_TETRIS_ROTATE = {185,170,110,110};
 const UIButton UI_TETRIS_PAUSE = {10,395,85,85};
+const UIButton UI_TETRIS_BACK_TO_GAME = {10,395,85,85};
+const UIButton UI_TETRIS_RESET = {190,185,100,135};
 
 const UIButton UI_RUBIKS_PAUSE = {195,195,90,90};
+const UIButton UI_RUBIKS_BACK_TO_GAME = {10,395,85,85};
+const UIButton UI_RUBIKS_SCRAMBLE = {145,120,180,130};
+const UIButton UI_RUBIKS_SOLVE = {180,280,115,115};
 
 // Home Scene
 const Scene SCENE_HOME = {"/home_screen_comp.jpg", {UI_START} };
@@ -41,8 +47,14 @@ const Scene SCENE_HIGH_SCORES = {"/high_scores_comp.jpg", {UI_BACK}};
 // Tetris Controller
 const Scene SCENE_TETRIS_CONTROLS = {"/tetris_controller.jpg", {UI_TETRIS_LEFT, UI_TETRIS_RIGHT, UI_TETRIS_DOWN, UI_TETRIS_ROTATE,UI_TETRIS_PAUSE}};
 
+// Tetris Pause
+const Scene SCENE_TETRIS_PAUSE = {"/tetris_pause.jpg", {UI_TETRIS_BACK_TO_GAME,UI_HOME,UI_TETRIS_RESET}};
+
 // Rubiks Controller
 const Scene SCENE_RUBIKS_CONTROLS = {"/",{UI_RUBIKS_PAUSE}};
+
+// Rubiks Pause
+const Scene SCENE_RUBIKS_PAUSE = {"/cube_pause.jpg",{UI_RUBIKS_BACK_TO_GAME,UI_HOME,UI_RUBIKS_SCRAMBLE,UI_RUBIKS_SOLVE}};
 
 // DEBUG Screen Num Select
 const UIButton UI_SCREEN_0 = {120,190,100,100};

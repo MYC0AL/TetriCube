@@ -39,10 +39,10 @@ void StateDriver::state_controller()
     while(1)
     {   
         // DEBUG
-        gfx->fillCircle(20,230,5,RED);
+        //gfx->fillCircle(20,230,5,RED);
         //delayMicroseconds(15);
-        gfx->fillCircle(20,230,5,BLACK);
-        gfx->fillCircle(20,230,5,RED);
+        //gfx->fillCircle(20,230,5,BLACK);
+        //gfx->fillCircle(20,230,5,RED);
         //delayMicroseconds(15);
 
         // Check the EL if a CMD
@@ -121,7 +121,7 @@ void StateDriver::state_controller()
                 {
                     if (dHelp.touch_decoder(UI_TETRIS_PAUSE) == TC_UI_TOUCH)
                     {
-                        request_state_change(STATE_SETTINGS);
+                        request_state_change(STATE_TETRIS_PAUSE);
                     }
                     else
                     {
@@ -170,7 +170,7 @@ void StateDriver::state_controller()
                 {
                     if (m_screen_num == 1 && dHelp.touch_decoder(UI_RUBIKS_PAUSE) == TC_UI_TOUCH)
                     {
-                        request_state_change(STATE_SETTINGS);
+                        request_state_change(STATE_RUBIKS_PAUSE);
                     }
                     else
                     {
@@ -183,6 +183,49 @@ void StateDriver::state_controller()
                     el.SendCMD(cmd);
                 }
             }
+                break;
+
+            case STATE_TETRIS_PAUSE:
+                if (dHelp.touch_touched() && m_screen_num == 0)
+                {
+                    if (dHelp.touch_decoder(UI_TETRIS_BACK_TO_GAME) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_TETRIS);
+                    }
+                    else if (dHelp.touch_decoder(UI_HOME) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_SELECT_GAME);
+                    }
+                    else if (dHelp.touch_decoder(UI_TETRIS_RESET) == TC_UI_TOUCH)
+                    {
+                        // TODO: Reset tetris and transition
+                        request_state_change(STATE_TETRIS);
+                    }
+                }
+                break;
+
+            case STATE_RUBIKS_PAUSE:
+                if (dHelp.touch_touched() && m_screen_num == 0)
+                {
+                    if (dHelp.touch_decoder(UI_RUBIKS_BACK_TO_GAME) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_RUBIKS);
+                    }
+                    else if (dHelp.touch_decoder(UI_HOME) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_SELECT_GAME);
+                    }
+                    else if (dHelp.touch_decoder(UI_RUBIKS_SCRAMBLE) == TC_UI_TOUCH)
+                    {
+                        // TODO: Scramble cube and transition
+                        request_state_change(STATE_RUBIKS);
+                    }
+                    else if (dHelp.touch_decoder(UI_RUBIKS_SOLVE) == TC_UI_TOUCH)
+                    {
+                        // TODO: Solve cube and transition
+                        request_state_change(STATE_RUBIKS);
+                    }
+                }
                 break;
 
             case STATE_TETRIS_END:
@@ -287,6 +330,39 @@ void StateDriver::update_new_state(state_t new_state)
                 dHelp.active_ui = SCENE_RUBIKS_CONTROLS.ui_elements;
             }
 
+            // Update Overlayed Pause ICON
+            if (m_screen_num == 1)
+            {
+                gfx->fillRect(215,215,20,50,BLACK);
+                gfx->fillRect(245,215,20,50,BLACK);
+            }
+
+            break;
+        }
+
+        case STATE_TETRIS_PAUSE:
+        {
+            if (m_screen_num == 0)
+            {
+                dHelp.drawImage(SCENE_TETRIS_PAUSE.image);
+                dHelp.active_ui = SCENE_TETRIS_PAUSE.ui_elements;
+            }
+            else {
+                dHelp.clear_screen();           
+            }
+            break;
+        }
+
+        case STATE_RUBIKS_PAUSE:
+        {
+            if (m_screen_num == 0)
+            {
+                dHelp.drawImage(SCENE_RUBIKS_PAUSE.image);
+                dHelp.active_ui = SCENE_RUBIKS_PAUSE.ui_elements;
+            }
+            else {
+                dHelp.clear_screen();           
+            }
             break;
         }
 
@@ -373,14 +449,28 @@ state_code_t StateDriver::request_state_change(state_t new_state)
                 break;
 
             case STATE_TETRIS:
-                if (new_state == STATE_SETTINGS || new_state == STATE_TETRIS_END)
+                if (new_state == STATE_TETRIS_PAUSE || new_state == STATE_TETRIS_END)
                 {
                     retCode = STATE_SUCCESS;
                 }
                 break;
 
             case STATE_RUBIKS:
-                if (new_state == STATE_SETTINGS || new_state == STATE_RUBIKS_END)
+                if (new_state == STATE_RUBIKS_PAUSE || new_state == STATE_RUBIKS_END)
+                {
+                    retCode = STATE_SUCCESS;
+                }
+                break;
+
+            case STATE_TETRIS_PAUSE:
+                if (new_state == STATE_TETRIS || new_state == STATE_SELECT_GAME)
+                {
+                    retCode = STATE_SUCCESS;
+                }
+                break;
+
+            case STATE_RUBIKS_PAUSE:
+                if (new_state == STATE_RUBIKS || new_state == STATE_SELECT_GAME)
                 {
                     retCode = STATE_SUCCESS;
                 }
@@ -502,6 +592,13 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
                 }
                 rbx.RotateCube(sender_screen,dirSwiped);
                 rbx.drawRubiksSide(m_screen_num);
+                
+                // Update Overlayed Pause ICON
+                if (m_screen_num == 1)
+                {
+                    gfx->fillRect(215,215,20,50,BLACK);
+                    gfx->fillRect(245,215,20,50,BLACK);
+                }
             }
             break;
 
@@ -526,8 +623,10 @@ char StateDriver::StateToChar(state_t state)
         case STATE_SETTINGS:    ret_val ='E'; break;
         case STATE_HIGH_SCORES: ret_val ='H'; break;
         case STATE_TETRIS:      ret_val ='T'; break;
+        case STATE_TETRIS_PAUSE:ret_val ='P'; break;
         case STATE_TETRIS_END:  ret_val ='Y'; break;
         case STATE_RUBIKS:      ret_val ='R'; break;
+        case STATE_RUBIKS_PAUSE:ret_val ='K'; break;
         case STATE_RUBIKS_END : ret_val ='F'; break;
     }
     return ret_val;
@@ -545,8 +644,10 @@ state_t StateDriver::CharToState(char ch)
         case 'E': ret_val = STATE_SETTINGS; break;
         case 'H': ret_val = STATE_HIGH_SCORES; break;
         case 'T': ret_val = STATE_TETRIS; break;
+        case 'P': ret_val = STATE_TETRIS_PAUSE; break;
         case 'Y': ret_val = STATE_TETRIS_END; break;
         case 'R': ret_val = STATE_RUBIKS; break;
+        case 'K': ret_val = STATE_RUBIKS_PAUSE; break;
         case 'F': ret_val = STATE_RUBIKS_END; break;
     }
     return ret_val;

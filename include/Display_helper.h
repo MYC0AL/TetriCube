@@ -84,7 +84,8 @@ public:
     DisplayHelper();
     void gfx_uninit();
     bool touch_touched(void);
-    void drawImage(const char * file_name);
+    void drawImage(const char *file_name);
+    void drawImage(const char *file_name, int x, int y);
     void clear_screen();
     tc_ret_code touch_decoder(UIButton button);
     void touch_reset();

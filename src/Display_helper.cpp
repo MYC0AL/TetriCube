@@ -92,6 +92,12 @@ void DisplayHelper::drawImage(const char *file_name)
            0 /* x */, 0 /* y */, gfx->width() /* widthLimit */, gfx->height() /* heightLimit */);
 }
 
+void DisplayHelper::drawImage(const char *file_name, int x = 0, int y = 0)
+{
+  jpegDraw(file_name, jpegDrawCallback, true /* useBigEndian */,
+           x /* x */, y /* y */, gfx->width() /* widthLimit */, gfx->height() /* heightLimit */);
+}
+
 void DisplayHelper::clear_screen()
 {
     gfx->fillScreen(BLACK);
