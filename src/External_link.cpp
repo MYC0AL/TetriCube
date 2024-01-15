@@ -9,12 +9,6 @@ ExternalLink::ExternalLink() : m_state(EL_CMD_WAIT), m_setup_state(true), m_cmd_
     log_printf("External Link 1 Started\n");
 
     delay(100);
-
-    // POC DEBUG
-    // el_error_t sendret = SendCMD("L\n");
-    // log_printf("%d\n",sendret);
-    // while (ListenForCMD() == EL_ERROR);
-    // PopLastReadCMD();
 }
 
 el_error_t ExternalLink::RequestState(el_state_t new_state)
@@ -92,6 +86,8 @@ el_error_t ExternalLink::SendCMD(std::string cmd)
 
             //Request transition to SENT
             RequestState(EL_CMD_SENT);
+
+            ready_to_tx = false;
         }
     }
 
@@ -153,6 +149,8 @@ std::string ExternalLink::GetCMD()
         ret_cmd = m_loaded_cmd;
         m_cmd_ready = false;
         
+        ready_to_tx = true;
+
         //DEBUG
         log_printf("EL: CMD Ready: %s\n\r",ret_cmd.c_str());
     }

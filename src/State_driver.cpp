@@ -27,6 +27,7 @@ StateDriver::StateDriver()
     }
     //END DEBUG
 
+    // Set side num for each screen
     rbx.SetSideNum(m_screen_num);
     tetris.SetSideNum(m_screen_num);
 }
@@ -182,6 +183,11 @@ void StateDriver::state_controller()
                 {
                     el.SendCMD(cmd);
                 }
+                else if (scrambling && m_screen_num == 0 && el.ready_to_tx)
+                {
+                    ScrambleCube();
+                    delay(10);
+                }
             }
                 break;
 
@@ -217,8 +223,8 @@ void StateDriver::state_controller()
                     }
                     else if (dHelp.touch_decoder(UI_RUBIKS_SCRAMBLE) == TC_UI_TOUCH)
                     {
-                        // TODO: Scramble cube and transition
                         request_state_change(STATE_RUBIKS);
+                        scrambling = true;
                     }
                     else if (dHelp.touch_decoder(UI_RUBIKS_SOLVE) == TC_UI_TOUCH)
                     {
@@ -258,6 +264,17 @@ void StateDriver::update_new_state(state_t new_state)
             {
                 dHelp.drawImage(SCENE_HOME.image);
                 dHelp.active_ui = SCENE_HOME.ui_elements;
+
+                // Set universal seed
+                std::srand(static_cast<unsigned int>(std::time(nullptr)));
+                char seed = (33 + rand() % (126 - 33 + 1));
+                char rand_char = 'R';
+                std::string cmd;
+                cmd += m_screen_num + '0';
+                cmd += rand_char;
+                cmd += seed;
+                log_printf("DRIVER: Random seed set to %s\n\r",cmd.c_str());
+                el.SendCMD(cmd);
             }
             else {
                 dHelp.clear_screen();
@@ -602,6 +619,12 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
             }
             break;
 
+            case 'R':
+            {
+                SetSeed(CMD[2]);
+            }
+            break;
+
             default:
             {
                 ret_val = STATE_ERROR;
@@ -651,4 +674,44 @@ state_t StateDriver::CharToState(char ch)
         case 'F': ret_val = STATE_RUBIKS_END; break;
     }
     return ret_val;
+}
+
+void StateDriver::SetSeed(int seed)
+{
+    srand(seed);
+}
+
+state_code_t StateDriver::ScrambleCube()
+{
+    state_code_t ret = STATE_SUCCESS;
+
+    if (rbx_scram_count < SCRAM_COUNT && scrambling)
+    {
+        // Form command to send on ELs
+        std::string scram_cmd;
+        scram_cmd += m_screen_num + '0';
+        scram_cmd += 'C';
+        int randDir = rand() % NUM_DIR;
+        if (randDir == 1 || randDir == 4 || randDir == 7 || randDir == 10)
+        {
+            randDir--;
+        }
+        scram_cmd += (randDir + '0');
+        el.SendCMD(scram_cmd);
+
+        // Increment scrambling counter
+        rbx_scram_count++;
+    }
+    else
+    {
+        rbx_scram_count = 0;
+        scrambling = false;
+    }
+
+    return ret;
+}
+
+state_code_t StateDriver::SolveCube()
+{
+    return state_code_t();
 }

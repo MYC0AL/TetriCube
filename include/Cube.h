@@ -29,6 +29,8 @@
 #define MOVE_SIZE 4
 #define NUM_SQUARES 9
 #define NUM_SIDES 6
+#define NUM_DIR 12
+#define SCRAM_COUNT 30
 
 #define SWIPE_ERR -1
 

@@ -5,6 +5,7 @@
 #include "Tetris.h"
 #include "External_link.h"
 #include "Cube.h"
+#include <ctime>
 
 // Transmit data structure
 // Num of sender unit symbol data
@@ -49,6 +50,11 @@ private:
     char StateToChar(state_t state);
     state_t CharToState(char ch);
 
+    void SetSeed(int seed);
+
+    state_code_t ScrambleCube();
+    state_code_t SolveCube();
+
 public:
 
     // Has-a relationship with display helper
@@ -70,6 +76,10 @@ public:
 
     // Screen number
     int m_screen_num;
+
+    // Cube scramble helper vars
+    int rbx_scram_count = 0;
+    bool scrambling = false;
 };
 
 #endif
