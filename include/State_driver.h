@@ -80,6 +80,7 @@ public:
     // Cube scramble helper vars
     int rbx_scram_count = 0;
     bool scrambling = false;
+    bool solve = false;
 };
 
 #endif

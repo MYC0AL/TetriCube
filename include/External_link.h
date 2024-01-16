@@ -24,6 +24,8 @@
 #define ABORT_CMD "!"
 #define CMD_TIMEOUT 1000
 
+#define RBX_SOLVE_SYM '%'
+
 #define RETRY_COUNT 5
 
 enum el_error_t {EL_SUCCESS, EL_ERROR, EL_TRANSMIT_ERROR};

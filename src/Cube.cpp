@@ -473,6 +473,12 @@ void Cube::DownRotation(bool prime)
     Rotate(sidesToMove, sqToMove, 3, prime);
 }
 
+void Cube::SolveCube()
+{
+    InitCube();
+    drawRubiksSide(m_side_num);
+}
+
 String Cube::ColorToStr(int color)
 {
     String retColor;

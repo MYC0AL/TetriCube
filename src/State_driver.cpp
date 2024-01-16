@@ -188,6 +188,11 @@ void StateDriver::state_controller()
                     ScrambleCube();
                     delay(10);
                 }
+                else if (solve && m_screen_num == 0 && el.ready_to_tx)
+                {
+                    SolveCube();
+                    solve = false;
+                }
             }
                 break;
 
@@ -228,8 +233,8 @@ void StateDriver::state_controller()
                     }
                     else if (dHelp.touch_decoder(UI_RUBIKS_SOLVE) == TC_UI_TOUCH)
                     {
-                        // TODO: Solve cube and transition
                         request_state_change(STATE_RUBIKS);
+                        solve = true;
                     }
                 }
                 break;
@@ -600,16 +605,24 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
 
             case 'C':
             {
-                int dirSwiped = CMD[2] - '0';
-                if (CMD[2] == 'A') {
-                    dirSwiped = 10;
+                if (CMD[2] == RBX_SOLVE_SYM)
+                {
+                    rbx.SolveCube();
                 }
-                else if (CMD[2] == 'B') {
-                    dirSwiped = 11;
+                else
+                {
+                    // Rotation detection
+
+                    int dirSwiped = CMD[2] - '0';
+                    if (CMD[2] == 'A') {
+                        dirSwiped = 10;
+                    }
+                    else if (CMD[2] == 'B') {
+                        dirSwiped = 11;
+                    }
+                    rbx.RotateCube(sender_screen,dirSwiped);
+                    rbx.drawRubiksSide(m_screen_num);
                 }
-                rbx.RotateCube(sender_screen,dirSwiped);
-                rbx.drawRubiksSide(m_screen_num);
-                
                 // Update Overlayed Pause ICON
                 if (m_screen_num == 1)
                 {
@@ -713,5 +726,11 @@ state_code_t StateDriver::ScrambleCube()
 
 state_code_t StateDriver::SolveCube()
 {
-    return state_code_t();
+    std::string solve_cmd;
+    solve_cmd += m_screen_num + '0';
+    solve_cmd += 'C';
+    solve_cmd += RBX_SOLVE_SYM;
+    el.SendCMD(solve_cmd);
+
+    return STATE_SUCCESS;
 }
