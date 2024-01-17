@@ -64,7 +64,7 @@ public:
   Cube();
   ~Cube();
   std::string PlayGame();
-  void drawRubiksSide(int sideNum);
+  void drawRubiksSide(int sideNum, bool drawCenter = true);
   void drawRubiksCube();
   short sqTapped(short xPos, short yPos);
   short dirSwiped();

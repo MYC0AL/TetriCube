@@ -405,7 +405,7 @@ void StateDriver::update_new_state(state_t new_state)
     drv_state = new_state;
 
     // -----DEBUG-----
-    dHelp.drawUI();
+    //dHelp.drawUI();
 
     // Pause between state transistions
     delay(400);
@@ -621,13 +621,7 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
                         dirSwiped = 11;
                     }
                     rbx.RotateCube(sender_screen,dirSwiped);
-                    rbx.drawRubiksSide(m_screen_num);
-                }
-                // Update Overlayed Pause ICON
-                if (m_screen_num == 1)
-                {
-                    gfx->fillRect(215,215,20,50,BLACK);
-                    gfx->fillRect(245,215,20,50,BLACK);
+                    rbx.drawRubiksSide(m_screen_num,false);
                 }
             }
             break;

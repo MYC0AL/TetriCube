@@ -59,15 +59,18 @@ std::string Cube::PlayGame()
     return cmd;
 }
 
-void Cube::drawRubiksSide(int sideNum)
+void Cube::drawRubiksSide(int sideNum, bool drawCenter)
 {
     for (int i = 0; i < NUM_SQUARES; i++)
     {
-        gfx->fillRect(m_cube[sideNum][i].x,
-                         m_cube[sideNum][i].y,
-                         m_cube[sideNum][i].w,
-                         m_cube[sideNum][i].h,
-                         m_cube[sideNum][i].c);
+        if (!(drawCenter == false && i == 4))
+        {
+            gfx->fillRect(m_cube[sideNum][i].x,
+                            m_cube[sideNum][i].y,
+                            m_cube[sideNum][i].w,
+                            m_cube[sideNum][i].h,
+                            m_cube[sideNum][i].c);
+        }
     }
 }
 
@@ -476,7 +479,7 @@ void Cube::DownRotation(bool prime)
 void Cube::SolveCube()
 {
     InitCube();
-    drawRubiksSide(m_side_num);
+    drawRubiksSide(m_side_num,false);
 }
 
 String Cube::ColorToStr(int color)
