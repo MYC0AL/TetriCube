@@ -24,15 +24,8 @@ void Tetris::SquareCheck(int row, int col)
 
 }
 
-Tetris::Tetris() : m_level(0), m_move_delay(1000), m_mino_is_active(false), m_mino_time(0)
+Tetris::Tetris() : m_level(0), m_move_delay(1000), m_mino_is_active(false), m_mino_time(0), m_score(0)
 {
-    // Randomize seed
-    // TODO use std::random_device instead to save clock time
-    // std::random_device dev;
-    // std::mt19937 rng(dev());
-    // std::uniform_int_distribution<std::mt19937::result_type> dist6(1,6);
-    srand(42);
-
     // Initialize the tetris board to empty spaces
     for (uint row = 0; row < TETRIS_HEIGHT; ++row)
     {
@@ -119,6 +112,28 @@ tetris_error_t Tetris::PlayGame()
 tetris_error_t Tetris::EnqueueMove(char direction)
 {
     m_moves.push(direction);
+    return TETRIS_SUCCESS;
+}
+
+tetris_error_t Tetris::Reset()
+{
+    m_level = 0;
+    m_move_delay = 1000;
+    m_mino_is_active = false;
+    m_mino_time = 0;
+    m_score = 0;
+    m_active_mino = {};
+
+    // Reset the tetris board to empty spaces
+    for (uint row = 0; row < TETRIS_HEIGHT; ++row)
+    {
+        for (uint col = 0; col < TETRIS_WIDTH; ++col)
+        {
+            m_tetris_board[row][col] = AIR;
+        }
+    }
+
+    log_printf("TETRIS: Resetting...\n\r");
     return TETRIS_SUCCESS;
 }
 

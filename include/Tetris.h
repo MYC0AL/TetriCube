@@ -48,6 +48,7 @@ public:
     void SetSideNum(int screen_num);
     tetris_error_t PlayGame();
     tetris_error_t EnqueueMove(char direction);
+    tetris_error_t Reset();
 
 private:
     int m_screen_num;

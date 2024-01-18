@@ -161,8 +161,14 @@ void StateDriver::state_controller()
                 {
                     request_state_change(STATE_TETRIS_END);
                 }
+
+                // Check for reset flag
+                if (tetris_reset && m_screen_num == 0 && el.ready_to_tx)
+                {
+                    TetrisReset();
+                }
             }
-                break;
+            break;
 
             case STATE_RUBIKS:
             {
@@ -194,7 +200,7 @@ void StateDriver::state_controller()
                     solve = false;
                 }
             }
-                break;
+            break;
 
             case STATE_TETRIS_PAUSE:
                 if (dHelp.touch_touched() && m_screen_num == 0)
@@ -209,8 +215,8 @@ void StateDriver::state_controller()
                     }
                     else if (dHelp.touch_decoder(UI_TETRIS_RESET) == TC_UI_TOUCH)
                     {
-                        // TODO: Reset tetris and transition
                         request_state_change(STATE_TETRIS);
+                        tetris_reset = true;
                     }
                 }
                 break;
@@ -237,7 +243,7 @@ void StateDriver::state_controller()
                         solve = true;
                     }
                 }
-                break;
+            break;
 
             case STATE_TETRIS_END:
 
@@ -331,6 +337,10 @@ void StateDriver::update_new_state(state_t new_state)
             {
                 dHelp.drawImage(SCENE_TETRIS_CONTROLS.image);
                 dHelp.active_ui = SCENE_TETRIS_CONTROLS.ui_elements;
+
+                // Overlay pause icon
+                gfx->fillRect(30,410,20,50,WHITE);
+                gfx->fillRect(60,410,20,50,WHITE);
             }
             else {
                 dHelp.clear_screen();
@@ -600,28 +610,35 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
                 if (CMD[2] == 'L' || CMD[2] == 'R' || CMD[2] == 'D' || CMD[2] == '^') {
                     tetris.EnqueueMove(CMD[2]);
                 }
+                else if (CMD[2] == TETRIS_RESET_SYM) {
+                    tetris.Reset();
+                    tetris_reset = false;
+                }
             }
             break;
 
             case 'C':
             {
-                if (CMD[2] == RBX_SOLVE_SYM)
+                if (drv_state == STATE_RUBIKS)
                 {
-                    rbx.SolveCube();
-                }
-                else
-                {
-                    // Rotation detection
+                    if (CMD[2] == RBX_SOLVE_SYM)
+                    {
+                        rbx.SolveCube();
+                    }
+                    else
+                    {
+                        // Rotation detection
 
-                    int dirSwiped = CMD[2] - '0';
-                    if (CMD[2] == 'A') {
-                        dirSwiped = 10;
+                        int dirSwiped = CMD[2] - '0';
+                        if (CMD[2] == 'A') {
+                            dirSwiped = 10;
+                        }
+                        else if (CMD[2] == 'B') {
+                            dirSwiped = 11;
+                        }
+                        rbx.RotateCube(sender_screen,dirSwiped);
+                        rbx.drawRubiksSide(m_screen_num,false);
                     }
-                    else if (CMD[2] == 'B') {
-                        dirSwiped = 11;
-                    }
-                    rbx.RotateCube(sender_screen,dirSwiped);
-                    rbx.drawRubiksSide(m_screen_num,false);
                 }
             }
             break;
@@ -726,5 +743,16 @@ state_code_t StateDriver::SolveCube()
     solve_cmd += RBX_SOLVE_SYM;
     el.SendCMD(solve_cmd);
 
+    return STATE_SUCCESS;
+}
+
+state_code_t StateDriver::TetrisReset()
+{
+    std::string reset_cmd;
+    reset_cmd += m_screen_num + '0';
+    reset_cmd += 'T';
+    reset_cmd += TETRIS_RESET_SYM;
+    el.SendCMD(reset_cmd);
+    tetris_reset = false;
     return STATE_SUCCESS;
 }

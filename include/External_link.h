@@ -25,6 +25,7 @@
 #define CMD_TIMEOUT 1000
 
 #define RBX_SOLVE_SYM '%'
+#define TETRIS_RESET_SYM 'X'
 
 #define RETRY_COUNT 5
 

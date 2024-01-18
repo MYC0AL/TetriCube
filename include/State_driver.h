@@ -55,6 +55,8 @@ private:
     state_code_t ScrambleCube();
     state_code_t SolveCube();
 
+    state_code_t TetrisReset();
+
 public:
 
     // Has-a relationship with display helper
@@ -81,6 +83,9 @@ public:
     int rbx_scram_count = 0;
     bool scrambling = false;
     bool solve = false;
+
+    //Tetris reset helper vars
+    bool tetris_reset = false;
 };
 
 #endif
