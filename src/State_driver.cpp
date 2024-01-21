@@ -175,7 +175,7 @@ void StateDriver::state_controller()
                 // Start rubiks cube
                 if (dHelp.touch_touched())
                 {
-                    if (m_screen_num == 1 && dHelp.touch_decoder(UI_RUBIKS_PAUSE) == TC_UI_TOUCH)
+                    if (m_screen_num == 1 && dHelp.touch_decoder(UI_RUBIKS_PAUSE) == TC_UI_TOUCH && !scrambling)
                     {
                         request_state_change(STATE_RUBIKS_PAUSE);
                     }
@@ -378,6 +378,16 @@ void StateDriver::update_new_state(state_t new_state)
             {
                 dHelp.drawImage(SCENE_TETRIS_PAUSE.image);
                 dHelp.active_ui = SCENE_TETRIS_PAUSE.ui_elements;
+
+                // Update displayed score
+                unsigned long tetris_score = tetris.GetScore();
+                int text_offset = (log10(tetris_score)+1)/2;
+                int text_size = 4;
+                int one_char_width = 6 * text_size;
+                gfx->setTextSize(text_size);
+                gfx->setCursor(230-(one_char_width*text_offset),410);
+                gfx->printf("%d",tetris_score);
+                log_printf("tetris_score: %d\ntext_offset: %d\n\r",tetris_score,text_offset);
             }
             else {
                 dHelp.clear_screen();           

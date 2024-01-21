@@ -6,6 +6,7 @@
 #include "External_link.h"
 #include "Cube.h"
 #include <ctime>
+#include <cmath>
 
 // Transmit data structure
 // Num of sender unit symbol data

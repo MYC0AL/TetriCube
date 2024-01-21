@@ -137,6 +137,11 @@ tetris_error_t Tetris::Reset()
     return TETRIS_SUCCESS;
 }
 
+unsigned long Tetris::GetScore()
+{
+    return m_score;
+}
+
 tetris_error_t Tetris::GetTetrominoSize(tetromino_t mino, int& width, int& height)
 {
     height = mino.tetromino.size();
