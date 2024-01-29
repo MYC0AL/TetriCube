@@ -173,9 +173,9 @@ void StateDriver::state_controller()
             case STATE_RUBIKS:
             {
                 // Start rubiks cube
-                if (dHelp.touch_touched())
+                if (dHelp.touch_touched() && !scrambling)
                 {
-                    if (m_screen_num == 1 && dHelp.touch_decoder(UI_RUBIKS_PAUSE) == TC_UI_TOUCH && !scrambling)
+                    if (m_screen_num == 1 && dHelp.touch_decoder(UI_RUBIKS_PAUSE) == TC_UI_TOUCH)
                     {
                         request_state_change(STATE_RUBIKS_PAUSE);
                     }
@@ -191,8 +191,8 @@ void StateDriver::state_controller()
                 }
                 else if (scrambling && m_screen_num == 0 && el.ready_to_tx)
                 {
-                    ScrambleCube();
                     delay(10);
+                    ScrambleCube();
                 }
                 else if (solve && m_screen_num == 0 && el.ready_to_tx)
                 {
