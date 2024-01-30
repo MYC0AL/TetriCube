@@ -24,7 +24,7 @@ void Tetris::SquareCheck(int row, int col)
 
 }
 
-Tetris::Tetris() : m_level(0), m_move_delay(1000), m_mino_is_active(false), m_mino_time(0), m_score(0)
+Tetris::Tetris() : m_level(0), m_move_delay(1000), m_mino_is_active(false), m_mino_time(0), m_score(0), m_total_rows_cleared(0)
 {
     // Initialize the tetris board to empty spaces
     for (uint row = 0; row < TETRIS_HEIGHT; ++row)
@@ -123,6 +123,7 @@ tetris_error_t Tetris::Reset()
     m_mino_time = 0;
     m_score = 0;
     m_active_mino = {};
+    m_total_rows_cleared = 0;
 
     // Reset the tetris board to empty spaces
     for (uint row = 0; row < TETRIS_HEIGHT; ++row)
@@ -625,7 +626,32 @@ tetris_error_t Tetris::ClearFullLines(vector<int> filled_lines)
 
     // Update score
     UpdateScore(filled_lines.size());
+
+    // Update Row Clear Counter
+    m_total_rows_cleared += filled_lines.size();
     
+    // Check for level up
+    CheckLevelUp();
+
+    return TETRIS_SUCCESS;
+}
+
+tetris_error_t Tetris::CheckLevelUp()
+{
+    // Level changes update level and
+    unsigned int new_level = m_total_rows_cleared / 10;
+    if (new_level != m_level)
+    {
+        m_level = new_level;
+        
+        // Update speed
+        if (m_level < 10) {
+            m_move_delay -= 100;
+        }
+        
+        log_printf("TETRIS: Level up: %d  Speed: %d\n\r",m_level,m_move_delay);
+    }
+
     return TETRIS_SUCCESS;
 }
 
@@ -654,7 +680,7 @@ tetris_error_t Tetris::UpdateScore(int rowsCleared)
             break;
     }
     m_score += score_mult * (m_level + 1);
-    log_printf("SCORE: %d", m_score);
+    log_printf("Tetris: SCORE: %d\n\r", m_score);
     return TETRIS_SUCCESS;
 }
 

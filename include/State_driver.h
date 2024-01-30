@@ -85,8 +85,13 @@ public:
     bool scrambling = false;
     bool solve = false;
 
-    //Tetris reset helper vars
+    // Tetris reset helper vars
     bool tetris_reset = false;
+
+    // Tetris score
+    unsigned long m_tetris_score;
+
+    state_code_t CenterAndPrintInt(int num, int x, int y, int text_size, int color);
 };
 
 #endif

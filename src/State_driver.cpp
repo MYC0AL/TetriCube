@@ -167,6 +167,22 @@ void StateDriver::state_controller()
                 {
                     TetrisReset();
                 }
+
+                // Update the score
+                if (m_screen_num == 3)
+                {
+                    unsigned long new_score = tetris.GetScore();
+
+                    // Only update score if new
+                    if (m_tetris_score != new_score)
+                    {
+                        // Reset background for tetris score
+                        gfx->fillRect(230,150,30,30,BLACK);
+                        m_tetris_score = new_score;
+                        CenterAndPrintInt(m_tetris_score,230,180,/*text scale*/ 5, CYAN);
+                    }
+                }
+
             }
             break;
 
@@ -256,6 +272,18 @@ void StateDriver::state_controller()
     }
 }
 
+state_code_t StateDriver::CenterAndPrintInt(int num, int x, int y, int text_size, int color)
+{
+    int text_offset = (log10(num)+1)/2;
+    int one_char_width = 6 * text_size;
+    gfx->setTextSize(text_size);
+    gfx->setTextColor(color);
+    gfx->setCursor(x-(one_char_width*text_offset),y);
+    gfx->printf("%d",num);
+
+    return STATE_SUCCESS;
+}
+
 /* 
  * This function will update the display and any neccessary
  * reachable variables to prepare the application for a new
@@ -342,6 +370,15 @@ void StateDriver::update_new_state(state_t new_state)
                 gfx->fillRect(30,410,20,50,WHITE);
                 gfx->fillRect(60,410,20,50,WHITE);
             }
+            else if (m_screen_num == 3)
+            {
+                dHelp.clear_screen();
+                gfx->setCursor(155,100);
+                gfx->setTextColor(WHITE);
+                gfx->setTextSize(6);
+                gfx->printf("SCORE");
+                CenterAndPrintInt(tetris.GetScore(),230,180,/*text scale*/ 5, CYAN);
+            }
             else {
                 dHelp.clear_screen();
             }
@@ -381,13 +418,8 @@ void StateDriver::update_new_state(state_t new_state)
 
                 // Update displayed score
                 unsigned long tetris_score = tetris.GetScore();
-                int text_offset = (log10(tetris_score)+1)/2;
                 int text_size = 4;
-                int one_char_width = 6 * text_size;
-                gfx->setTextSize(text_size);
-                gfx->setCursor(230-(one_char_width*text_offset),410);
-                gfx->printf("%d",tetris_score);
-                log_printf("tetris_score: %d\ntext_offset: %d\n\r",tetris_score,text_offset);
+                CenterAndPrintInt(tetris_score,230,410,text_size, WHITE);
             }
             else {
                 dHelp.clear_screen();           
