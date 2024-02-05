@@ -50,6 +50,7 @@ public:
     tetris_error_t EnqueueMove(char direction);
     tetris_error_t Reset();
     unsigned long GetScore();
+    unsigned int GetLevel();
 
 private:
     int m_screen_num;

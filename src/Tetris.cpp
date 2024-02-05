@@ -54,7 +54,7 @@ tetris_error_t Tetris::PlayGame()
 {
     tetris_error_t ret_code = TETRIS_SUCCESS;
 
-    if (m_tetromino_queue.empty())
+    if (m_tetromino_queue.size() < TETRIS_MAX_QUEUE)
     {
         // Enqueue new random tetromino
         EnqueueTetromino();
@@ -141,6 +141,11 @@ tetris_error_t Tetris::Reset()
 unsigned long Tetris::GetScore()
 {
     return m_score;
+}
+
+unsigned int Tetris::GetLevel()
+{
+    return m_level;
 }
 
 tetris_error_t Tetris::GetTetrominoSize(tetromino_t mino, int& width, int& height)

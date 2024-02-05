@@ -39,13 +39,6 @@ void StateDriver::state_controller()
 {
     while(1)
     {   
-        // DEBUG
-        //gfx->fillCircle(20,230,5,RED);
-        //delayMicroseconds(15);
-        //gfx->fillCircle(20,230,5,BLACK);
-        //gfx->fillCircle(20,230,5,RED);
-        //delayMicroseconds(15);
-
         // Check the EL if a CMD
         // is ready to be ran
         std::string cmd = el.GetCMD();
@@ -262,7 +255,13 @@ void StateDriver::state_controller()
             break;
 
             case STATE_TETRIS_END:
-
+                if (dHelp.touch_touched() && m_screen_num == 0)
+                {
+                    if (dHelp.touch_decoder(UI_HOME) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_SELECT_GAME);
+                    }
+                }
                 break;
 
             case STATE_RUBIKS_END:
@@ -442,8 +441,22 @@ void StateDriver::update_new_state(state_t new_state)
 
         case STATE_TETRIS_END:
         {
-            //dHelp.clear_screen();
-            //gfx->fillScreen(RED);
+            if (m_screen_num == 0)
+            {
+                dHelp.drawImage(SCENE_TETRIS_GAME_OVER.image);
+                dHelp.active_ui = SCENE_TETRIS_GAME_OVER.ui_elements;
+
+                // Update displayed score and level
+                int text_size = 4;
+                CenterAndPrintInt(tetris.GetScore(), 300, 270, text_size, WHITE);
+                CenterAndPrintInt(tetris.GetLevel(), 300, 350, text_size, WHITE);
+
+                // Reset tetris when it starts again
+                tetris_reset = true;
+            }
+            else {
+                dHelp.clear_screen();
+            }
             break;
         }
 

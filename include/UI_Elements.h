@@ -50,6 +50,9 @@ const Scene SCENE_TETRIS_CONTROLS = {"/tetris_controller.jpg", {UI_TETRIS_LEFT, 
 // Tetris Pause
 const Scene SCENE_TETRIS_PAUSE = {"/tetris_pause.jpg", {UI_TETRIS_BACK_TO_GAME,UI_HOME,UI_TETRIS_RESET}};
 
+// Tetris Game Over
+const Scene SCENE_TETRIS_GAME_OVER = {"/tetris_game_over.jpg", {UI_HOME}};
+
 // Rubiks Controller
 const Scene SCENE_RUBIKS_CONTROLS = {"/",{UI_RUBIKS_PAUSE}};
 
