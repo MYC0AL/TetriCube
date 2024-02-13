@@ -32,6 +32,10 @@ Tetris::Tetris() : m_level(0), m_move_delay(1000), m_mino_is_active(false), m_mi
         for (uint col = 0; col < TETRIS_WIDTH; ++col)
         {
             m_tetris_board[row][col] = AIR;
+
+            if (row > 7 && col < TETRIS_WIDTH-1)
+                m_tetris_board[row][col] = 'G';
+
         }
     }
 }

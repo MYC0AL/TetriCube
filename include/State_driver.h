@@ -30,6 +30,11 @@
 #define SYMBOL_IDX 1
 //#define DATA_IDX 2
 
+// High Score File
+#define PODIUM_SIZE 100
+#define HS_FILE_NAME "/highscores.txt"
+typedef std::vector<std::pair<std::string, std::string>> podium_t;
+
 // State definitions
 enum state_t {STATE_INIT, STATE_START, STATE_SELECT_GAME, STATE_SETTINGS,
             STATE_HIGH_SCORES, STATE_TETRIS, STATE_TETRIS_PAUSE, STATE_TETRIS_END,
@@ -57,6 +62,9 @@ private:
     state_code_t SolveCube();
 
     state_code_t TetrisReset();
+
+    state_code_t WriteHighScoreFile(std::string user_name, long score);
+    state_code_t ReadHighScoreFile(podium_t& podium);
 
 public:
 

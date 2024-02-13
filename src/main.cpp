@@ -10,6 +10,10 @@
 
 void setup(void)
 {
+
+  delay(10);
+
+
   // Initialize state driver
   StateDriver drv;
 

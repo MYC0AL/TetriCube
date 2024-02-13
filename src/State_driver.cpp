@@ -351,6 +351,25 @@ void StateDriver::update_new_state(state_t new_state)
             {
                 dHelp.drawImage(SCENE_HIGH_SCORES.image);
                 dHelp.active_ui = SCENE_HIGH_SCORES.ui_elements;
+
+                // Read from highscore file
+                podium_t podium;
+                ReadHighScoreFile(podium);
+
+                // Print scores to the screen
+                gfx->setTextSize(3);
+                gfx->setTextColor(WHITE);
+
+                int baseY = 250;
+                gfx->setCursor(135,170);
+                gfx->printf("Name  Tetris\n\r");
+                gfx->setCursor(245,200);
+                gfx->printf("Scores\n\r");
+                for (int i = 0; i < 3 && i < podium.size(); i++)
+                {
+                    gfx->setCursor(135,baseY+(i*60));
+                    gfx->printf("%s   %s\n\r",podium[i].first.c_str(),podium[i].second.c_str());
+                }
             }
             else {
                 dHelp.clear_screen();
@@ -448,8 +467,12 @@ void StateDriver::update_new_state(state_t new_state)
 
                 // Update displayed score and level
                 int text_size = 4;
-                CenterAndPrintInt(tetris.GetScore(), 300, 270, text_size, WHITE);
+                unsigned long curr_score = tetris.GetScore();
+                CenterAndPrintInt(curr_score, 300, 270, text_size, WHITE);
                 CenterAndPrintInt(tetris.GetLevel(), 300, 350, text_size, WHITE);
+
+                // Write to the highscore file
+                WriteHighScoreFile("mjb",tetris.GetScore()); // TODO: Make a initial entering system
 
                 // Reset tetris when it starts again
                 tetris_reset = true;
@@ -810,4 +833,79 @@ state_code_t StateDriver::TetrisReset()
     el.SendCMD(reset_cmd);
     tetris_reset = false;
     return STATE_SUCCESS;
+}
+
+state_code_t StateDriver::WriteHighScoreFile(std::string user_name, long score)
+{
+    state_code_t ret = STATE_SUCCESS;
+
+    // Create string for file name 
+    String fname(HS_FILE_NAME);
+
+    // Open file
+    File hs_file = SD.open(fname,FILE_APPEND,true);
+
+    if (hs_file)
+    {
+        log_printf("DRV: Writing to %s\n\r",HS_FILE_NAME);
+        hs_file.printf("%s,%d\r\n",user_name.c_str(),score);
+        hs_file.close();
+    }
+    else
+    {
+        ret = STATE_ERROR;
+    }
+
+    return ret;
+}
+
+state_code_t StateDriver::ReadHighScoreFile(podium_t& podium)
+{
+    state_code_t ret = STATE_SUCCESS;
+ 
+    // Create string for file name 
+    String fname(HS_FILE_NAME);
+
+    // Open file
+    File hs_file = SD.open(fname);
+
+    int podium_idx = 0;
+
+    if (hs_file)
+    {
+        log_printf("DRV: Reading from %s\n\r",HS_FILE_NAME);
+
+        bool onFirst = true;
+        podium.push_back(std::pair<std::string, std::string>());
+
+        while (hs_file.available()) { // Reads a char at a time
+
+            int new_char = hs_file.read();
+
+            if (new_char == '\n') {
+                podium_idx++;
+                podium.push_back(std::pair<std::string, std::string>());
+                onFirst = true;
+            }
+            else if (new_char == ',') {
+                onFirst = !onFirst;
+            }
+            else if (onFirst) {
+                podium[podium_idx].first += new_char;
+            }
+            else {
+                podium[podium_idx].second += new_char;
+            }
+        }
+        
+        hs_file.close();
+    }
+    else
+    {
+        ret = STATE_ERROR;
+    }
+
+    // TODO: Sort podium entries
+
+    return ret;
 }
