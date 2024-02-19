@@ -33,7 +33,8 @@
 // High Score File
 #define PODIUM_SIZE 100
 #define HS_FILE_NAME "/highscores.txt"
-typedef std::vector<std::pair<std::string, std::string>> podium_t;
+typedef std::pair<std::string, std::string> entry_t;
+typedef std::vector<entry_t> podium_t;
 
 // State definitions
 enum state_t {STATE_INIT, STATE_START, STATE_SELECT_GAME, STATE_SETTINGS,
@@ -65,6 +66,7 @@ private:
 
     state_code_t WriteHighScoreFile(std::string user_name, long score);
     state_code_t ReadHighScoreFile(podium_t& podium);
+    state_code_t SortHighScores(podium_t& podium);
 
 public:
 

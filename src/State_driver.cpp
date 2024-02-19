@@ -356,6 +356,14 @@ void StateDriver::update_new_state(state_t new_state)
                 podium_t podium;
                 ReadHighScoreFile(podium);
 
+                // Sort the podium
+                SortHighScores(podium);
+
+                for(int i = 0; i < podium.size(); i++)
+                {
+                    log_printf("Entry #%d: Name:%s, Score:%s\n\r",i,podium[i].first.c_str(),podium[i].second.c_str());
+                }
+
                 // Print scores to the screen
                 gfx->setTextSize(3);
                 gfx->setTextColor(WHITE);
@@ -472,10 +480,14 @@ void StateDriver::update_new_state(state_t new_state)
                 CenterAndPrintInt(tetris.GetLevel(), 300, 350, text_size, WHITE);
 
                 // Write to the highscore file
-                WriteHighScoreFile("mjb",tetris.GetScore()); // TODO: Make a initial entering system
+                WriteHighScoreFile("usr",tetris.GetScore()+100); // TODO: Make an initial entering system
 
                 // Reset tetris when it starts again
                 tetris_reset = true;
+            }
+            else if (m_screen_num == 4)
+            {
+                dHelp.drawImage(SCENE_ENTER_INITIALS.image);
             }
             else {
                 dHelp.clear_screen();
@@ -906,6 +918,41 @@ state_code_t StateDriver::ReadHighScoreFile(podium_t& podium)
     }
 
     // TODO: Sort podium entries
+
+    return ret;
+}
+
+state_code_t StateDriver::SortHighScores(podium_t &podium)
+{
+    state_code_t ret = STATE_SUCCESS;
+
+    if (podium.empty())
+    {
+        ret = STATE_ERROR;
+    }
+    else
+    {
+        // Perform flagged bubble sort
+        entry_t temp;
+        int idx = podium.size() - 1;
+        int sorted = 0;
+
+		while ( !sorted )
+		{
+			sorted = 1;
+			for  (int i = 0; i < idx; i++)
+			{
+				if  (atoi(podium[i].second.c_str()) < atoi(podium[i + 1].second.c_str()))
+				{
+					temp = podium[i];
+					podium[i] = podium[i + 1];
+					podium[i + 1] = temp;
+					sorted = 0;
+				}
+			}
+			idx--;
+		}
+    }
 
     return ret;
 }
