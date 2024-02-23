@@ -255,11 +255,50 @@ void StateDriver::state_controller()
             break;
 
             case STATE_TETRIS_END:
-                if (dHelp.touch_touched() && m_screen_num == 0)
+                if (dHelp.touch_touched() && m_screen_num == 4)
                 {
                     if (dHelp.touch_decoder(UI_HOME) == TC_UI_TOUCH)
                     {
                         request_state_change(STATE_SELECT_GAME);
+                    }
+                }
+                else if (dHelp.touch_touched() && m_screen_num == 0)
+                {
+                    if (dHelp.touch_decoder(UI_INITIAL_UP1) == TC_UI_TOUCH)
+                    {
+                        UpdateAlphaWheels(0,false);
+                    }
+                    else if (dHelp.touch_decoder(UI_INITIAL_UP2) == TC_UI_TOUCH)
+                    {
+                        UpdateAlphaWheels(1,false);
+                    }
+                    else if (dHelp.touch_decoder(UI_INITIAL_UP3) == TC_UI_TOUCH)
+                    {
+                        UpdateAlphaWheels(2,false);
+                    }
+                    else if (dHelp.touch_decoder(UI_INITIAL_DOWN1) == TC_UI_TOUCH)
+                    {
+                        UpdateAlphaWheels(0,true);
+                    }
+                    else if (dHelp.touch_decoder(UI_INITIAL_DOWN2) == TC_UI_TOUCH)
+                    {
+                        UpdateAlphaWheels(1,true);
+                    }
+                    else if (dHelp.touch_decoder(UI_INITIAL_DOWN3) == TC_UI_TOUCH)
+                    {
+                        UpdateAlphaWheels(2,true);
+                    }
+                    else if (dHelp.touch_decoder(UI_SUBMIT_INITIALS) == TC_UI_TOUCH)
+                    {
+                        std::string initials;
+                        initials += m_alpha_wheel[0];
+                        initials += m_alpha_wheel[1];
+                        initials += m_alpha_wheel[2];
+
+                        if (request_state_change(STATE_SELECT_GAME) == STATE_SUCCESS)
+                        {
+                            WriteHighScoreFile(initials,tetris.GetScore());
+                        }
                     }
                 }
                 break;
@@ -281,6 +320,61 @@ state_code_t StateDriver::CenterAndPrintInt(int num, int x, int y, int text_size
     gfx->printf("%d",num);
 
     return STATE_SUCCESS;
+}
+
+state_code_t StateDriver::InitAlphaWheels()
+{
+    for(int i = 0; i < ALPHA_WHEEL_SIZE; i++)
+    {
+        m_alpha_wheel[i] = 'A';
+    }
+
+    return STATE_SUCCESS;
+}
+
+state_code_t StateDriver::DisplayAlphaWheels()
+{
+    // Setup cursor
+    gfx->setTextSize(7);
+    gfx->setTextColor(WHITE);
+
+    for(int i = 0; i < 3; i++)
+    {
+        // Clear old letter
+        gfx->fillRect(95+(131*i),200,60,60,BLACK);
+
+        // Set cursor position and print
+        gfx->setCursor(95+(131*i),200);
+        gfx->printf("%c",m_alpha_wheel[i]);
+    }
+
+    return STATE_SUCCESS;
+}
+
+state_code_t StateDriver::UpdateAlphaWheels(int wheel, bool next)
+{
+    state_code_t ret = STATE_SUCCESS;
+
+    if (wheel >= 0 && wheel <= 2)
+    {
+        char curr_letter = m_alpha_wheel[wheel];
+
+        // Make sure the next or previous letter is in alphabet
+        char next_letter = next ? ( (curr_letter + 1) > 'Z' ? 'A' : curr_letter + 1)
+                                : ( (curr_letter - 1) < 'A' ? 'Z' : curr_letter - 1);
+
+        // Update wheel
+        m_alpha_wheel[wheel] = next_letter;
+
+        DisplayAlphaWheels();
+        delay(300);
+
+    }
+    else {
+        ret = STATE_ERROR;
+    }
+
+    return ret;
 }
 
 /* 
@@ -468,7 +562,7 @@ void StateDriver::update_new_state(state_t new_state)
 
         case STATE_TETRIS_END:
         {
-            if (m_screen_num == 0)
+            if (m_screen_num == 4)
             {
                 dHelp.drawImage(SCENE_TETRIS_GAME_OVER.image);
                 dHelp.active_ui = SCENE_TETRIS_GAME_OVER.ui_elements;
@@ -477,21 +571,30 @@ void StateDriver::update_new_state(state_t new_state)
                 int text_size = 4;
                 unsigned long curr_score = tetris.GetScore();
                 CenterAndPrintInt(curr_score, 300, 270, text_size, WHITE);
-                CenterAndPrintInt(tetris.GetLevel(), 300, 350, text_size, WHITE);
+                CenterAndPrintInt(tetris.GetLevel(), 300, 350, text_size, WHITE);               
 
-                // Write to the highscore file
-                WriteHighScoreFile("usr",tetris.GetScore()+100); // TODO: Make an initial entering system
-
-                // Reset tetris when it starts again
-                tetris_reset = true;
             }
-            else if (m_screen_num == 4)
+            else if (m_screen_num == 0)
             {
+                //dHelp.clear_screen();
                 dHelp.drawImage(SCENE_ENTER_INITIALS.image);
+                dHelp.active_ui = SCENE_ENTER_INITIALS.ui_elements;
+
+                // Initialize alpha wheel
+                InitAlphaWheels();
+
+                // Print the initial alpha wheel
+                DisplayAlphaWheels();
+
             }
             else {
                 dHelp.clear_screen();
+                
             }
+
+            // Reset tetris when it starts again
+            tetris_reset = true;
+
             break;
         }
 
@@ -527,7 +630,10 @@ state_code_t StateDriver::request_state_change(state_t new_state)
 
     state_code_t retCode = STATE_ERROR;
 
-    if (m_screen_num == 0)
+    if (m_screen_num == 0 || 
+    (drv_state == STATE_TETRIS_END && m_screen_num == 4) || 
+    (drv_state == STATE_TETRIS && m_screen_num == 1) ||
+    (drv_state == STATE_RUBIKS && m_screen_num == 1))
     {
         switch (drv_state)
         {
@@ -613,10 +719,6 @@ state_code_t StateDriver::request_state_change(state_t new_state)
                 break;
         }
     } 
-    else 
-    {
-        retCode = STATE_SUCCESS;
-    }
 
     //DEBUG
     if (!retCode)
@@ -645,7 +747,7 @@ state_code_t StateDriver::broadcast_state_transition(state_t new_state)
 {
     state_code_t ret_code = STATE_ERROR;
 
-    if (m_screen_num == 0 || drv_state == STATE_TETRIS || drv_state == STATE_RUBIKS)
+    if (m_screen_num == 0 || drv_state == STATE_TETRIS || drv_state == STATE_RUBIKS || (m_screen_num == 4 && drv_state == STATE_TETRIS_END))
     {
         bool formedStr = false;
 

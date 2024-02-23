@@ -36,6 +36,9 @@
 typedef std::pair<std::string, std::string> entry_t;
 typedef std::vector<entry_t> podium_t;
 
+// Alphabet wheel size
+#define ALPHA_WHEEL_SIZE 3
+
 // State definitions
 enum state_t {STATE_INIT, STATE_START, STATE_SELECT_GAME, STATE_SETTINGS,
             STATE_HIGH_SCORES, STATE_TETRIS, STATE_TETRIS_PAUSE, STATE_TETRIS_END,
@@ -67,6 +70,12 @@ private:
     state_code_t WriteHighScoreFile(std::string user_name, long score);
     state_code_t ReadHighScoreFile(podium_t& podium);
     state_code_t SortHighScores(podium_t& podium);
+
+    state_code_t CenterAndPrintInt(int num, int x, int y, int text_size, int color);
+
+    state_code_t InitAlphaWheels();
+    state_code_t DisplayAlphaWheels();
+    state_code_t UpdateAlphaWheels(int wheel, bool next);
 
 public:
 
@@ -101,7 +110,9 @@ public:
     // Tetris score
     unsigned long m_tetris_score;
 
-    state_code_t CenterAndPrintInt(int num, int x, int y, int text_size, int color);
+    // Initials Entering
+    char m_alpha_wheel[ALPHA_WHEEL_SIZE];
+
 };
 
 #endif

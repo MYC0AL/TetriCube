@@ -38,13 +38,13 @@ const UIButton UI_RUBIKS_BACK_TO_GAME = {10,395,85,85};
 const UIButton UI_RUBIKS_SCRAMBLE =     {145,120,180,130};
 const UIButton UI_RUBIKS_SOLVE =        {180,280,115,115};
 
-const UIButton UI_INITIAL_UP1 =         {80,80,50,50};
-const UIButton UI_INITIAL_UP2 =         {80,180,50,50};
-const UIButton UI_INITIAL_UP3 =         {80,280,50,50};
-const UIButton UI_INITIAL_DOWN1 =       {80,80,50,50};
-const UIButton UI_INITIAL_DOWN2 =       {80,180,50,50};
-const UIButton UI_INITIAL_DOWN3 =       {80,280,50,50};
-const UIButton UI_SUBMIT_INITIALS =     {40,400,390,50};
+const UIButton UI_INITIAL_UP1 =         {65,95,80,80};
+const UIButton UI_INITIAL_UP2 =         {195,95,80,80};
+const UIButton UI_INITIAL_UP3 =         {330,95,80,80};
+const UIButton UI_INITIAL_DOWN1 =       {75,270,80,80};
+const UIButton UI_INITIAL_DOWN2 =       {205,270,80,80};
+const UIButton UI_INITIAL_DOWN3 =       {340,270,80,80};
+const UIButton UI_SUBMIT_INITIALS =     {40,390,390,65};
 
 // Scenes
 const Scene SCENE_HOME = {"/home_screen_comp.jpg", {UI_START} };
@@ -62,7 +62,9 @@ const Scene SCENE_TETRIS_PAUSE = {"/tetris_pause.jpg", {UI_TETRIS_BACK_TO_GAME,U
 const Scene SCENE_TETRIS_GAME_OVER = {"/tetris_game_over.jpg", {UI_HOME}};
 
 // Tetris Enter Initials
-const Scene SCENE_ENTER_INITIALS = {"/enter_initials.jpg",{}};
+const Scene SCENE_ENTER_INITIALS = {"/small_canva.jpg",{UI_INITIAL_UP1, UI_INITIAL_UP2, UI_INITIAL_UP3,
+                                                             UI_INITIAL_DOWN1, UI_INITIAL_DOWN2, UI_INITIAL_DOWN3,
+                                                             UI_SUBMIT_INITIALS}};
 
 // Rubiks Controller
 const Scene SCENE_RUBIKS_CONTROLS = {"/",{UI_RUBIKS_PAUSE}};
