@@ -1,9 +1,9 @@
 #ifndef STATE_DRIVER_H
 #define STATE_DRIVER_H
 
-#include "Display_helper.h"
+#include "DisplayHelper.h"
 #include "Tetris.h"
-#include "External_link.h"
+#include "ExternalLink.h"
 #include "Cube.h"
 #include <ctime>
 #include <cmath>
@@ -53,6 +53,7 @@ class StateDriver
 private:
 
     state_t drv_state;
+    
     state_code_t broadcast_state_transition(state_t new_state);
     void update_new_state(state_t new_state);
     state_code_t DecodeCMD(std::string CMD);

@@ -1,16 +1,24 @@
-#include "External_link.h"
+#include "ExternalLink.h"
 
+/******************************************************************
+ * @brief Constructor for ExternalLink class
+******************************************************************/
 ExternalLink::ExternalLink() : m_state(EL_CMD_WAIT), m_setup_state(true), m_cmd_ready(false)
 {
     Serial1.begin(UART_BAUD, SERIAL_8N1, -1, EL0_TX);
-    log_printf("External Link 0 Started\n");
+    log_printf("EL: External Link 0 Started\n");
 
     Serial2.begin(UART_BAUD, SERIAL_8N1, EL0_RX, -1);
-    log_printf("External Link 1 Started\n");
+    log_printf("EL: External Link 1 Started\n");
 
     delay(100);
 }
 
+/******************************************************************
+ * @brief Request EL to transition to a different state
+ * @param new_state Desired new state transition
+ * @return EL_SUCCESS during valid transition otherwise EL_ERROR
+******************************************************************/
 el_error_t ExternalLink::RequestState(el_state_t new_state)
 {
     el_error_t ret_val = EL_ERROR;
@@ -53,13 +61,13 @@ el_error_t ExternalLink::RequestState(el_state_t new_state)
     return ret_val;
 }
 
-/************************************************************
+/******************************************************************
  * @brief Send a command and trigger the EL FSM or wait
  * until CMD_TIMEOUT is reached
  * @param cmd A command to send to all ELs
  * @return Will return EL_SUCCESS if all sent out CMD
  * otherwise will return EL_ERROR
- ************************************************************/
+ ******************************************************************/
 el_error_t ExternalLink::SendCMD(std::string cmd)
 {
     el_error_t retCode = EL_ERROR;
@@ -94,6 +102,10 @@ el_error_t ExternalLink::SendCMD(std::string cmd)
     return retCode;
 }
 
+/******************************************************************
+ * @brief Listen for a CMD that is transmitter over the recieving EL
+ * @return EL_SUCCESS if successfully recieved a CMD otherwise EL_ERROR
+*v/
 el_error_t ExternalLink::ListenForCMD()
 {
     el_error_t retCode = EL_ERROR;
@@ -130,6 +142,11 @@ el_error_t ExternalLink::ListenForCMD()
     return retCode;
 }
 
+/******************************************************************
+ * @brief A queue-like behavior to pop the last read command into a variable.
+ * Safety-net to allow each EL to hold on to important CMDs
+ * @return Last read CMD
+******************************************************************/
 std::string ExternalLink::PopLastReadCMD()
 {
     std::string tempStr = m_last_read_str;
@@ -141,6 +158,10 @@ std::string ExternalLink::PopLastReadCMD()
     return tempStr;
 }
 
+/******************************************************************
+ * @brief Get the current stored CMD if the CMD is ready to be recieved
+ * @return Stored complete CMD
+******************************************************************/
 std::string ExternalLink::GetCMD()
 {
     std::string ret_cmd;
@@ -157,6 +178,10 @@ std::string ExternalLink::GetCMD()
     return ret_cmd;
 }
 
+/******************************************************************
+ * @brief Main controller of the EL FSM
+ * @return EL_SUCCESS
+******************************************************************/
 el_error_t ExternalLink::StateController()
 {
 
@@ -285,6 +310,10 @@ el_error_t ExternalLink::StateController()
     return EL_SUCCESS;
 }
 
+/******************************************************************
+ * @brief Setup the new state before activation
+ * @return EL_SUCCESS
+******************************************************************/
 el_error_t ExternalLink::SetupState()
 {
     switch(m_state)
@@ -337,6 +366,11 @@ el_error_t ExternalLink::SetupState()
     return EL_SUCCESS;
 }
 
+/******************************************************************
+ * @brief Echo the recieved CMD to the next EL
+ * @param cmd The CMD to be echoed
+ * @return EL_SUCCESS if successfull tx otherwise EL_ERROR
+******************************************************************/
 el_error_t ExternalLink::EchoCMD(std::string cmd)
 {
     el_error_t retCode = EL_ERROR;
@@ -359,6 +393,11 @@ el_error_t ExternalLink::EchoCMD(std::string cmd)
     return retCode;
 }
 
+/******************************************************************
+ * @brief Check if the timeout for the EL was reached.
+ * If it was, ABORT all current transactions
+ * @return EL_SUCCESS if timeout has not be reached, otherwise EL_ERROR
+******************************************************************/
 el_error_t ExternalLink::CheckTimeout()
 {
     el_error_t ret = EL_SUCCESS;
@@ -373,6 +412,11 @@ el_error_t ExternalLink::CheckTimeout()
     return ret;
 }
 
+/******************************************************************
+ * @brief Debugging tool to update the log outputs
+ * @param str Constant cstr with log message
+ * @param status Status returned
+******************************************************************/
 void ExternalLink::UpdateLog(const char *str, int status)
 {
     log_printf("EL: %s returned %s\n",str, status);

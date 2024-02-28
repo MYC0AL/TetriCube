@@ -1,29 +1,8 @@
 #include "Tetris.h"
 
-void notify(int color)
-{
-    const int d = 1000;
-    gfx->fillRect(3*48,3*48,48,48,color);
-    delay(d);
-    gfx->fillRect(3*48,3*48,48,48,BLACK);
-    gfx->drawRect(3*48,3*48,48,48,TETRIS_EMPTY_COLOR);
-
-}
-
-void Tetris::SquareCheck(int row, int col)
-{
-    const int d = 100;
-    int tempColor = CharToColor(m_tetris_board[row][col]);
-    for(int i = 0; i < 2; i++)
-    {
-        gfx->fillRect(col*48,row*48,48,48,MAROON);
-        delay(d);
-        gfx->fillRect(col*48,row*48,48,48,tempColor);
-        delay(d);
-    }
-
-}
-
+/******************************************************************
+ * @brief Constructor that initializes tetris board
+******************************************************************/
 Tetris::Tetris() : m_level(0), m_move_delay(1000), m_mino_is_active(false), m_mino_time(0), m_score(0), m_total_rows_cleared(0)
 {
     // Initialize the tetris board to empty spaces
@@ -39,11 +18,18 @@ Tetris::Tetris() : m_level(0), m_move_delay(1000), m_mino_is_active(false), m_mi
     }
 }
 
+/******************************************************************
+ * @brief Tetris dtor. Clears screen.
+******************************************************************/
 Tetris::~Tetris()
 {
     gfx->fillScreen(BLACK);
 }
 
+/******************************************************************
+ * @brief Set the side number of the cube for tetris
+ * @param screen_num The desired side number
+******************************************************************/
 void Tetris::SetSideNum(int screen_num)
 {
     m_screen_num = screen_num;
@@ -53,6 +39,11 @@ void Tetris::SetSideNum(int screen_num)
     MapSubsection();
 }
 
+/******************************************************************
+ * @brief Main control function to progress the game
+ * @return TETRIS_END_GAME if Tetris is failed, otherwise
+ * TETRIS_SUCCESS
+******************************************************************/
 tetris_error_t Tetris::PlayGame()
 {
     tetris_error_t ret_code = TETRIS_SUCCESS;
@@ -112,12 +103,21 @@ tetris_error_t Tetris::PlayGame()
     return ret_code;
 }
 
+/******************************************************************
+ * @brief Enqueue the next desired Tetris move
+ * @param direction A char representing the direction of movement
+ * @return TETRIS_SUCCESS
+******************************************************************/
 tetris_error_t Tetris::EnqueueMove(char direction)
 {
     m_moves.push(direction);
     return TETRIS_SUCCESS;
 }
 
+/******************************************************************
+ * @brief Reset Tetris to default values
+ * @return TETRIS_SUCCESS
+******************************************************************/
 tetris_error_t Tetris::Reset()
 {
     m_level = 0;
@@ -141,16 +141,31 @@ tetris_error_t Tetris::Reset()
     return TETRIS_SUCCESS;
 }
 
+/******************************************************************
+ * @brief Get the current score of Tetris
+ * @return Current Tetris score
+******************************************************************/
 unsigned long Tetris::GetScore()
 {
     return m_score;
 }
 
+/******************************************************************
+ * @brief Get the current level of Tetris
+ * @return Current Tetris level
+******************************************************************/
 unsigned int Tetris::GetLevel()
 {
     return m_level;
 }
 
+/******************************************************************
+ * @brief Get the active tetromino's size
+ * @param mino The tetromino_t object that's size is desired
+ * @param width The place where the width will be stored
+ * @param height The place where the height will be stored
+ * @return TETRIS_SUCCESS
+******************************************************************/
 tetris_error_t Tetris::GetTetrominoSize(tetromino_t mino, int& width, int& height)
 {
     height = mino.tetromino.size();
@@ -166,11 +181,11 @@ tetris_error_t Tetris::GetTetrominoSize(tetromino_t mino, int& width, int& heigh
     return TETRIS_SUCCESS;
 }
 
-/**
+/******************************************************************
  * @brief Verify that a given movement is valid
  * @param direction direction or rotation desired by user
  * @return Will return TETRIS_MINO_COLLIDE if collision happened
-*/
+******************************************************************/
 tetris_error_t Tetris::RequestMove(char direction)
 {
     tetris_error_t ret_code = TETRIS_SUCCESS;
@@ -193,13 +208,11 @@ tetris_error_t Tetris::RequestMove(char direction)
                             // If last row, and still collide, was not in the tetromino
                             if (row == m_active_mino.tetromino.size() - 1)
                             {
-                                //DEBUG SquareCheck(row + m_active_mino.y + 1, col + m_active_mino.x);
                                 ret_code = TETRIS_MINO_COLLIDE;
                             }
                             // Check if the block that isnt air, is apart of the tetromino
                             else if (m_active_mino.tetromino[row + 1][col] == AIR)
                             {
-                                //DEBUG SquareCheck(row + m_active_mino.y + 1, col + m_active_mino.x);
                                 ret_code = TETRIS_MINO_COLLIDE;
                             }
                         }
@@ -327,6 +340,9 @@ tetris_error_t Tetris::RequestMove(char direction)
     return ret_code;
 }
 
+/******************************************************************
+ * @brief Display the current Tetris board to the screen
+******************************************************************/
 void Tetris::DisplayTetrisBoard()
 {
     if (m_screen_num != 1 && m_screen_num != 3)
@@ -367,6 +383,11 @@ void Tetris::DisplayTetrisBoard()
     }
 }
 
+/******************************************************************
+ * @brief Convert a character to a color
+ * @param color The color char to convert
+ * @return The integer value of the converted color
+******************************************************************/
 int Tetris::CharToColor(char color)
 {
     static const std::unordered_map<char, int> colorMap = {
@@ -388,6 +409,12 @@ int Tetris::CharToColor(char color)
     return TETRIS_ERR;
 }
 
+/******************************************************************
+ * @brief Enqueue a tetromino into the queue which
+ * deploys upcoming tetrominos
+ * @return TETRIS_SUCCESS if there is room in the queue otherwise
+ * TETRIS_ERR
+******************************************************************/
 tetris_error_t Tetris::EnqueueTetromino()
 {
     tetris_error_t ret_code = TETRIS_ERR;
@@ -402,6 +429,12 @@ tetris_error_t Tetris::EnqueueTetromino()
     return ret_code;
 }
 
+/******************************************************************
+ * @brief Apply gravity by enqueueing a downward movement call.
+ * Change the first element in the move queue to be a downward
+ * movement.
+ * @return TETRIS_SUCCESS
+******************************************************************/
 tetris_error_t Tetris::ApplyGravity()
 {
     if (m_moves.empty())
@@ -417,6 +450,11 @@ tetris_error_t Tetris::ApplyGravity()
     return TETRIS_SUCCESS;
 }
 
+/******************************************************************
+ * @brief Deploy the next queued tetromino onto the screen
+ * @return TETRIS_END_GAME if deployed tetromino collides with
+ * existing tetromino, otherwise TETRIS_SUCCESS
+******************************************************************/
 tetris_error_t Tetris::DeployTetromino()
 {
     tetris_error_t ret_code = TETRIS_SUCCESS;
@@ -462,6 +500,7 @@ tetris_error_t Tetris::DeployTetromino()
 /*********************************************************
  * @brief Rotate 'mino' 90 degrees clockwise
  * @param mino Mino to preform rotation on
+ * @return TETRIS_SUCCESS
  ********************************************************/
 tetris_error_t Tetris::RotateTetromino(tetromino_t& mino)
 {
@@ -485,6 +524,12 @@ tetris_error_t Tetris::RotateTetromino(tetromino_t& mino)
     return ret;
 }
 
+/******************************************************************
+ * @brief Move a tetromino to the desired direction
+ * @param direction The desired direction to move the
+ * tetromino
+ * @return TETRIS_SUCCESS
+******************************************************************/
 tetris_error_t Tetris::MoveTetromino(char direction)
 {
     // Clear old tetromino
@@ -520,6 +565,10 @@ tetris_error_t Tetris::MoveTetromino(char direction)
     return TETRIS_SUCCESS;
 }
 
+/******************************************************************
+ * @brief Clear the active tetromino from the board
+ * @return TETRIS_SUCCESS
+******************************************************************/
 tetris_error_t Tetris::ClearTetromino()
 {
     // Clear active tetromino on board
@@ -536,6 +585,10 @@ tetris_error_t Tetris::ClearTetromino()
     return TETRIS_SUCCESS;
 }
 
+/******************************************************************
+ * @brief Update where the tetromino is on the board
+ * @return TETRIS_SUCCESS
+******************************************************************/
 tetris_error_t Tetris::UpdateBoard()
 {
     // Use active tetrimino and update pos on board
@@ -552,6 +605,10 @@ tetris_error_t Tetris::UpdateBoard()
     return TETRIS_SUCCESS;
 }
 
+/******************************************************************
+ * @brief Reset the active flag for a tetromino
+ * @return TETRIS_SUCCESS
+******************************************************************/
 tetris_error_t Tetris::CollideTetromino()
 {
     // Reset active mino flag which 
@@ -561,8 +618,12 @@ tetris_error_t Tetris::CollideTetromino()
     return TETRIS_SUCCESS;
 }
 
-
-// Check if piece is on board when a new piece spawns in
+/******************************************************************
+ * @brief Check the game to make sure a new tetromino
+ * didnt collide with an existing tetromino
+ * @return TETRIS_END_GAME if collision detected,
+ * otherwise TETRIS_SUCCESS
+******************************************************************/
 tetris_error_t Tetris::CheckGame(tetromino_t new_mino)
 {
     tetris_error_t ret_code = TETRIS_SUCCESS;
@@ -578,13 +639,13 @@ tetris_error_t Tetris::CheckGame(tetromino_t new_mino)
     return ret_code;
 }
 
-/**
+/******************************************************************
  * @brief Check the current tetris board for full lines
  * @param filled_lines A vector of ints that will populate 
  * with the index of the lines that are filled
  * @return TETRIS_SUCCESS if 1 or more lines full,
  * TETRIS_ERR if 0 lines full 
-*/
+******************************************************************/
 tetris_error_t Tetris::CheckFullLines(vector<int>& filled_lines)
 {
     tetris_error_t ret_code = TETRIS_ERR;
@@ -608,11 +669,11 @@ tetris_error_t Tetris::CheckFullLines(vector<int>& filled_lines)
     return ret_code;
 }
 
-/**
+/******************************************************************
  * @brief Clear all full lines and shift down minos
  * @param filled_lines A vector<int> containing filled lines index
  * @return Always return TETRIS_SUCCESS
-*/
+******************************************************************/
 tetris_error_t Tetris::ClearFullLines(vector<int> filled_lines)
 {
     // For each filled line
@@ -644,6 +705,10 @@ tetris_error_t Tetris::ClearFullLines(vector<int> filled_lines)
     return TETRIS_SUCCESS;
 }
 
+/******************************************************************
+ * @brief Check if Tetris needs to level up
+ * @return TETRIS_SUCCESS
+******************************************************************/
 tetris_error_t Tetris::CheckLevelUp()
 {
     // Level changes update level and
@@ -663,12 +728,12 @@ tetris_error_t Tetris::CheckLevelUp()
     return TETRIS_SUCCESS;
 }
 
-/**
+/******************************************************************
  * @brief Update score based on the combo of lines cleared.
  * The higher the level, the more points earned
  * @param rowsCleared Number of rows cleared
  * @return Always return TETRIS_SUCCESS
-*/
+******************************************************************/
 tetris_error_t Tetris::UpdateScore(int rowsCleared)
 {
     int score_mult = 0;
@@ -692,6 +757,11 @@ tetris_error_t Tetris::UpdateScore(int rowsCleared)
     return TETRIS_SUCCESS;
 }
 
+/******************************************************************
+ * @brief Decide which Tetris subsection a given 
+ * screen contains
+ * @return TETRIS_SUCCESS
+******************************************************************/
 tetris_error_t Tetris::MapSubsection()
 {
     m_subsection = 0;

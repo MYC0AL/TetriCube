@@ -1,7 +1,7 @@
 #ifndef TETRIS_H
 #define TETRIS_H
 
-#include "Display_helper.h"
+#include "DisplayHelper.h"
 #include "Tetromino.h"
 #include <queue>
 #include <random>
@@ -89,9 +89,6 @@ private:
     tetris_error_t CheckLevelUp();
     tetris_error_t UpdateScore(int rowsCleared);
     tetris_error_t MapSubsection();
-
-    // Debug tool
-    void SquareCheck(int x, int y);
 };
 
 #endif

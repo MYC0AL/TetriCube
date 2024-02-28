@@ -21,6 +21,9 @@ short possibleSwipes[12][SWIPE_SIZE] = {{0,3,6}, // 0
 unsigned short color_index = 0;
 int RBX_Colors[6] = {GREEN, WHITE, RED, YELLOW, ORANGE, BLUE};
 
+/**
+ * @brief Default ctor for Rubik's Cube
+*/
 Cube::Cube() : m_side_num(0), m_prevSq(-1), m_prevTouchCount(0), m_prevDist(0), m_swipedFlag(false)
 {
     for (int i = 0; i < PREV_ARR_SIZE; ++i)
@@ -29,17 +32,16 @@ Cube::Cube() : m_side_num(0), m_prevSq(-1), m_prevTouchCount(0), m_prevDist(0), 
     InitCube();
 }
 
-Cube::~Cube()
-{
-
-}
-
+/******************************************************************
+ * @brief Continue playing the rubik's cube by polling the inputs
+ * @return A CMD that describes the current movement of the cube
+*******************************************************************/
 std::string Cube::PlayGame()
 {   
     std::string cmd;
     if (m_swipedFlag)
     {
-        short dir = dirSwiped();
+        short dir = DirSwiped();
         if (dir != SWIPE_ERR)
         {
             //RotateCube(m_side_num, dir);
@@ -59,7 +61,12 @@ std::string Cube::PlayGame()
     return cmd;
 }
 
-void Cube::drawRubiksSide(int sideNum, bool drawCenter)
+/******************************************************************
+ * @brief Draw one side of the Rubik's Cube
+ * @param sideNum The side of the cube to draw
+ * @param drawCenter Update the center square as well
+******************************************************************/
+void Cube::DrawRubiksSide(int sideNum, bool drawCenter)
 {
     for (int i = 0; i < NUM_SQUARES; i++)
     {
@@ -74,22 +81,31 @@ void Cube::drawRubiksSide(int sideNum, bool drawCenter)
     }
 }
 
-void Cube::drawRubiksCube()
+/******************************************************************
+ * @brief A debugging tool to draw the entire cube on one screen
+******************************************************************/
+void Cube::DrawRubiksCube()
 {
     gfx->setCursor(200,200);
     gfx->setTextSize(4);
     gfx->setTextColor(PURPLE);
     for (int i = 0; i < NUM_SIDES; i++)
     {
-        drawRubiksSide(i);
+        DrawRubiksSide(i);
         gfx->print(i);
         gfx->setCursor(200,200);
         sleep(2);
     }
-    drawRubiksSide(m_side_num);
+    DrawRubiksSide(m_side_num);
 }
 
-short Cube::sqTapped(short xPos, short yPos)
+/******************************************************************
+ * @brief Find the square that was touched by the user
+ * @param xPos The x position of where the user touched
+ * @param yPos The y position of where the user touched
+ * @return Square number that was touched, -1 for invalid region
+******************************************************************/
+short Cube::SqTapped(short xPos, short yPos)
 {
     short SQ_num = -1;
     bool found = false;
@@ -105,7 +121,11 @@ short Cube::sqTapped(short xPos, short yPos)
     return SQ_num;
 }
 
-short Cube::dirSwiped()
+/******************************************************************
+ * @brief Find the direction that the user swiped in
+ * @return The number that corrolates with the direction rotated in
+******************************************************************/
+short Cube::DirSwiped()
 {
     short dir = -1;
     short matchCount = 0;
@@ -131,9 +151,12 @@ short Cube::dirSwiped()
     return dir;
 }
 
+/******************************************************************
+ * @brief Function to allow driver to input user touch points
+******************************************************************/
 void Cube::TouchUpdate(uint16_t touch_x, uint16_t touch_y)
 {    
-    short sqTouch = sqTapped(touch_x, touch_y);
+    short sqTouch = SqTapped(touch_x, touch_y);
     if (sqTouch != -1 && sqTouch != m_prevSq)
     {
         m_prevSq = sqTouch;
@@ -143,7 +166,7 @@ void Cube::TouchUpdate(uint16_t touch_x, uint16_t touch_y)
             m_prevTouches[m_prevTouchCount] = m_prevSq;
             m_prevTouchCount = (m_prevTouchCount + 1) % SWIPE_SIZE;
         }
-        else if (validTouch())
+        else if (ValidTouch())
         {
             m_prevTouches[m_prevTouchCount] = m_prevSq;
 
@@ -160,7 +183,11 @@ void Cube::TouchUpdate(uint16_t touch_x, uint16_t touch_y)
     }
 }
 
-bool Cube::validTouch()
+/******************************************************************
+ * @brief Function to help form the 3 touch sequence needed in rotating the cube
+ * @return True if square touched was valid, false if not
+******************************************************************/
+bool Cube::ValidTouch()
 {
     bool validity = false;
 
@@ -188,6 +215,9 @@ bool Cube::validTouch()
     return validity;
 }
 
+/******************************************************************
+ * @brief Reset the commonly used variables to default values
+******************************************************************/
 void Cube::ResetVars()
 {
     for (int i = 0; i < SWIPE_SIZE; i++)
@@ -199,6 +229,9 @@ void Cube::ResetVars()
     m_prevSq = -1;
 }
 
+/******************************************************************
+ * @brief Initialize the Rubik's Cube
+******************************************************************/
 void Cube::InitCube()
 {
     for (int i = 0; i < NUM_SIDES; i++)
@@ -214,6 +247,15 @@ void Cube::InitCube()
     }
 }
 
+/******************************************************************
+ * @brief Rotate the cube
+ * @param sidesToMove List of sides in which to rotate
+ * @param sqToMove List of every side of the cube that will move,
+ * contaning a list of cells that would be during a rotation
+ * @param spinSide The side number of the side that will rotate 90
+ * degrees when a rotation happens
+ * @param prime Indicator if the rotation is prime or not
+******************************************************************/
 void Cube::Rotate(int sidesToMove[MOVE_SIZE], int sqToMove[MOVE_SIZE][SWIPE_SIZE], int spinSide, bool prime)
 {
     if (prime)
@@ -239,10 +281,15 @@ void Cube::Rotate(int sidesToMove[MOVE_SIZE], int sqToMove[MOVE_SIZE][SWIPE_SIZE
     }
 
     // Rotate host side
-    rotateSide(spinSide, prime);
+    RotateSide(spinSide, prime);
 }
 
-void Cube::rotateSide(short sideNum, bool prime)
+/******************************************************************
+ * @brief Rotate one side of the cube
+ * @param sideNum Side of the cube to be rotated
+ * @param prime Indicator whether the rotation is prime or not
+******************************************************************/
+void Cube::RotateSide(short sideNum, bool prime)
 {
     // Create a temp of the rotating side
     int tempSide[NUM_SQUARES];
@@ -273,6 +320,9 @@ void Cube::rotateSide(short sideNum, bool prime)
     }
 }
 
+/******************************************************************
+ * @brief A debugging tool that prints the cube to the console
+******************************************************************/
 void Cube::PrintCube()
 {
     log_printf("=== Display Cube ===\n");
@@ -290,7 +340,13 @@ void Cube::PrintCube()
     log_printf("\n");
 }
 
-void Cube::RotateCube(short sideNum, short dirSwiped) // Green is up, white is front
+/******************************************************************
+ * @brief Decides which rotation occured based on the side that was
+ * touched and the direction of the swipe
+ * @param sideNum The side number that was touched by the user
+ * @param dirSwiped The direction the user swiped
+******************************************************************/
+void Cube::RotateCube(short sideNum, short dirSwiped)
 {
     bool prime = false;
 
@@ -352,23 +408,33 @@ void Cube::RotateCube(short sideNum, short dirSwiped) // Green is up, white is f
             break;
     }
 }
+
+/******************************************************************
+ * @brief Set the current side number of the Cube
+ * @param side_num The desired side number
+******************************************************************/
 void Cube::SetSideNum(int side_num)
 {
     m_side_num = side_num;
     log_printf("CUBE: SIDE NUM SET TO %d\n\r",m_side_num);
 }
+
+/******************************************************************
+ * @brief Get the current side number of the cube
+ * @return Current side number
+******************************************************************/
 int Cube::GetSideNum()
 {
     return m_side_num;
 }
+
+/******************************************************************
+ * @brief Setup variables for a front rotation
+ * @param prime Whether or not the rotation is prime
+******************************************************************/
 void Cube::FrontRotation(bool prime)
 {
-    // if (prime)
-    //         log_printf("Prime Front Rotation\n");
-    //     else
-    //         log_printf("Front Rotation\n");
-
-    int sidesToMove[MOVE_SIZE] = {1,2,3,4}; //Normal
+    int sidesToMove[MOVE_SIZE] = {1,2,3,4};
 
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
                                         {6,7,8}, // 1
@@ -380,13 +446,12 @@ void Cube::FrontRotation(bool prime)
     Rotate(sidesToMove, sqToMove, 0, prime);
 }
 
+/******************************************************************
+ * @brief Setup variables for a right rotation
+ * @param prime Whether or not the rotation is prime
+******************************************************************/
 void Cube::RightRotation(bool prime)
 {
-    // if (prime)
-    //     log_printf("Prime Right Rotation\n");
-    // else
-    //     log_printf("Right Rotation\n");
-
     int sidesToMove[MOVE_SIZE] = {0,1,5,3}; //Normal
 
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
@@ -400,13 +465,12 @@ void Cube::RightRotation(bool prime)
 
 }
 
+/******************************************************************
+ * @brief Setup variables for an up rotation
+ * @param prime Whether or not the rotation is prime
+******************************************************************/
 void Cube::UpRotation(bool prime)
 {
-    // if (prime)
-    //     log_printf("Prime Up Rotation\n");
-    // else
-    //     log_printf("Up Rotation\n");
-
     int sidesToMove[MOVE_SIZE] = {0,4,5,2}; //Normal
 
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
@@ -419,13 +483,12 @@ void Cube::UpRotation(bool prime)
     Rotate(sidesToMove, sqToMove, 1, prime);
 }
 
+/******************************************************************
+ * @brief Setup variables for a back rotation
+ * @param prime Whether or not the rotation is prime
+******************************************************************/
 void Cube::BackRotation(bool prime)
 {
-    // if (prime)
-    //     log_printf("Prime Back Rotation\n");
-    // else
-    //     log_printf("Back Rotation\n");
-
     int sidesToMove[MOVE_SIZE] = {4,3,2,1};
 
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
@@ -438,13 +501,12 @@ void Cube::BackRotation(bool prime)
     Rotate(sidesToMove, sqToMove, 5, prime);
 }
 
+/******************************************************************
+ * @brief Setup variables for a left rotation
+ * @param prime Whether or not the rotation is prime
+******************************************************************/
 void Cube::LeftRotation(bool prime)
 {
-    // if (prime)
-    //     log_printf("Prime Left Rotation\n");
-    // else
-    //     log_printf("Left Rotation\n");
-
     int sidesToMove[MOVE_SIZE] = {0,3,5,1}; //Normal
 
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
@@ -457,13 +519,12 @@ void Cube::LeftRotation(bool prime)
     Rotate(sidesToMove, sqToMove, 4, prime);
 }
 
+/******************************************************************
+ * @brief Setup variables for a down rotation
+ * @param prime Whether or not the rotation is prime
+******************************************************************/
 void Cube::DownRotation(bool prime)
 {
-    // if (prime)
-    //     log_printf("Prime Down Rotation\n");
-    // else
-    //     log_printf("Down Rotation\n");
-
     int sidesToMove[MOVE_SIZE] = {0,2,5,4}; //Normal
 
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
@@ -476,12 +537,20 @@ void Cube::DownRotation(bool prime)
     Rotate(sidesToMove, sqToMove, 3, prime);
 }
 
+/******************************************************************
+ * @brief Reset the cube to initial values by initializing it again
+******************************************************************/
 void Cube::SolveCube()
 {
     InitCube();
-    drawRubiksSide(m_side_num,false);
+    DrawRubiksSide(m_side_num,false);
 }
 
+/******************************************************************
+ * @brief Convert a color to a string representation
+ * @param color Integer representing the color to be converted
+ * @return String representing the color provided
+******************************************************************/
 String Cube::ColorToStr(int color)
 {
     String retColor;
@@ -510,6 +579,11 @@ String Cube::ColorToStr(int color)
     return retColor;
 }
 
+/******************************************************************
+ * @brief Helper function that reversed a provided array
+ * @param arr Array to be reversed
+ * @param length The length of the array
+******************************************************************/
 void Cube::ReverseArray(int arr[], int length)
 {
      int start = 0;

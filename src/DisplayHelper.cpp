@@ -1,4 +1,4 @@
-#include "Display_helper.h"
+#include "DisplayHelper.h"
 
 // GFX Bus and display setup
 Arduino_ESP32RGBPanel *bus = new Arduino_ESP32RGBPanel(
@@ -18,13 +18,20 @@ Arduino_ST7701_RGBPanel *gfx = new Arduino_ST7701_RGBPanel(
 // Touchscreen driver initialization
 TAMC_GT911 ts = TAMC_GT911(I2C_SDA_PIN, I2C_SCL_PIN, TOUCH_INT, TOUCH_RST, max(TOUCH_MAP_X1, TOUCH_MAP_X2), max(TOUCH_MAP_Y1, TOUCH_MAP_Y2));
 
-// Out of class call back function
+/******************************************************************
+ * @brief Callback function for the jpeg draw
+ * @param pDraw Pointer to the JPEGDRAW object
+ * @return 1
+******************************************************************/
 static int jpegDrawCallback(JPEGDRAW *pDraw)
 {
   gfx->draw16bitBeRGBBitmap(pDraw->x, pDraw->y, pDraw->pPixels, pDraw->iWidth, pDraw->iHeight);
   return 1;
 }
 
+/******************************************************************
+ * @brief Initialize the TAMC_GT911 library
+******************************************************************/
 void DisplayHelper::touch_init(void)
 {
     // Initialize the touch library
@@ -32,6 +39,10 @@ void DisplayHelper::touch_init(void)
     ts.setRotation(ROTATION_INVERTED);
 }
 
+/******************************************************************
+ * @brief Check if the screen is currently being touched
+ * @return True if screen is touched, false if not
+******************************************************************/
 bool DisplayHelper::touch_touched(void)
 {
     bool retValue = false;
@@ -64,6 +75,10 @@ bool DisplayHelper::touch_touched(void)
     return retValue;
 }
 
+/******************************************************************
+ * @brief Initialize the FS library and SD card
+ * @return TC_SUCCESS if successful mount of SD card, otherwise TC_SD_ERR
+******************************************************************/
 int DisplayHelper::sd_init(void)
 {
     int retCode = TC_SUCCESS;
@@ -86,23 +101,39 @@ int DisplayHelper::sd_init(void)
     return retCode;
 }
 
+/******************************************************************
+ * @brief Draw an image to the screen
+ * @param file_name a const cstring to the name of the file
+******************************************************************/
 void DisplayHelper::drawImage(const char *file_name)
 {
   jpegDraw(file_name, jpegDrawCallback, true /* useBigEndian */,
            0 /* x */, 0 /* y */, gfx->width() /* widthLimit */, gfx->height() /* heightLimit */);
 }
 
+/******************************************************************
+ * @brief Draw an image to the screen at a given coordinate
+ * @param file_name a const cstring to the name of the file
+ * @param x The x coordinate of the image
+ * @param y The y coordinate of the image
+******************************************************************/
 void DisplayHelper::drawImage(const char *file_name, int x = 0, int y = 0)
 {
   jpegDraw(file_name, jpegDrawCallback, true /* useBigEndian */,
            x /* x */, y /* y */, gfx->width() /* widthLimit */, gfx->height() /* heightLimit */);
 }
 
+/******************************************************************
+ * @brief Clear the screen to black
+******************************************************************/
 void DisplayHelper::clear_screen()
 {
     gfx->fillScreen(BLACK);
 }
 
+/******************************************************************
+ * @brief Initialize the gfx library
+******************************************************************/
 void DisplayHelper::gfx_init()
 {
     //TODO: update rotations, (changes where 0,0 is)
@@ -110,6 +141,9 @@ void DisplayHelper::gfx_init()
     gfx->setRotation(ROTATION_RIGHT);
 }
 
+/******************************************************************
+ * @brief Constructor for the DisplayHelper class that calls all dependant init functions
+******************************************************************/
 DisplayHelper::DisplayHelper()
 {
     // Initialize touch driver
@@ -125,11 +159,13 @@ DisplayHelper::DisplayHelper()
     touch_count = 0;
 }
 
-void DisplayHelper::gfx_uninit()
-{
-    
-}
-
+/******************************************************************
+ * @brief Decode a set of coordinates and check if they are inside
+ * a UI object
+ * @param button A UIButton object
+ * @return TC_UI_TOUCH if the current touched position is inside
+ * 'button' otherwise TC_NO_UI_TOUCH
+******************************************************************/
 tc_ret_code DisplayHelper::touch_decoder(UIButton button)
 {
     tc_ret_code returnCode = TC_NO_UI_TOUCH;
@@ -152,6 +188,10 @@ tc_ret_code DisplayHelper::touch_decoder(UIButton button)
     return returnCode;
 }
 
+/******************************************************************
+ * @brief Debugging function that draws a wire frame around all
+ * active ui elements
+******************************************************************/
 void DisplayHelper::drawUI()
 {
     for (int i = 0; i < active_ui.size(); i++)
@@ -160,6 +200,9 @@ void DisplayHelper::drawUI()
     }
 }
 
+/******************************************************************
+ * @brief Reset the variables used in determining touch points
+******************************************************************/
 void DisplayHelper::touch_reset()
 {
     touch_count = 0;

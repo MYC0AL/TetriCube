@@ -50,13 +50,12 @@ public:
     bool ready_to_tx = true;
 private: 
 
-    el_state_t m_state;
     el_error_t SetupState();
     el_error_t EchoCMD(std::string cmd);
     el_error_t CheckTimeout();
-
     void UpdateLog(const char* str, int status);
 
+    el_state_t m_state;
     std::string m_last_read_str;
     std::string m_loaded_cmd;
     bool m_cmd_ready;

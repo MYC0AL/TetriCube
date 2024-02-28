@@ -1,7 +1,7 @@
 #ifndef CUBE_H
 #define CUBE_H
 
-#include "Display_helper.h"
+#include "DisplayHelper.h"
 
 /* Direction Code for cube
  *     8 7 6
@@ -62,18 +62,18 @@ private:
 
 public:
   Cube();
-  ~Cube();
+  
   std::string PlayGame();
-  void drawRubiksSide(int sideNum, bool drawCenter = true);
-  void drawRubiksCube();
-  short sqTapped(short xPos, short yPos);
-  short dirSwiped();
+  void DrawRubiksSide(int sideNum, bool drawCenter = true);
+  void DrawRubiksCube();
+  short SqTapped(short xPos, short yPos);
+  short DirSwiped();
   void TouchUpdate(uint16_t touch_x, uint16_t touch_y);
-  bool validTouch();
+  bool ValidTouch();
   void ResetVars();
   void InitCube();
   void Rotate(int sidesToMove[MOVE_SIZE], int sqToMove[MOVE_SIZE][SWIPE_SIZE], int spinSide, bool prime);
-  void rotateSide(short sideNum, bool prime);
+  void RotateSide(short sideNum, bool prime);
   void PrintCube();
   void RotateCube(short sideNum, short dirSwiped);
   void SetSideNum(int side_num);

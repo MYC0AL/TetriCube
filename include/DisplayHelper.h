@@ -7,7 +7,6 @@
 #include <SD.h>
 #include <TAMC_GT911.h>
 #include <Wire.h>
-//#include "Audio.h"
 #include "SPI.h"
 #include "FS.h"
 #include "JpegFunc.h"
@@ -82,7 +81,6 @@ private:
 public:
 
     DisplayHelper();
-    void gfx_uninit();
     bool touch_touched(void);
     void drawImage(const char *file_name);
     void drawImage(const char *file_name, int x, int y);

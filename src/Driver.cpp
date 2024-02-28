@@ -1,8 +1,10 @@
-#include "State_driver.h"
+#include "Driver.h"
 
-/**
- * State driver default constructor
-*/
+/******************************************************************
+ * @brief The default constructor for the StateDriver.
+ * Responsible for setting the side number for each process.
+ * The ctor will clear the screens. 
+******************************************************************/
 StateDriver::StateDriver()
 {
     drv_state = STATE_INIT;
@@ -32,9 +34,10 @@ StateDriver::StateDriver()
     tetris.SetSideNum(m_screen_num);
 }
 
-/**
- * Active controller that controlls when states transition
-*/ 
+/******************************************************************
+ * @brief Active controller that controlls when states transition
+ * The controller contains the main loop of the program.
+******************************************************************/ 
 void StateDriver::state_controller()
 {
     while(1)
@@ -310,6 +313,15 @@ void StateDriver::state_controller()
     }
 }
 
+/******************************************************************
+ * @brief Center and print integers on the screen based on length
+ * @param num An integer that will be printed to screen
+ * @param x The X coord of where to print
+ * @param y The Y coord of where to print
+ * @param text_size Length of the num to be printed
+ * @param color Color of the number to be printed
+ * @return Returns STATE_SUCCESS
+ ******************************************************************/
 state_code_t StateDriver::CenterAndPrintInt(int num, int x, int y, int text_size, int color)
 {
     int text_offset = (log10(num)+1)/2;
@@ -322,6 +334,10 @@ state_code_t StateDriver::CenterAndPrintInt(int num, int x, int y, int text_size
     return STATE_SUCCESS;
 }
 
+/******************************************************************
+ * @brief Initialize the Alphabet Wheels to default values
+ * @return STATE_SUCCESS
+******************************************************************/
 state_code_t StateDriver::InitAlphaWheels()
 {
     for(int i = 0; i < ALPHA_WHEEL_SIZE; i++)
@@ -332,6 +348,10 @@ state_code_t StateDriver::InitAlphaWheels()
     return STATE_SUCCESS;
 }
 
+/******************************************************************
+ * @brief Display the alphabet wheels to the screen
+ * @return STATE_SUCCESS
+******************************************************************/
 state_code_t StateDriver::DisplayAlphaWheels()
 {
     // Setup cursor
@@ -351,6 +371,14 @@ state_code_t StateDriver::DisplayAlphaWheels()
     return STATE_SUCCESS;
 }
 
+/******************************************************************
+ * @brief Update the alphabet wheels to the next or previous letter
+ * in sequence
+ * @param wheel Index of which wheel to change
+ * @param next A bool that decides which direction to move down the
+ * alphabet
+ * @return STATE_SUCCESS is valid rotation, otherwise STATE_ERROR.
+******************************************************************/
 state_code_t StateDriver::UpdateAlphaWheels(int wheel, bool next)
 {
     state_code_t ret = STATE_SUCCESS;
@@ -377,11 +405,10 @@ state_code_t StateDriver::UpdateAlphaWheels(int wheel, bool next)
     return ret;
 }
 
-/* 
- * This function will update the display and any neccessary
- * reachable variables to prepare the application for a new
- * state transistion. This will update the global drv_state.
- */
+/******************************************************************
+ * @brief Function responsible for setting up each state
+ * @param new_state The new state to transition to
+******************************************************************/
 void StateDriver::update_new_state(state_t new_state)
 {
 
@@ -511,7 +538,7 @@ void StateDriver::update_new_state(state_t new_state)
             dHelp.clear_screen();
 
             // Draw initial rubiks cube
-            rbx.drawRubiksSide(rbx.GetSideNum());
+            rbx.DrawRubiksSide(rbx.GetSideNum());
 
             // Draw ui elements
             if (m_screen_num == 1)
@@ -617,12 +644,13 @@ void StateDriver::update_new_state(state_t new_state)
     dHelp.touch_reset();
 }
 
-/*
- * Application will request a state change using this function.
- * If the desired state is achievable, the transistion will be made.
- * If the transistion was successful, the drv_state will update and
- * any new application updates will be performed. 
-*/
+/******************************************************************
+ * @brief Application can request a state change or driver can
+ * request internal state change
+ * @param new_state desired state to transisiton to
+ * @return During a valid state transistion STATE_SUCCESS will be
+ * returned, otherwise STATE_ERROR.
+******************************************************************/
 state_code_t StateDriver::request_state_change(state_t new_state)
 {
     //DEBUG
@@ -738,11 +766,11 @@ state_code_t StateDriver::request_state_change(state_t new_state)
     return retCode;
 }
 
-/**
+/******************************************************************
  * @brief Send state update to all displays
  * @param new_state desired state to transition to
  * @return STATE_SUCCESS on success otherwise STATE_ERROR
-*/
+******************************************************************/
 state_code_t StateDriver::broadcast_state_transition(state_t new_state)
 {
     state_code_t ret_code = STATE_ERROR;
@@ -772,6 +800,12 @@ state_code_t StateDriver::broadcast_state_transition(state_t new_state)
    return ret_code;
 }
 
+/******************************************************************
+ * @brief Decode the incomming command from the EL
+ * @param CMD A string containing the command recieved
+ * @return If a valid CMD was recieved STATE_SUCCESS will be
+ * returned otherwise STATE_ERROR
+******************************************************************/
 state_code_t StateDriver::DecodeCMD(std::string CMD)
 {
     //DEBUG
@@ -829,7 +863,7 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
                             dirSwiped = 11;
                         }
                         rbx.RotateCube(sender_screen,dirSwiped);
-                        rbx.drawRubiksSide(m_screen_num,false);
+                        rbx.DrawRubiksSide(m_screen_num,false);
                     }
                 }
             }
@@ -850,6 +884,11 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
     return ret_val;
 }
 
+/******************************************************************
+ * @brief Convert a provided state to a encoded character
+ * @param state The desired state to convert
+ * @return Encoded char
+******************************************************************/
 char StateDriver::StateToChar(state_t state)
 {
     char ret_val = STATE_INIT;
@@ -871,6 +910,11 @@ char StateDriver::StateToChar(state_t state)
     return ret_val;
 }
 
+/******************************************************************
+ * @brief Convert a provided character to a encoded state
+ * @param ch The desired character to convert
+ * @return Encoded char
+******************************************************************/
 state_t StateDriver::CharToState(char ch)
 {
     state_t ret_val = STATE_INIT;
@@ -892,11 +936,19 @@ state_t StateDriver::CharToState(char ch)
     return ret_val;
 }
 
+/******************************************************************
+ * @brief Set the current random agreed upon seed
+ * @param seed Desired seed
+******************************************************************/
 void StateDriver::SetSeed(int seed)
 {
     srand(seed);
 }
 
+/******************************************************************
+ * @brief Send random rotation commands via the EL to scramble the cube
+ * @return STATE_SUCCESS
+******************************************************************/
 state_code_t StateDriver::ScrambleCube()
 {
     state_code_t ret = STATE_SUCCESS;
@@ -927,6 +979,10 @@ state_code_t StateDriver::ScrambleCube()
     return ret;
 }
 
+/******************************************************************
+ * @brief Send a CMD via the EL to solve the cube
+ * @return STATE_SUCCESS
+******************************************************************/
 state_code_t StateDriver::SolveCube()
 {
     std::string solve_cmd;
@@ -938,6 +994,10 @@ state_code_t StateDriver::SolveCube()
     return STATE_SUCCESS;
 }
 
+/******************************************************************
+ * @brief Send a CMD via EL to reset tetris
+ * @return STATE_SUCCESS
+******************************************************************/
 state_code_t StateDriver::TetrisReset()
 {
     std::string reset_cmd;
@@ -949,6 +1009,12 @@ state_code_t StateDriver::TetrisReset()
     return STATE_SUCCESS;
 }
 
+/******************************************************************
+ * @brief Write the proveded name and score to the highscore file
+ * @param user_name A string containing the user name
+ * @param score A long containing the score from Tetris
+ * @return STATE_SUCCESS
+******************************************************************/
 state_code_t StateDriver::WriteHighScoreFile(std::string user_name, long score)
 {
     state_code_t ret = STATE_SUCCESS;
@@ -973,6 +1039,12 @@ state_code_t StateDriver::WriteHighScoreFile(std::string user_name, long score)
     return ret;
 }
 
+/******************************************************************
+ * @brief Read in the values stored in the highscore file
+ * @param podium The structure to store the contents from the file
+ * into
+ * @return STATE_SUCCESS
+******************************************************************/
 state_code_t StateDriver::ReadHighScoreFile(podium_t& podium)
 {
     state_code_t ret = STATE_SUCCESS;
@@ -1019,11 +1091,16 @@ state_code_t StateDriver::ReadHighScoreFile(podium_t& podium)
         ret = STATE_ERROR;
     }
 
-    // TODO: Sort podium entries
-
     return ret;
 }
 
+/******************************************************************
+ * @brief Sort the highscores stored in the podium
+ * @param podium A refernece to the podium struct containing the
+ * highscores
+ * @return STATE_SUCCESS if podium is not empty, otherwise
+ * STATE_ERROR
+******************************************************************/
 state_code_t StateDriver::SortHighScores(podium_t &podium)
 {
     state_code_t ret = STATE_SUCCESS;
