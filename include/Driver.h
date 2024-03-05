@@ -21,7 +21,7 @@
 
 // Data decode:
 //      S: I,S,G,E,H,T,Y,R,F
-//      T: R,L,D,^,
+//      T: R,L,D,^,U
 //      C: 0,1,2,3,4,5,6,7,8,9,A,B  (A: 10,  B: 11)
 
 // Defines

@@ -4,7 +4,7 @@
  * @brief Constructor that initializes tetris board
 ******************************************************************/
 Tetris::Tetris() : m_level(0), m_move_delay(1000), m_mino_is_active(false),
-                   m_mino_time(0), m_score(0), m_total_rows_cleared(0)
+                   m_mino_time(0), m_score(0), m_total_rows_cleared(0), m_update_ready(false)
 {
     // Initialize the tetris board to empty spaces
     for (uint row = 0; row < TETRIS_HEIGHT; ++row)
@@ -38,6 +38,17 @@ void Tetris::SetSideNum(int screen_num)
 }
 
 /******************************************************************
+ * @brief Get the status of the update flag
+ * @return Status of the update flag
+******************************************************************/
+bool Tetris::UpdateReady()
+{
+    bool tempStatus = m_update_ready;
+    m_update_ready = false;
+    return tempStatus;
+}
+
+/******************************************************************
  * @brief Main control function to progress the game
  * @return TETRIS_END_GAME if Tetris is failed, otherwise
  * TETRIS_SUCCESS
@@ -46,10 +57,10 @@ tetris_error_t Tetris::PlayGame()
 {
     tetris_error_t ret_code = TETRIS_SUCCESS;
 
-    if (m_tetromino_queue.size() < TETRIS_MAX_QUEUE)
+    if (m_next_tetromino.tetromino.empty())
     {
-        // Enqueue new random tetromino
-        EnqueueTetromino();
+        // Set next new random tetromino
+        SetNextTetromino();
     }
 
     // If the mino is active on the board
@@ -64,29 +75,23 @@ tetris_error_t Tetris::PlayGame()
 
         if (millis() < m_mino_time + m_move_delay)
         {
-            if (!m_moves.empty())
+            // Check if next move is valid
+            tetris_error_t valid_move = RequestMove(m_next_move);
+
+            // If it is valid, move the tetromino
+            if (valid_move == TETRIS_SUCCESS)
             {
-                // Get next queued move
-                char new_move = m_moves.front();
-
-                // Check if it is valid
-                tetris_error_t valid_move = RequestMove(new_move);
-
-                // If it is valid, move the tetromino
-                if (valid_move == TETRIS_SUCCESS)
-                {
-                    MoveTetromino(new_move);
-                }
-                else if (valid_move == TETRIS_MINO_COLLIDE)
-                {
-                    CollideTetromino();
-                }
-
-                // Valid or invalid, pop the move
-                m_moves.pop();
+                MoveTetromino(m_next_move);
             }
+            else if (valid_move == TETRIS_MINO_COLLIDE)
+            {
+                CollideTetromino();
+            }
+
+            // Clear m_next_move
+            m_next_move = 0;
         }
-        else //Time up to apply gravity
+        else // Time up to apply gravity
         {
             // Apply gravity to tetromino
             ApplyGravity();
@@ -106,9 +111,9 @@ tetris_error_t Tetris::PlayGame()
  * @param direction A char representing the direction of movement
  * @return TETRIS_SUCCESS
 ******************************************************************/
-tetris_error_t Tetris::EnqueueMove(char direction)
+tetris_error_t Tetris::SetNextMove(char direction)
 {
-    m_moves.push(direction);
+    m_next_move = direction;
     return TETRIS_SUCCESS;
 }
 
@@ -124,8 +129,10 @@ tetris_error_t Tetris::Reset()
     m_mino_time = 0;
     m_score = 0;
     m_active_mino = {};
+    m_next_tetromino = {};
     m_total_rows_cleared = 0;
-
+    m_update_ready = false;
+    
     // Reset the tetris board to empty spaces
     for (uint row = 0; row < TETRIS_HEIGHT; ++row)
     {
@@ -155,6 +162,29 @@ unsigned long Tetris::GetScore()
 unsigned int Tetris::GetLevel()
 {
     return m_level;
+}
+
+/*****************************************************************
+ * @brief Get the current active tetromino position
+ * @param mino Tetromino to store the active tetromino data
+ * @return TETRIS_SUCCESS
+******************************************************************/
+tetris_error_t Tetris::GetTetromino(tetromino_t &mino)
+{
+    mino = m_active_mino;
+    return TETRIS_SUCCESS;
+}
+
+/*****************************************************************
+ * @brief Set the current active tetromino
+ * @param mino Tetromino containing new tetromino data
+ * @return TETRIS_SUCCESS
+******************************************************************/
+tetris_error_t Tetris::SetTetromino(tetromino_t mino)
+{
+    m_active_mino.x = mino.x;
+    m_active_mino.y = mino.y;
+    return TETRIS_SUCCESS;
 }
 
 /******************************************************************
@@ -413,18 +443,11 @@ int Tetris::CharToColor(char color)
  * @return TETRIS_SUCCESS if there is room in the queue otherwise
  * TETRIS_ERR
 ******************************************************************/
-tetris_error_t Tetris::EnqueueTetromino()
+tetris_error_t Tetris::SetNextTetromino()
 {
-    tetris_error_t ret_code = TETRIS_ERR;
-
     // Add random tetromino to queue
-    if (m_tetromino_queue.size() < TETRIS_MAX_QUEUE)
-    {
-        m_tetromino_queue.push(ALL_MINOS[rand() % TETROMINO_COUNT]);
-        ret_code = TETRIS_SUCCESS;
-    }
-
-    return ret_code;
+    m_next_tetromino = ALL_MINOS[rand() % TETROMINO_COUNT];
+    return TETRIS_SUCCESS;
 }
 
 /******************************************************************
@@ -435,15 +458,7 @@ tetris_error_t Tetris::EnqueueTetromino()
 ******************************************************************/
 tetris_error_t Tetris::ApplyGravity()
 {
-    if (m_moves.empty())
-    {
-        EnqueueMove('D');
-    }
-    else
-    {
-        // Change first element to be a 'D'
-        m_moves.front() = 'D';
-    }
+    SetNextMove('D');
 
     return TETRIS_SUCCESS;
 }
@@ -457,8 +472,8 @@ tetris_error_t Tetris::DeployTetromino()
 {
     tetris_error_t ret_code = TETRIS_SUCCESS;
 
-    // Clear old queued moves
-    while(!m_moves.empty()) m_moves.pop();
+    // Clear next move
+    m_next_move = 0;
 
     // Check if line is full
     vector<int> filled_lines;
@@ -469,7 +484,7 @@ tetris_error_t Tetris::DeployTetromino()
     }
 
     // Check if game should end
-    if (CheckGame(m_tetromino_queue.front()) == TETRIS_END_GAME)
+    if (CheckGame(m_next_tetromino) == TETRIS_END_GAME)
     {
         ret_code = TETRIS_END_GAME;
     };
@@ -478,10 +493,10 @@ tetris_error_t Tetris::DeployTetromino()
     m_active_mino = {};
 
     // Set active mino from queue
-    m_active_mino = m_tetromino_queue.front();
+    m_active_mino = m_next_tetromino;
 
-    // Pop the front mino
-    m_tetromino_queue.pop();
+    // Find new m_next_tetromino
+    SetNextTetromino();
 
     // Update virtual board
     UpdateBoard();
@@ -559,6 +574,9 @@ tetris_error_t Tetris::MoveTetromino(char direction)
 
     // Display board
     DisplayTetrisBoard();
+
+    // Set update flag
+    m_update_ready = true;
 
     return TETRIS_SUCCESS;
 }

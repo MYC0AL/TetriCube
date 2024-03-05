@@ -120,7 +120,7 @@ void StateDriver::state_controller()
                     {
                         request_state_change(STATE_TETRIS_PAUSE);
                     }
-                    else
+                    else if (el.ready_to_tx)
                     {
                         std::string tetris_cmd;
                         tetris_cmd += m_screen_num + '0';
@@ -152,10 +152,31 @@ void StateDriver::state_controller()
                     }
                 }
 
-                // Update game
-                if (tetris.PlayGame() == TETRIS_END_GAME)
+                // Update game only on the main screen
+                if (m_screen_num == 0)
                 {
-                    request_state_change(STATE_TETRIS_END);
+                    if (tetris.PlayGame() == TETRIS_END_GAME)
+                    {
+                        request_state_change(STATE_TETRIS_END);
+                    }
+
+                    if (tetris.UpdateReady())
+                    {
+                        // Update position of mino for other screens
+                        std::string posCmd;
+                        tetromino_t tempMino;
+                        tetris.GetTetromino(tempMino);
+                        posCmd += m_screen_num + '0';
+                        posCmd += 'T';
+                        posCmd += 'U';
+                        log_printf("DEBUG: X CORD: %d\n\r",tempMino.x);
+                        posCmd += std::to_string(tempMino.x);
+                        posCmd += 'Y';
+                        posCmd += std::to_string(tempMino.y);
+                        log_printf("DEBUG: Y CORD: %d\n\r",tempMino.y);
+                        el.SendCMD(posCmd);
+                    }
+                    
                 }
 
                 // Check for reset flag
@@ -527,6 +548,8 @@ void StateDriver::update_new_state(state_t new_state)
             }
             else {
                 dHelp.clear_screen();
+                tetris.UpdateBoard();
+                tetris.DisplayTetrisBoard();
             }
             break;
         }
@@ -832,8 +855,40 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
 
             case 'T':
             {
-                if (CMD[2] == 'L' || CMD[2] == 'R' || CMD[2] == 'D' || CMD[2] == '^') {
-                    tetris.EnqueueMove(CMD[2]);
+                // if (CMD[2] == 'L' || CMD[2] == 'R' || CMD[2] == 'D' || CMD[2] == '^') {
+                //     tetris.SetNextMove(CMD[2]);
+                // }
+                if (CMD[2] == 'U')
+                {
+                    // Update position of tetromino
+                    std::string minoPosX;
+                    std::string minoPosY;
+                    bool onXPos = true;
+                    for (int i = 3; i < CMD.length() && CMD[i] != UART_EOL; i++)
+                    {
+                        if (CMD[i] == 'Y') {
+                            onXPos = false;
+                        }
+                        if (onXPos) {
+                            minoPosX += CMD[i];
+                        }
+                        else {
+                            minoPosY += CMD[i];
+                        }
+                    }
+                    tetromino_t newMino;
+                    newMino.x = atoi(minoPosX.c_str());
+                    newMino.y = atoi(minoPosY.c_str());
+                    log_printf("newmino X: %d  newmino Y: %d\n\r",newMino.x,newMino.y);
+                    tetris.SetTetromino(newMino);
+                    tetris.UpdateBoard();
+                    tetris.DisplayTetrisBoard();
+
+                }
+                else if (CMD[2] == '^')
+                {
+                    tetris.UpdateBoard();
+                    tetris.DisplayTetrisBoard();
                 }
                 else if (CMD[2] == TETRIS_RESET_SYM) {
                     tetris.Reset();

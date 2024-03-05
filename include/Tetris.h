@@ -45,12 +45,17 @@ public:
     Tetris();
     ~Tetris();
 
+    bool UpdateReady();
     void SetSideNum(int screen_num);
     tetris_error_t PlayGame();
-    tetris_error_t EnqueueMove(char direction);
+    tetris_error_t SetNextMove(char direction);
     tetris_error_t Reset();
     unsigned long GetScore();
     unsigned int GetLevel();
+    tetris_error_t GetTetromino(tetromino_t &mino);
+    tetris_error_t SetTetromino(tetromino_t mino);
+    tetris_error_t UpdateBoard();
+    void DisplayTetrisBoard();
 
 private:
     int m_screen_num;
@@ -66,14 +71,15 @@ private:
 
     bool m_reset_mino_time_flag = true;
 
-    queue<char> m_moves;
-    queue<tetromino_t> m_tetromino_queue;
+    bool m_update_ready;
+
+    char m_next_move;
+    tetromino_t m_next_tetromino;
     tetromino_t m_active_mino;
 
-    void DisplayTetrisBoard();
     int CharToColor(char color);
 
-    tetris_error_t EnqueueTetromino();
+    tetris_error_t SetNextTetromino();
     tetris_error_t ApplyGravity();
     tetris_error_t DeployTetromino();
     tetris_error_t RotateTetromino(tetromino_t& mino);
@@ -81,7 +87,6 @@ private:
     tetris_error_t RequestMove(char direction);
     tetris_error_t MoveTetromino(char direction);
     tetris_error_t ClearTetromino();
-    tetris_error_t UpdateBoard();
     tetris_error_t CollideTetromino();
     tetris_error_t CheckGame(tetromino_t new_mino);
     tetris_error_t CheckFullLines(vector<int>& filled_lines);
