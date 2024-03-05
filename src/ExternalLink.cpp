@@ -103,9 +103,11 @@ el_error_t ExternalLink::SendCMD(std::string cmd)
 }
 
 /******************************************************************
- * @brief Listen for a CMD that is transmitter over the recieving EL
- * @return EL_SUCCESS if successfully recieved a CMD otherwise EL_ERROR
-*v/
+ * @brief Listen for a CMD that is transmitter over the recieving
+ * EL
+ * @return EL_SUCCESS if successfully recieved a CMD otherwise
+ * EL_ERROR
+******************************************************************/
 el_error_t ExternalLink::ListenForCMD()
 {
     el_error_t retCode = EL_ERROR;
@@ -143,7 +145,8 @@ el_error_t ExternalLink::ListenForCMD()
 }
 
 /******************************************************************
- * @brief A queue-like behavior to pop the last read command into a variable.
+ * @brief A queue-like behavior to pop the last read command into a
+ * variable.
  * Safety-net to allow each EL to hold on to important CMDs
  * @return Last read CMD
 ******************************************************************/
@@ -159,7 +162,8 @@ std::string ExternalLink::PopLastReadCMD()
 }
 
 /******************************************************************
- * @brief Get the current stored CMD if the CMD is ready to be recieved
+ * @brief Get the current stored CMD if the CMD is ready to be
+ * recieved
  * @return Stored complete CMD
 ******************************************************************/
 std::string ExternalLink::GetCMD()
@@ -396,7 +400,8 @@ el_error_t ExternalLink::EchoCMD(std::string cmd)
 /******************************************************************
  * @brief Check if the timeout for the EL was reached.
  * If it was, ABORT all current transactions
- * @return EL_SUCCESS if timeout has not be reached, otherwise EL_ERROR
+ * @return EL_SUCCESS if timeout has not be reached, otherwise
+ * EL_ERROR
 ******************************************************************/
 el_error_t ExternalLink::CheckTimeout()
 {

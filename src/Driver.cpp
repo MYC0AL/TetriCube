@@ -432,7 +432,6 @@ void StateDriver::update_new_state(state_t new_state)
                 cmd += m_screen_num + '0';
                 cmd += rand_char;
                 cmd += seed;
-                log_printf("DRIVER: Random seed set to %s\n\r",cmd.c_str());
                 el.SendCMD(cmd);
             }
             else {
@@ -943,6 +942,8 @@ state_t StateDriver::CharToState(char ch)
 void StateDriver::SetSeed(int seed)
 {
     srand(seed);
+    log_printf("DRIVER: Random seed set to %d\n\r",seed);
+
 }
 
 /******************************************************************

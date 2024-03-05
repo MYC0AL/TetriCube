@@ -21,9 +21,9 @@ short possibleSwipes[12][SWIPE_SIZE] = {{0,3,6}, // 0
 unsigned short color_index = 0;
 int RBX_Colors[6] = {GREEN, WHITE, RED, YELLOW, ORANGE, BLUE};
 
-/**
+/*******************************************************************
  * @brief Default ctor for Rubik's Cube
-*/
+*******************************************************************/
 Cube::Cube() : m_side_num(0), m_prevSq(-1), m_prevTouchCount(0), m_prevDist(0), m_swipedFlag(false)
 {
     for (int i = 0; i < PREV_ARR_SIZE; ++i)
@@ -184,7 +184,8 @@ void Cube::TouchUpdate(uint16_t touch_x, uint16_t touch_y)
 }
 
 /******************************************************************
- * @brief Function to help form the 3 touch sequence needed in rotating the cube
+ * @brief Function to help form the 3 touch sequence needed in
+ * rotating the cube
  * @return True if square touched was valid, false if not
 ******************************************************************/
 bool Cube::ValidTouch()
@@ -586,7 +587,7 @@ String Cube::ColorToStr(int color)
 ******************************************************************/
 void Cube::ReverseArray(int arr[], int length)
 {
-     int start = 0;
+    int start = 0;
     int end = length - 1;
 
     while (start < end) {

@@ -3,7 +3,8 @@
 /******************************************************************
  * @brief Constructor that initializes tetris board
 ******************************************************************/
-Tetris::Tetris() : m_level(0), m_move_delay(1000), m_mino_is_active(false), m_mino_time(0), m_score(0), m_total_rows_cleared(0)
+Tetris::Tetris() : m_level(0), m_move_delay(1000), m_mino_is_active(false),
+                   m_mino_time(0), m_score(0), m_total_rows_cleared(0)
 {
     // Initialize the tetris board to empty spaces
     for (uint row = 0; row < TETRIS_HEIGHT; ++row)
@@ -11,9 +12,6 @@ Tetris::Tetris() : m_level(0), m_move_delay(1000), m_mino_is_active(false), m_mi
         for (uint col = 0; col < TETRIS_WIDTH; ++col)
         {
             m_tetris_board[row][col] = AIR;
-
-            if (col < TETRIS_WIDTH-1 && row > 6)
-                m_tetris_board[row][col] = 'G';
         }
     }
 }

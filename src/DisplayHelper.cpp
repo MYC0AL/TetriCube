@@ -77,7 +77,8 @@ bool DisplayHelper::touch_touched(void)
 
 /******************************************************************
  * @brief Initialize the FS library and SD card
- * @return TC_SUCCESS if successful mount of SD card, otherwise TC_SD_ERR
+ * @return TC_SUCCESS if successful mount of SD card, otherwise
+ * TC_SD_ERR
 ******************************************************************/
 int DisplayHelper::sd_init(void)
 {
@@ -142,7 +143,8 @@ void DisplayHelper::gfx_init()
 }
 
 /******************************************************************
- * @brief Constructor for the DisplayHelper class that calls all dependant init functions
+ * @brief Constructor for the DisplayHelper class that calls all
+ * dependant init functions
 ******************************************************************/
 DisplayHelper::DisplayHelper()
 {
