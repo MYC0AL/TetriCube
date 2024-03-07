@@ -4,7 +4,8 @@
  * @brief Constructor that initializes tetris board
 ******************************************************************/
 Tetris::Tetris() : m_level(0), m_move_delay(1000), m_mino_is_active(false),
-                   m_mino_time(0), m_score(0), m_total_rows_cleared(0), m_update_ready(false)
+                   m_mino_time(0), m_score(0), m_total_rows_cleared(0), m_update_ready(NONE),
+                   m_reset_mino_time_flag(true)
 {
     // Initialize the tetris board to empty spaces
     for (uint row = 0; row < TETRIS_HEIGHT; ++row)
@@ -41,10 +42,14 @@ void Tetris::SetSideNum(int screen_num)
  * @brief Get the status of the update flag
  * @return Status of the update flag
 ******************************************************************/
-bool Tetris::UpdateReady()
+update_t Tetris::UpdateReady()
 {
-    bool tempStatus = m_update_ready;
-    m_update_ready = false;
+    update_t tempStatus = m_update_ready;
+    if (m_update_ready != NONE)
+    {
+        m_update_ready = NONE;
+        log_printf("TETRIS: Update flag cleared\n\r");
+    }
     return tempStatus;
 }
 
@@ -72,7 +77,6 @@ tetris_error_t Tetris::PlayGame()
             m_mino_time = millis();
             m_reset_mino_time_flag = false;
         }
-
         if (millis() < m_mino_time + m_move_delay)
         {
             // Check if next move is valid
@@ -101,6 +105,7 @@ tetris_error_t Tetris::PlayGame()
     else
     {
         ret_code = DeployTetromino();
+        m_update_ready = NEW_MINO;
     }
 
     return ret_code;
@@ -131,7 +136,7 @@ tetris_error_t Tetris::Reset()
     m_active_mino = {};
     m_next_tetromino = {};
     m_total_rows_cleared = 0;
-    m_update_ready = false;
+    m_update_ready = NONE;
     
     // Reset the tetris board to empty spaces
     for (uint row = 0; row < TETRIS_HEIGHT; ++row)
@@ -182,8 +187,42 @@ tetris_error_t Tetris::GetTetromino(tetromino_t &mino)
 ******************************************************************/
 tetris_error_t Tetris::SetTetromino(tetromino_t mino)
 {
-    m_active_mino.x = mino.x;
-    m_active_mino.y = mino.y;
+    m_active_mino = mino;
+    return TETRIS_SUCCESS;
+}
+
+/*****************************************************************
+ * @brief Get the current tetris board
+ * @param tetris_board Board where the active board will be stored
+ * @return TETRIS_SUCCESS
+******************************************************************/
+tetris_error_t Tetris::GetBoard(char tetris_board[TETRIS_HEIGHT][TETRIS_WIDTH])
+{
+    for(int row = 0; row < TETRIS_HEIGHT; row++)
+    {
+        for(int col = 0; col < TETRIS_WIDTH; col++)
+        {
+            tetris_board[row][col] = m_tetris_board[row][col];
+        }
+    }
+    return TETRIS_SUCCESS;
+}
+
+/*****************************************************************
+ * @brief Set the current tetris board
+ * @param tetris_board Board containing the info for the master
+ * board
+ * @return TETRIS_SUCCESS
+******************************************************************/
+tetris_error_t Tetris::SetBoard(char tetris_board[TETRIS_HEIGHT][TETRIS_WIDTH])
+{
+    for(int row = 0; row < TETRIS_HEIGHT; row++)
+    {
+        for(int col = 0; col < TETRIS_WIDTH; col++)
+        {
+            m_tetris_board[row][col] = tetris_board[row][col];
+        }
+    }
     return TETRIS_SUCCESS;
 }
 
@@ -363,6 +402,12 @@ tetris_error_t Tetris::RequestMove(char direction)
 
             break;
         }
+        case 0:
+        {
+            ret_code = TETRIS_ERR;
+        }
+        default:
+            ret_code = TETRIS_ERR;
     }
 
     return ret_code;
@@ -576,7 +621,9 @@ tetris_error_t Tetris::MoveTetromino(char direction)
     DisplayTetrisBoard();
 
     // Set update flag
-    m_update_ready = true;
+    m_update_ready = NEW_POS;
+    log_printf("Tetris: Update flag set\n\r");
+    log_printf("Tetris: Moved direction: %d\n\r",direction);
 
     return TETRIS_SUCCESS;
 }

@@ -7,6 +7,7 @@
 #include "Cube.h"
 #include <ctime>
 #include <cmath>
+#include <sstream>
 
 // Transmit data structure
 // Num of sender unit symbol data
@@ -21,7 +22,7 @@
 
 // Data decode:
 //      S: I,S,G,E,H,T,Y,R,F
-//      T: R,L,D,^,U
+//      T: R,L,D,^,U,I,Y
 //      C: 0,1,2,3,4,5,6,7,8,9,A,B  (A: 10,  B: 11)
 
 // Defines
@@ -66,6 +67,8 @@ private:
     state_code_t ScrambleCube();
     state_code_t SolveCube();
 
+    state_code_t EncodeTetromino(bool new_mino = false);
+    state_code_t DecodeTetromino(std::string RxCMD);
     state_code_t TetrisReset();
 
     state_code_t WriteHighScoreFile(std::string user_name, long score);

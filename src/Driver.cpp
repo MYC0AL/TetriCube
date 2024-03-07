@@ -160,23 +160,11 @@ void StateDriver::state_controller()
                         request_state_change(STATE_TETRIS_END);
                     }
 
-                    if (tetris.UpdateReady())
+                    update_t tetrisStatus = tetris.UpdateReady();
+                    if (tetrisStatus != NONE)
                     {
-                        // Update position of mino for other screens
-                        std::string posCmd;
-                        tetromino_t tempMino;
-                        tetris.GetTetromino(tempMino);
-                        posCmd += m_screen_num + '0';
-                        posCmd += 'T';
-                        posCmd += 'U';
-                        log_printf("DEBUG: X CORD: %d\n\r",tempMino.x);
-                        posCmd += std::to_string(tempMino.x);
-                        posCmd += 'Y';
-                        posCmd += std::to_string(tempMino.y);
-                        log_printf("DEBUG: Y CORD: %d\n\r",tempMino.y);
-                        el.SendCMD(posCmd);
+                        EncodeTetromino(tetrisStatus == NEW_MINO);
                     }
-                    
                 }
 
                 // Check for reset flag
@@ -855,45 +843,23 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
 
             case 'T':
             {
-                // if (CMD[2] == 'L' || CMD[2] == 'R' || CMD[2] == 'D' || CMD[2] == '^') {
-                //     tetris.SetNextMove(CMD[2]);
-                // }
-                if (CMD[2] == 'U')
+                if (m_screen_num != 0) // Host will break if it runs these CMDs
                 {
-                    // Update position of tetromino
-                    std::string minoPosX;
-                    std::string minoPosY;
-                    bool onXPos = true;
-                    for (int i = 3; i < CMD.length() && CMD[i] != UART_EOL; i++)
+                    if (CMD[2] == 'U')
                     {
-                        if (CMD[i] == 'Y') {
-                            onXPos = false;
-                        }
-                        if (onXPos) {
-                            minoPosX += CMD[i];
-                        }
-                        else {
-                            minoPosY += CMD[i];
-                        }
+                        DecodeTetromino(CMD);
                     }
-                    tetromino_t newMino;
-                    newMino.x = atoi(minoPosX.c_str());
-                    newMino.y = atoi(minoPosY.c_str());
-                    log_printf("newmino X: %d  newmino Y: %d\n\r",newMino.x,newMino.y);
-                    tetris.SetTetromino(newMino);
-                    tetris.UpdateBoard();
-                    tetris.DisplayTetrisBoard();
-
                 }
-                else if (CMD[2] == '^')
+                else if (m_screen_num == 0)
                 {
-                    tetris.UpdateBoard();
-                    tetris.DisplayTetrisBoard();
+                    if (CMD[2] != '0') {
+                        tetris.SetNextMove(CMD[2]);
+                    }
                 }
                 else if (CMD[2] == TETRIS_RESET_SYM) {
                     tetris.Reset();
                     tetris_reset = false;
-                }
+                }   
             }
             break;
 
@@ -1046,6 +1012,98 @@ state_code_t StateDriver::SolveCube()
     solve_cmd += 'C';
     solve_cmd += RBX_SOLVE_SYM;
     el.SendCMD(solve_cmd);
+
+    return STATE_SUCCESS;
+}
+
+/******************************************************************
+ * @brief Encode and send the active tetromino
+ * @return STATE_SUCCESS
+******************************************************************/
+state_code_t StateDriver::EncodeTetromino(bool new_mino) //// 0TU,12,1,0,YY-YY, //// 0TU,12,1,0,BOARD
+{
+    // Update position of mino for other screens
+    std::string minoCmd;
+    tetromino_t tempMino;
+    tetris.GetTetromino(tempMino);
+    minoCmd += m_screen_num + '0';
+
+    minoCmd += "TU,"; // (T)etris  -- (U)pdate
+
+    minoCmd += std::to_string(tempMino.x); // X coord
+    minoCmd += ',';
+
+    minoCmd += std::to_string(tempMino.y); // Y coord
+    minoCmd += ',';
+
+    minoCmd += new_mino ? '1' : '0';
+    minoCmd += ',';
+
+    for(int i = 0; i < tempMino.tetromino.size(); i++)
+    {
+        for(int j = 0; j < tempMino.tetromino[i].size(); j++)
+        {
+            minoCmd += tempMino.tetromino[i][j];
+        }
+        minoCmd += '-';
+    }
+    minoCmd += ',';
+
+    log_printf("DRIVER: Sending Mino: %s\n\r",minoCmd.c_str());
+
+    el.SendCMD(minoCmd);
+
+    return STATE_SUCCESS;
+}
+
+state_code_t StateDriver::DecodeTetromino(std::string RxCMD)
+{
+    log_printf("DRIVER: Decoding CMD: %s\n\r",RxCMD.c_str());
+
+    // Decode CMD
+    tetromino_t newMino;
+
+    std::string token;
+    std::stringstream ss(RxCMD.substr(4));
+    std::getline(ss, token, ',');
+    newMino.x = atoi(token.c_str());
+
+    std::getline(ss, token, ',');
+    newMino.y = atoi(token.c_str());
+
+    std::getline(ss, token, ',');
+    bool new_mino = atoi(token.c_str());
+
+    std::getline(ss, token, ',');
+    std::vector<char> tempRow;
+    for(int i = 0; i < token.size(); i++)
+    {
+        if (token[i] == '-') {
+            newMino.tetromino.emplace_back(tempRow);
+            tempRow.clear();
+        }
+        else {
+            tempRow.emplace_back(token[i]);
+        }
+    }
+
+    if (!new_mino)
+    {
+        tetris.SetTetromino(newMino);
+        tetris.UpdateBoard();
+        tetris.DisplayTetrisBoard();
+        tetris.ClearTetromino();
+    }
+    else
+    {
+        tetris.ClearTetromino();
+        tetris.SetTetromino(newMino);
+        tetris.UpdateBoard();
+        tetris.DisplayTetrisBoard();
+    }
+    
+
+
 
     return STATE_SUCCESS;
 }

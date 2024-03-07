@@ -37,6 +37,8 @@ using std::queue;
         } \
     }
 
+enum update_t{NONE,NEW_MINO,NEW_POS};
+
 typedef short tetris_error_t;
 
 class Tetris
@@ -45,7 +47,7 @@ public:
     Tetris();
     ~Tetris();
 
-    bool UpdateReady();
+    update_t UpdateReady();
     void SetSideNum(int screen_num);
     tetris_error_t PlayGame();
     tetris_error_t SetNextMove(char direction);
@@ -54,6 +56,9 @@ public:
     unsigned int GetLevel();
     tetris_error_t GetTetromino(tetromino_t &mino);
     tetris_error_t SetTetromino(tetromino_t mino);
+    tetris_error_t GetTetromino(char tetris_board[TETRIS_HEIGHT][TETRIS_WIDTH]);
+    tetris_error_t SetTetromino(char tetris_board[TETRIS_HEIGHT][TETRIS_WIDTH]);
+    tetris_error_t ClearTetromino();
     tetris_error_t UpdateBoard();
     void DisplayTetrisBoard();
 
@@ -68,10 +73,11 @@ private:
     bool m_mino_is_active;
     unsigned long m_mino_time;
     unsigned long m_score;
+    unsigned short m_active_mino_idx;
 
     bool m_reset_mino_time_flag = true;
 
-    bool m_update_ready;
+    update_t m_update_ready;
 
     char m_next_move;
     tetromino_t m_next_tetromino;
@@ -86,7 +92,6 @@ private:
     tetris_error_t GetTetrominoSize(tetromino_t mino, int& width, int& height);
     tetris_error_t RequestMove(char direction);
     tetris_error_t MoveTetromino(char direction);
-    tetris_error_t ClearTetromino();
     tetris_error_t CollideTetromino();
     tetris_error_t CheckGame(tetromino_t new_mino);
     tetris_error_t CheckFullLines(vector<int>& filled_lines);
