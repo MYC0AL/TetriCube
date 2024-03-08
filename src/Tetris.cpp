@@ -40,14 +40,21 @@ void Tetris::SetSideNum(int screen_num)
 
 /******************************************************************
  * @brief Get the status of the update flag
+ * @param ret_queue Queue to store all updated partitions
  * @return Status of the update flag
 ******************************************************************/
-update_t Tetris::UpdateReady()
+update_t Tetris::UpdateReady(std::queue<int> &ret_queue)
 {
     update_t tempStatus = m_update_ready;
     if (m_update_ready != NONE)
     {
         m_update_ready = NONE;
+
+        ret_queue = m_updated_partitions;
+
+        // Reset the updated partitions
+        CLEAR_QUEUE(m_updated_partitions)
+
         log_printf("TETRIS: Update flag cleared\n\r");
     }
     return tempStatus;
@@ -137,7 +144,7 @@ tetris_error_t Tetris::Reset()
     m_next_tetromino = {};
     m_total_rows_cleared = 0;
     m_update_ready = NONE;
-    
+
     // Reset the tetris board to empty spaces
     for (uint row = 0; row < TETRIS_HEIGHT; ++row)
     {
@@ -146,6 +153,8 @@ tetris_error_t Tetris::Reset()
             m_tetris_board[row][col] = AIR;
         }
     }
+
+    CLEAR_QUEUE(m_updated_partitions)
 
     log_printf("TETRIS: Resetting...\n\r");
     return TETRIS_SUCCESS;
@@ -194,15 +203,17 @@ tetris_error_t Tetris::SetTetromino(tetromino_t mino)
 /*****************************************************************
  * @brief Get the current tetris board
  * @param tetris_board Board where the active board will be stored
+ * @param partition Section of board to get
  * @return TETRIS_SUCCESS
 ******************************************************************/
-tetris_error_t Tetris::GetBoard(char tetris_board[TETRIS_HEIGHT][TETRIS_WIDTH])
+tetris_error_t Tetris::GetBoard(char tetris_board[TETRIS_HEIGHT/4][TETRIS_WIDTH], int partition)
 {
-    for(int row = 0; row < TETRIS_HEIGHT; row++)
+    int partition_size = (TETRIS_HEIGHT/4 * partition);
+    for(int row = 0; row < TETRIS_HEIGHT/4; row++)
     {
         for(int col = 0; col < TETRIS_WIDTH; col++)
         {
-            tetris_board[row][col] = m_tetris_board[row][col];
+            tetris_board[row][col] = m_tetris_board[row+partition_size][col];
         }
     }
     return TETRIS_SUCCESS;
@@ -212,15 +223,17 @@ tetris_error_t Tetris::GetBoard(char tetris_board[TETRIS_HEIGHT][TETRIS_WIDTH])
  * @brief Set the current tetris board
  * @param tetris_board Board containing the info for the master
  * board
+ * @param partition Section of board to set
  * @return TETRIS_SUCCESS
 ******************************************************************/
-tetris_error_t Tetris::SetBoard(char tetris_board[TETRIS_HEIGHT][TETRIS_WIDTH])
+tetris_error_t Tetris::SetBoard(char tetris_board[TETRIS_HEIGHT/4][TETRIS_WIDTH], int partition)
 {
-    for(int row = 0; row < TETRIS_HEIGHT; row++)
+    int partition_size = (TETRIS_HEIGHT/4 * partition);
+    for(int row = 0; row < TETRIS_HEIGHT/4; row++)
     {
         for(int col = 0; col < TETRIS_WIDTH; col++)
         {
-            m_tetris_board[row][col] = tetris_board[row][col];
+            m_tetris_board[row+partition_size][col] = tetris_board[row][col];
         }
     }
     return TETRIS_SUCCESS;
@@ -614,6 +627,20 @@ tetris_error_t Tetris::MoveTetromino(char direction)
 
     }
 
+    // Check if new position is between partitions
+    int mino_width, mino_height;
+    const int partition_size = (TETRIS_HEIGHT/TETRIS_DISPLAYS);
+    GetTetrominoSize(m_active_mino, mino_width, mino_height);
+
+    int yPartition = (m_active_mino.y - 1) / (partition_size);
+    int hPartition = (m_active_mino.y + mino_height - 1) / (partition_size);
+
+    if (yPartition != hPartition)
+    {
+        m_updated_partitions.push(hPartition);
+    }
+        m_updated_partitions.push(yPartition);
+
     // Update board
     UpdateBoard();
 
@@ -623,7 +650,6 @@ tetris_error_t Tetris::MoveTetromino(char direction)
     // Set update flag
     m_update_ready = NEW_POS;
     log_printf("Tetris: Update flag set\n\r");
-    log_printf("Tetris: Moved direction: %d\n\r",direction);
 
     return TETRIS_SUCCESS;
 }
@@ -728,6 +754,15 @@ tetris_error_t Tetris::CheckFullLines(vector<int>& filled_lines)
             filled_lines.push_back(row);
             ret_code = TETRIS_SUCCESS;
         }
+    }
+
+    // Update modified partition queue
+    if (ret_code == TETRIS_SUCCESS)
+    {
+        for(int i = 0; i < TETRIS_DISPLAYS; i++) {
+            m_updated_partitions.push(i);
+        }
+        m_update_ready = NEW_POS;
     }
     return ret_code;
 }

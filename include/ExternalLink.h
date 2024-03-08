@@ -47,6 +47,8 @@ public:
 
     std::string GetCMD();
 
+    bool IsReady();
+
     bool ready_to_tx = true;
 private: 
 
@@ -61,6 +63,7 @@ private:
     bool m_cmd_ready;
     bool m_setup_state;
     bool m_lock;
+    bool m_is_ready;
 
     unsigned long m_timeout;
 

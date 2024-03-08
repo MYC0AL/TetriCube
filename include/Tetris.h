@@ -37,6 +37,11 @@ using std::queue;
         } \
     }
 
+#define CLEAR_QUEUE(queue) \
+    while (!(queue).empty()) { \
+        (queue).pop(); \
+    }
+
 enum update_t{NONE,NEW_MINO,NEW_POS};
 
 typedef short tetris_error_t;
@@ -47,7 +52,7 @@ public:
     Tetris();
     ~Tetris();
 
-    update_t UpdateReady();
+    update_t UpdateReady(std::queue<int> &ret_queue);
     void SetSideNum(int screen_num);
     tetris_error_t PlayGame();
     tetris_error_t SetNextMove(char direction);
@@ -56,8 +61,8 @@ public:
     unsigned int GetLevel();
     tetris_error_t GetTetromino(tetromino_t &mino);
     tetris_error_t SetTetromino(tetromino_t mino);
-    tetris_error_t GetTetromino(char tetris_board[TETRIS_HEIGHT][TETRIS_WIDTH]);
-    tetris_error_t SetTetromino(char tetris_board[TETRIS_HEIGHT][TETRIS_WIDTH]);
+    tetris_error_t GetBoard(char tetris_board[TETRIS_HEIGHT/4][TETRIS_WIDTH], int partition);
+    tetris_error_t SetBoard(char tetris_board[TETRIS_HEIGHT/4][TETRIS_WIDTH], int partition);
     tetris_error_t ClearTetromino();
     tetris_error_t UpdateBoard();
     void DisplayTetrisBoard();
@@ -78,6 +83,7 @@ private:
     bool m_reset_mino_time_flag = true;
 
     update_t m_update_ready;
+    std::queue<int> m_updated_partitions;
 
     char m_next_move;
     tetromino_t m_next_tetromino;

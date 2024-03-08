@@ -67,7 +67,7 @@ private:
     state_code_t ScrambleCube();
     state_code_t SolveCube();
 
-    state_code_t EncodeTetromino(bool new_mino = false);
+    state_code_t EncodeTetromino(int tetris_partition);
     state_code_t DecodeTetromino(std::string RxCMD);
     state_code_t TetrisReset();
 
@@ -110,6 +110,11 @@ public:
 
     // Tetris reset helper vars
     bool tetris_reset = false;
+
+    // Tetris Partition Update
+    int m_tetris_partition;
+    bool m_tetris_updating;
+    std::queue<int> m_updated_partitions;
 
     // Tetris score
     unsigned long m_tetris_score;

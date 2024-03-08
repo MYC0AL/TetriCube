@@ -134,6 +134,8 @@ el_error_t ExternalLink::ListenForCMD()
         }
     }
 
+    Serial2.flush();
+
     if (retCode == EL_SUCCESS)
     {
         m_last_read_str = tempBuff;
@@ -182,6 +184,11 @@ std::string ExternalLink::GetCMD()
     return ret_cmd;
 }
 
+bool ExternalLink::IsReady()
+{
+    return m_is_ready;
+}
+
 /******************************************************************
  * @brief Main controller of the EL FSM
  * @return EL_SUCCESS
@@ -195,8 +202,8 @@ el_error_t ExternalLink::StateController()
             // Listen for received CMD
             if (ListenForCMD() == EL_SUCCESS)
             {
-                // With 2 displays, delay or will break
-                delay(10);
+                // Delay or will break; Gives enough time for Rx
+                delay(5);
 
                 //DEBUG
                 log_printf("EL: In WAIT Received CMD: %s\n\r",m_last_read_str.c_str());
@@ -251,7 +258,12 @@ el_error_t ExternalLink::StateController()
         {
             do
             {
-                if (ListenForCMD() == EL_SUCCESS && CheckTimeout() == EL_SUCCESS)
+                if (CheckTimeout() != EL_SUCCESS)
+                {
+                    RequestState(EL_CMD_ABORT);
+                    m_lock = false;
+                }
+                else if (ListenForCMD() == EL_SUCCESS)
                 {
                     std::string cmd = PopLastReadCMD();
 
@@ -278,6 +290,8 @@ el_error_t ExternalLink::StateController()
 
         case EL_CMD_SUCCESS:
         {
+            unsigned long sucess_time = millis();
+            bool success_timeout = false;
             do
             {
                 if (ListenForCMD() == EL_SUCCESS)
@@ -289,13 +303,18 @@ el_error_t ExternalLink::StateController()
                         m_lock = false;
                     }
                 }
+                if (millis() >= sucess_time + CMD_TIMEOUT) {
+                    success_timeout = true;
+                }
             }
-            while (m_lock);
+            while (m_lock && !success_timeout);
         }
         break;
 
         case EL_CMD_ABORT:
         {
+            unsigned long abort_time = millis();
+            bool abort_timeout = false;
             do
             {
                 if (ListenForCMD() == EL_SUCCESS)
@@ -305,8 +324,11 @@ el_error_t ExternalLink::StateController()
                         RequestState(EL_CMD_WAIT);
                     }
                 }
+                if (millis() >= abort_timeout + CMD_TIMEOUT) {
+                    abort_timeout = true;
+                }
             }
-            while (m_lock);         
+            while (m_lock && !abort_timeout);
         }
         break;
     }
@@ -325,6 +347,9 @@ el_error_t ExternalLink::SetupState()
         case EL_CMD_WAIT:
             m_timeout = 0;
 
+            // Set ready flag
+            m_is_ready = true;
+
             //DEBUG
             log_printf("EL: WAIT\n\r");
             break;
@@ -333,6 +358,7 @@ el_error_t ExternalLink::SetupState()
             //DEBUG
             log_printf("EL: RECEIVED\n\r");
             
+            m_is_ready = false;
             m_cmd_ready = false;
             m_timeout = millis();
             m_lock = true;
@@ -342,6 +368,7 @@ el_error_t ExternalLink::SetupState()
             //DEBUG
             log_printf("EL: SENT\n\r");
 
+            m_is_ready = false;
             m_cmd_ready = false;
             m_timeout = millis();
             m_lock = true;
@@ -393,6 +420,7 @@ el_error_t ExternalLink::EchoCMD(std::string cmd)
             retCode = EL_SUCCESS;
         }
     }
+    Serial1.flush();
 
     return retCode;
 }
@@ -410,7 +438,7 @@ el_error_t ExternalLink::CheckTimeout()
     {
         ret = EL_ERROR;
         //DEBUG
-        log_printf("EL: Timeout expired");
+        log_printf("EL: Timeout expired\n\r");
 
         RequestState(EL_CMD_ABORT);
     }
@@ -424,5 +452,5 @@ el_error_t ExternalLink::CheckTimeout()
 ******************************************************************/
 void ExternalLink::UpdateLog(const char *str, int status)
 {
-    log_printf("EL: %s returned %s\n",str, status);
+    log_printf("EL: %s returned %s\n\r",str, status);
 }

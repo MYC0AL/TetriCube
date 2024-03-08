@@ -120,7 +120,7 @@ void StateDriver::state_controller()
                     {
                         request_state_change(STATE_TETRIS_PAUSE);
                     }
-                    else if (el.ready_to_tx)
+                    else if (el.IsReady() && el.ready_to_tx)
                     {
                         std::string tetris_cmd;
                         tetris_cmd += m_screen_num + '0';
@@ -159,18 +159,32 @@ void StateDriver::state_controller()
                     {
                         request_state_change(STATE_TETRIS_END);
                     }
-
-                    update_t tetrisStatus = tetris.UpdateReady();
-                    if (tetrisStatus != NONE)
+                    else if (tetris.UpdateReady(m_updated_partitions) != NONE)
                     {
-                        EncodeTetromino(tetrisStatus == NEW_MINO);
+                        m_tetris_updating = true;
+                    }
+                    else if (m_tetris_updating && el.IsReady())
+                    {
+                        if (m_updated_partitions.empty()) {
+                            m_tetris_updating = false;
+                        }
+                        else
+                        {
+                            m_tetris_partition = m_updated_partitions.front();
+                            m_updated_partitions.pop();
+                            EncodeTetromino(m_tetris_partition);
+                        }
+
                     }
                 }
 
                 // Check for reset flag
-                if (tetris_reset && m_screen_num == 0 && el.ready_to_tx)
+                if (tetris_reset && m_screen_num == 0 && el.IsReady())
                 {
                     TetrisReset();
+                    tetris.Reset();
+                    tetris.DisplayTetrisBoard();
+                    log_printf("DRIVER: Sending Tetris Reset CMD\n\r");
                 }
 
                 // Update the score
@@ -843,12 +857,15 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
 
             case 'T':
             {
-                if (m_screen_num != 0) // Host will break if it runs these CMDs
+                if (CMD[2] == TETRIS_RESET_SYM) {
+                    log_printf("DRIVER: Tetris Reset CMD Received\n\r");
+                    tetris.Reset();
+                    tetris.DisplayTetrisBoard();
+                    tetris_reset = false;
+                }   
+                else if (CMD[2] == 'U' && m_screen_num != 0) // Host will break if it runs these CMDs
                 {
-                    if (CMD[2] == 'U')
-                    {
-                        DecodeTetromino(CMD);
-                    }
+                    DecodeTetromino(CMD);
                 }
                 else if (m_screen_num == 0)
                 {
@@ -856,10 +873,6 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
                         tetris.SetNextMove(CMD[2]);
                     }
                 }
-                else if (CMD[2] == TETRIS_RESET_SYM) {
-                    tetris.Reset();
-                    tetris_reset = false;
-                }   
             }
             break;
 
@@ -1020,38 +1033,28 @@ state_code_t StateDriver::SolveCube()
  * @brief Encode and send the active tetromino
  * @return STATE_SUCCESS
 ******************************************************************/
-state_code_t StateDriver::EncodeTetromino(bool new_mino) //// 0TU,12,1,0,YY-YY, //// 0TU,12,1,0,BOARD
+state_code_t StateDriver::EncodeTetromino(int tetris_partition) //// 0TU,12,1,0,YY-YY, //// 0TU<PARTITION>,BOARD_SEGMENT
 {
     // Update position of mino for other screens
-    std::string minoCmd;
-    tetromino_t tempMino;
-    tetris.GetTetromino(tempMino);
-    minoCmd += m_screen_num + '0';
+    
+    char temp_board[TETRIS_HEIGHT/4][TETRIS_WIDTH];
+    tetris.GetBoard(temp_board, m_tetris_partition);
 
-    minoCmd += "TU,"; // (T)etris  -- (U)pdate
-
-    minoCmd += std::to_string(tempMino.x); // X coord
-    minoCmd += ',';
-
-    minoCmd += std::to_string(tempMino.y); // Y coord
-    minoCmd += ',';
-
-    minoCmd += new_mino ? '1' : '0';
-    minoCmd += ',';
-
-    for(int i = 0; i < tempMino.tetromino.size(); i++)
+    std::string boardCmd;
+    boardCmd += m_screen_num + '0';
+    boardCmd += "TU"; // (T)etris  -- (U)pdate
+    boardCmd += m_tetris_partition + '0'; // Current partition
+    for(int row = 0; row < TETRIS_HEIGHT/4; row++)
     {
-        for(int j = 0; j < tempMino.tetromino[i].size(); j++)
+        for(int col = 0; col < TETRIS_WIDTH; col++)
         {
-            minoCmd += tempMino.tetromino[i][j];
+            boardCmd += temp_board[row][col];
         }
-        minoCmd += '-';
     }
-    minoCmd += ',';
 
-    log_printf("DRIVER: Sending Mino: %s\n\r",minoCmd.c_str());
+    log_printf("DRIVER: Sending Board: \n%s\n\r",boardCmd.c_str());
 
-    el.SendCMD(minoCmd);
+    el.SendCMD(boardCmd);
 
     return STATE_SUCCESS;
 }
@@ -1059,51 +1062,24 @@ state_code_t StateDriver::EncodeTetromino(bool new_mino) //// 0TU,12,1,0,YY-YY, 
 state_code_t StateDriver::DecodeTetromino(std::string RxCMD)
 {
     log_printf("DRIVER: Decoding CMD: %s\n\r",RxCMD.c_str());
-
-    // Decode CMD
-    tetromino_t newMino;
-
-    std::string token;
-    std::stringstream ss(RxCMD.substr(4));
-    std::getline(ss, token, ',');
-    newMino.x = atoi(token.c_str());
-
-    std::getline(ss, token, ',');
-    newMino.y = atoi(token.c_str());
-
-    std::getline(ss, token, ',');
-    bool new_mino = atoi(token.c_str());
-
-    std::getline(ss, token, ',');
-    std::vector<char> tempRow;
-    for(int i = 0; i < token.size(); i++)
-    {
-        if (token[i] == '-') {
-            newMino.tetromino.emplace_back(tempRow);
-            tempRow.clear();
-        }
-        else {
-            tempRow.emplace_back(token[i]);
-        }
-    }
-
-    if (!new_mino)
-    {
-        tetris.SetTetromino(newMino);
-        tetris.UpdateBoard();
-        tetris.DisplayTetrisBoard();
-        tetris.ClearTetromino();
-    }
-    else
-    {
-        tetris.ClearTetromino();
-        tetris.SetTetromino(newMino);
-        tetris.UpdateBoard();
-        tetris.DisplayTetrisBoard();
-    }
     
+    // Trim beginning of RxCMD
+    int tetris_partition = RxCMD[3] - '0';
+    RxCMD = RxCMD.substr(4);
 
+    char new_board[TETRIS_HEIGHT/4][TETRIS_WIDTH];
 
+    int i = 0;
+    for(int row = 0; row < TETRIS_HEIGHT/4; row++)
+    {
+        for(int col = 0; col < TETRIS_WIDTH; col++)
+        {
+            new_board[row][col] = RxCMD[i++];
+        }
+    }
+
+    tetris.SetBoard(new_board,tetris_partition);
+    tetris.DisplayTetrisBoard();
 
     return STATE_SUCCESS;
 }
