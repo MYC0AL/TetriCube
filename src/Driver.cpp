@@ -126,25 +126,29 @@ void StateDriver::state_controller()
                         tetris_cmd += m_screen_num + '0';
                         tetris_cmd += 'T';
 
-                        char dir = '0';
-                        if (dHelp.touch_decoder(UI_TETRIS_LEFT) == TC_UI_TOUCH) {
-                            dir = 'L';
-                        }
-                        else if (dHelp.touch_decoder(UI_TETRIS_RIGHT) == TC_UI_TOUCH) {
-                            dir = 'R';
-                        }
-                        else if (dHelp.touch_decoder(UI_TETRIS_DOWN) == TC_UI_TOUCH) {
-                            dir = 'D';
-                        }
-                        else if (dHelp.touch_decoder(UI_TETRIS_ROTATE) == TC_UI_TOUCH) {
-                            dir = '^';
-                        }
+                        if (m_controller_active)
+                        {
+                            char dir = '0';
+                            if (dHelp.touch_decoder(UI_TETRIS_LEFT) == TC_UI_TOUCH) {
+                                dir = 'L';
+                            }
+                            else if (dHelp.touch_decoder(UI_TETRIS_RIGHT) == TC_UI_TOUCH) {
+                                dir = 'R';
+                            }
+                            else if (dHelp.touch_decoder(UI_TETRIS_DOWN) == TC_UI_TOUCH) {
+                                dir = 'D';
+                            }
+                            else if (dHelp.touch_decoder(UI_TETRIS_ROTATE) == TC_UI_TOUCH) {
+                                dir = '^';
+                            }
 
-                        tetris_cmd += dir;
-                        if (dir != '0') {
-                            //DEBUG
-                            log_printf("TETRIS: Broadcasting '%c'\n\r",dir);
-                            el.SendCMD(tetris_cmd);
+                            tetris_cmd += dir;
+                            if (dir != '0') {
+                                //DEBUG
+                                log_printf("TETRIS: Broadcasting '%c'\n\r",dir);
+                                el.SendCMD(tetris_cmd);
+                                delay(100);
+                            }
                         }
 
                         // Reset move timer
@@ -152,29 +156,31 @@ void StateDriver::state_controller()
                     }
                 }
 
-                // Update game only on the main screen
-                if (m_screen_num == 0)
-                {
-                    if (tetris.PlayGame() == TETRIS_END_GAME)
-                    {
-                        request_state_change(STATE_TETRIS_END);
-                    }
-                    else if (tetris.UpdateReady(m_updated_partitions) != NONE)
-                    {
-                        m_tetris_updating = true;
-                    }
-                    else if (m_tetris_updating && el.IsReady())
-                    {
-                        if (m_updated_partitions.empty()) {
-                            m_tetris_updating = false;
-                        }
-                        else
-                        {
-                            m_tetris_partition = m_updated_partitions.front();
-                            m_updated_partitions.pop();
-                            EncodeTetromino(m_tetris_partition);
-                        }
+                // Sync updates during last frame of tetris
+                update_t tetrisUpdateFlag = tetris.UpdateStatus();
 
+                if (tetrisUpdateFlag == ALL && m_screen_num == 0)
+                {
+                    m_tetris_updating_all = true;
+                    log_printf("---------------updating ALL\r\n");
+                    m_updated_partitions = tetris.UpdatedPartitions();
+                }
+                else if (tetrisUpdateFlag == NEW_POS && m_screen_num == 0)
+                {
+                    EncodeTetrominoCMD();
+                }
+                else if (m_tetris_updating_all && el.IsReady() && m_screen_num == 0)
+                {
+                    if (m_updated_partitions.empty()) {
+                        m_tetris_updating_all = false;
+                        log_printf("---------------updating ALL off\r\n");
+                    }
+                    else
+                    {
+                        log_printf("------------------- Trying to update all\r\n");
+                        m_tetris_partition = m_updated_partitions.front();
+                        m_updated_partitions.pop();
+                        EncodeBoardCMD(m_tetris_partition);
                     }
                 }
 
@@ -187,6 +193,7 @@ void StateDriver::state_controller()
                     log_printf("DRIVER: Sending Tetris Reset CMD\n\r");
                 }
 
+                // TODO: update the score using a command instead
                 // Update the score
                 if (m_screen_num == 3)
                 {
@@ -201,6 +208,15 @@ void StateDriver::state_controller()
                         CenterAndPrintInt(m_tetris_score,230,180,/*text scale*/ 5, CYAN);
                     }
                 }
+
+                // Update the tetris frame at the end so minos have time to fall and place.
+                //if (m_screen_num != 1 && m_screen_num != 3) // The controller and score does not need to play tetris
+                //{
+                    if (tetris.PlayGame() == TETRIS_END_GAME)
+                    {
+                        request_state_change(STATE_TETRIS_END);
+                    }
+                //}
 
             }
             break;
@@ -646,6 +662,9 @@ void StateDriver::update_new_state(state_t new_state)
             // Reset tetris when it starts again
             tetris_reset = true;
 
+            // Reset update flag
+            m_tetris_updating_all = false;
+
             break;
         }
 
@@ -857,20 +876,32 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
 
             case 'T':
             {
-                if (CMD[2] == TETRIS_RESET_SYM) {
-                    log_printf("DRIVER: Tetris Reset CMD Received\n\r");
-                    tetris.Reset();
-                    tetris.DisplayTetrisBoard();
-                    tetris_reset = false;
-                }   
-                else if (CMD[2] == 'U' && m_screen_num != 0) // Host will break if it runs these CMDs
+                if (drv_state == STATE_TETRIS)
                 {
-                    DecodeTetromino(CMD);
-                }
-                else if (m_screen_num == 0)
-                {
-                    if (CMD[2] != '0') {
-                        tetris.SetNextMove(CMD[2]);
+                    if (CMD[2] == TETRIS_RESET_SYM)
+                    {
+                        log_printf("DRIVER: Tetris Reset CMD Received\n\r");
+                        tetris.Reset();
+                        tetris.DisplayTetrisBoard();
+                        tetris_reset = false;
+                    }   
+                    else if (CMD[2] == 'U' && m_screen_num != 0 && m_screen_num != 1 && m_screen_num != 3) // The controller and score does not need to play tetris // Host will break if it runs these CMDs
+                    {
+                        if (CMD[3] == 'P') // If the position is updating, just decode the CMD for position
+                        {
+                            DecodeTetrominoCMD(CMD);
+                        }
+                        else // Update whole board
+                        {
+                            DecodeBoardCMD(CMD);
+                        }
+                    }
+                    else if (m_controller_active)
+                    {
+                        if (CMD[2] != '0') {
+                            tetris.SetNextMove(CMD[2]);
+                            delay(100);
+                        }
                     }
                 }
             }
@@ -1033,8 +1064,52 @@ state_code_t StateDriver::SolveCube()
  * @brief Encode and send the active tetromino
  * @return STATE_SUCCESS
 ******************************************************************/
-state_code_t StateDriver::EncodeTetromino(int tetris_partition) //// 0TU,12,1,0,YY-YY, //// 0TU<PARTITION>,BOARD_SEGMENT
+state_code_t StateDriver::EncodeTetrominoCMD()
 {
+    std::string posCmd;
+    posCmd += m_screen_num + '0';
+    posCmd += "TU"; // (T)etris  -- (U)pdate
+    posCmd += 'P'; // Position indicator
+
+    tetromino_t tempMino;
+    tetris.GetTetromino(tempMino);
+
+    posCmd += tempMino.idx + '0';
+
+    // Find rotation of current tetromino
+    bool isRot = tetris.IsTetrominoRotated(tempMino);
+    int rotCount = tetris.GetRotationCount();
+
+    posCmd += rotCount + '0';
+
+    posCmd += tempMino.x + '0';
+
+    posCmd += ',';
+
+    // X position will never be over 9, the Y position will
+    // we have to add the coordinates to the encoded CMD in plain
+    // numbers
+    std::ostringstream os;
+    os << tempMino.y; //Output numbers to string buffer
+    std::string yPosStr = os.str(); // Convert string buffer to string object
+
+    posCmd += yPosStr;
+
+    log_printf("DRIVER: Sending Position CMD: %s  X:%d   Y:%d\n\r",posCmd.c_str(),tempMino.x,tempMino.y);
+
+    el.SendCMD(posCmd);
+
+    return STATE_SUCCESS;
+}
+
+/******************************************************************
+ * @brief Encode and send the active tetromino
+ * @return STATE_SUCCESS
+******************************************************************/
+state_code_t StateDriver::EncodeBoardCMD(int tetris_partition)
+{
+    //// 0TU,12,1,0,YY-YY, //// 0TU<PARTITION>,BOARD_SEGMENT ///// 0TUP<xpos>,<ypos>
+
     // Update position of mino for other screens
     
     char temp_board[TETRIS_HEIGHT/4][TETRIS_WIDTH];
@@ -1059,10 +1134,18 @@ state_code_t StateDriver::EncodeTetromino(int tetris_partition) //// 0TU,12,1,0,
     return STATE_SUCCESS;
 }
 
-state_code_t StateDriver::DecodeTetromino(std::string RxCMD)
+/******************************************************************
+ * @brief Decode the encoded tetris board command
+ * @param RxCMD String containing command to be decoded
+ * @return STATE_SUCCESS
+******************************************************************/
+state_code_t StateDriver::DecodeBoardCMD(std::string RxCMD)
 {
-    log_printf("DRIVER: Decoding CMD: %s\n\r",RxCMD.c_str());
+    log_printf("DRIVER: Decoding Board CMD: %s\n\r",RxCMD.c_str());
     
+    log_printf("DRIVER: Locking Tetris controller during update\r\n");
+    m_controller_active = false;
+
     // Trim beginning of RxCMD
     int tetris_partition = RxCMD[3] - '0';
     RxCMD = RxCMD.substr(4);
@@ -1078,7 +1161,57 @@ state_code_t StateDriver::DecodeTetromino(std::string RxCMD)
         }
     }
 
+    // TODO: add a timeout incase the command is missed for the enabling of the controller
+    if (m_partition_count == TETRIS_DISPLAYS-1)
+    {
+        log_printf("DRIVER: Unlocking Tetris controller\r\n");
+        m_controller_active = true;
+        m_partition_count = 0;
+    }
+    else
+    {
+        m_partition_count++;
+    }
+
     tetris.SetBoard(new_board,tetris_partition);
+    tetris.UpdateBoard();
+    tetris.DisplayTetrisBoard();
+
+    return STATE_SUCCESS;
+}
+
+/******************************************************************
+ * @brief Decode the encoded tetromino position command
+ * @param RxCMD String containing command to be decoded
+ * @return STATE_SUCCESS
+******************************************************************/
+state_code_t StateDriver::DecodeTetrominoCMD(std::string RxCMD)
+{
+    // Get index of tetromino
+    int idx = RxCMD[4] - '0';
+    int rotValue = RxCMD[5] - '0';
+
+    // Trim beginning of RxCMD
+    RxCMD = RxCMD.substr(6);
+
+    int commaIdx = RxCMD.find(',');
+    int xPos = atoi(RxCMD.substr(0,commaIdx).c_str());
+    int yPos = atoi(RxCMD.substr(commaIdx+1,RxCMD.length()).c_str());
+
+    tetromino_t tempMino;
+    //tetris.GetTetromino(tempMino);
+    tempMino = ALL_MINOS[idx];
+    tempMino.x = xPos;
+    tempMino.y = yPos;
+
+    for(int i = 0; i < rotValue; i++) {
+        tetris.RotateTetromino(tempMino);
+    }
+
+    log_printf("DRIVER: Decoding Position to (X: %d   Y: %d) \n\r",tempMino.x,tempMino.y);
+    tetris.ClearTetromino();
+    tetris.SetTetromino(tempMino);
+    tetris.UpdateBoard();
     tetris.DisplayTetrisBoard();
 
     return STATE_SUCCESS;

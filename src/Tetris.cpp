@@ -43,20 +43,26 @@ void Tetris::SetSideNum(int screen_num)
  * @param ret_queue Queue to store all updated partitions
  * @return Status of the update flag
 ******************************************************************/
-update_t Tetris::UpdateReady(std::queue<int> &ret_queue)
+std::queue<int> Tetris::UpdatedPartitions()
+{
+    // DEBUG
+    CLEAR_QUEUE(m_updated_partitions)
+    m_updated_partitions.push(0);
+    m_updated_partitions.push(1);
+    m_updated_partitions.push(2);
+    m_updated_partitions.push(3);
+
+    return m_updated_partitions;
+}
+
+/******************************************************************
+ * @brief Get the status of the update flag
+ * @return Status of the update flag
+******************************************************************/
+update_t Tetris::UpdateStatus()
 {
     update_t tempStatus = m_update_ready;
-    if (m_update_ready != NONE)
-    {
-        m_update_ready = NONE;
-
-        ret_queue = m_updated_partitions;
-
-        // Reset the updated partitions
-        CLEAR_QUEUE(m_updated_partitions)
-
-        log_printf("TETRIS: Update flag cleared\n\r");
-    }
+    m_update_ready = NONE;
     return tempStatus;
 }
 
@@ -112,7 +118,6 @@ tetris_error_t Tetris::PlayGame()
     else
     {
         ret_code = DeployTetromino();
-        m_update_ready = NEW_MINO;
     }
 
     return ret_code;
@@ -130,6 +135,26 @@ tetris_error_t Tetris::SetNextMove(char direction)
 }
 
 /******************************************************************
+ * @brief Determine if provided tetromino is rotated
+ * @param mino Tetromino to determine the rotation of
+ * @return True if tetromino is rotated, false if in
+ * default position
+******************************************************************/
+bool Tetris::IsTetrominoRotated(tetromino_t mino)
+{
+
+    // Get dimensions of mino
+    int new_height, new_width;
+    GetTetrominoSize(mino, new_width, new_height);
+
+    // Get dimensions of default mino;
+    int height, width;
+    GetTetrominoSize(ALL_MINOS[mino.idx],width,height);
+
+    return !(height == new_height && width == new_width);
+}
+
+/******************************************************************
  * @brief Reset Tetris to default values
  * @return TETRIS_SUCCESS
 ******************************************************************/
@@ -144,6 +169,7 @@ tetris_error_t Tetris::Reset()
     m_next_tetromino = {};
     m_total_rows_cleared = 0;
     m_update_ready = NONE;
+    m_rotation_count = 0;
 
     // Reset the tetris board to empty spaces
     for (uint row = 0; row < TETRIS_HEIGHT; ++row)
@@ -158,6 +184,15 @@ tetris_error_t Tetris::Reset()
 
     log_printf("TETRIS: Resetting...\n\r");
     return TETRIS_SUCCESS;
+}
+
+/******************************************************************
+ * @brief Get the current rotation count of the current tetromino
+ * @return Current rotation of the active tetromino
+******************************************************************/
+int Tetris::GetRotationCount()
+{
+    return m_rotation_count;
 }
 
 /******************************************************************
@@ -197,6 +232,7 @@ tetris_error_t Tetris::GetTetromino(tetromino_t &mino)
 tetris_error_t Tetris::SetTetromino(tetromino_t mino)
 {
     m_active_mino = mino;
+    
     return TETRIS_SUCCESS;
 }
 
@@ -562,8 +598,21 @@ tetris_error_t Tetris::DeployTetromino()
     // Set active mino flag
     m_mino_is_active = true;
 
+    // Set update flag to update whole board
+    log_printf(" --------------- In deploy, setting flag to ALL\r\n");
+    m_update_ready = ALL;
+
     // Display board
     DisplayTetrisBoard();
+
+    // Reset external positional update counter 
+    pos_update_counter = 0;
+
+    // Reset rotation counter
+    m_rotation_count = 0;
+
+    // Delay to allow all previous commands to complete
+    delay(100);
 
     return ret_code;
 }
@@ -623,8 +672,9 @@ tetris_error_t Tetris::MoveTetromino(char direction)
 
         case '^':
             RotateTetromino(m_active_mino);
-        break;
+            m_rotation_count = (m_rotation_count + 1) % 4;
 
+        break;
     }
 
     // Check if new position is between partitions
@@ -647,9 +697,16 @@ tetris_error_t Tetris::MoveTetromino(char direction)
     // Display board
     DisplayTetrisBoard();
 
-    // Set update flag
-    m_update_ready = NEW_POS;
-    log_printf("Tetris: Update flag set\n\r");
+    if(m_screen_num == 0)
+    {
+        if (pos_update_counter + 1 == POS_UPDATE_REFRESH_COUNT)
+        {
+            m_update_ready = NEW_POS;
+            log_printf(" --------------- In move, setting flag to NEW_POS\r\n");
+
+        }
+        pos_update_counter = (pos_update_counter + 1) % POS_UPDATE_REFRESH_COUNT;
+    }
 
     return TETRIS_SUCCESS;
 }
@@ -762,7 +819,8 @@ tetris_error_t Tetris::CheckFullLines(vector<int>& filled_lines)
         for(int i = 0; i < TETRIS_DISPLAYS; i++) {
             m_updated_partitions.push(i);
         }
-        m_update_ready = NEW_POS;
+        log_printf(" --------------- In check lines, setting flag to ALL\r\n");
+        m_update_ready = ALL;
     }
     return ret_code;
 }

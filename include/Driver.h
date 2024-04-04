@@ -67,8 +67,10 @@ private:
     state_code_t ScrambleCube();
     state_code_t SolveCube();
 
-    state_code_t EncodeTetromino(int tetris_partition);
-    state_code_t DecodeTetromino(std::string RxCMD);
+    state_code_t EncodeBoardCMD(int tetris_partition);
+    state_code_t EncodeTetrominoCMD();
+    state_code_t DecodeBoardCMD(std::string RxCMD);
+    state_code_t DecodeTetrominoCMD(std::string RxCMD);
     state_code_t TetrisReset();
 
     state_code_t WriteHighScoreFile(std::string user_name, long score);
@@ -113,8 +115,12 @@ public:
 
     // Tetris Partition Update
     int m_tetris_partition;
-    bool m_tetris_updating;
+    bool m_tetris_updating_all;
     std::queue<int> m_updated_partitions;
+
+    // Controller control
+    bool m_controller_active = true;
+    int m_partition_count = 0;
 
     // Tetris score
     unsigned long m_tetris_score;

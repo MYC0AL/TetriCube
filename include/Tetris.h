@@ -19,6 +19,9 @@ using std::queue;
 #define TETRIS_GRAVITY 1
 #define TETRIS_MOVE_DELAY 150
 
+// External Update defines
+#define POS_UPDATE_REFRESH_COUNT 6
+
 // Tetris error code
 #define TETRIS_SUCCESS 0
 #define TETRIS_ERR 1
@@ -42,7 +45,7 @@ using std::queue;
         (queue).pop(); \
     }
 
-enum update_t{NONE,NEW_MINO,NEW_POS};
+enum update_t{NONE,NEW_MINO,NEW_POS,ALL};
 
 typedef short tetris_error_t;
 
@@ -52,13 +55,17 @@ public:
     Tetris();
     ~Tetris();
 
-    update_t UpdateReady(std::queue<int> &ret_queue);
+    std::queue<int> UpdatedPartitions();
+    update_t UpdateStatus();
     void SetSideNum(int screen_num);
     tetris_error_t PlayGame();
     tetris_error_t SetNextMove(char direction);
+    bool IsTetrominoRotated(tetromino_t mino);
     tetris_error_t Reset();
+    int GetRotationCount();
     unsigned long GetScore();
     unsigned int GetLevel();
+    tetris_error_t RotateTetromino(tetromino_t& mino);
     tetris_error_t GetTetromino(tetromino_t &mino);
     tetris_error_t SetTetromino(tetromino_t mino);
     tetris_error_t GetBoard(char tetris_board[TETRIS_HEIGHT/4][TETRIS_WIDTH], int partition);
@@ -89,12 +96,14 @@ private:
     tetromino_t m_next_tetromino;
     tetromino_t m_active_mino;
 
+    int pos_update_counter = 0;
+    int m_rotation_count = 0;
+
     int CharToColor(char color);
 
     tetris_error_t SetNextTetromino();
     tetris_error_t ApplyGravity();
     tetris_error_t DeployTetromino();
-    tetris_error_t RotateTetromino(tetromino_t& mino);
     tetris_error_t GetTetrominoSize(tetromino_t mino, int& width, int& height);
     tetris_error_t RequestMove(char direction);
     tetris_error_t MoveTetromino(char direction);

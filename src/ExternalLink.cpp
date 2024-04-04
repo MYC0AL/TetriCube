@@ -90,7 +90,6 @@ el_error_t ExternalLink::SendCMD(std::string cmd)
 
             //DEBUG
             log_printf("EL: Sent CMD: %s\n\r",m_loaded_cmd.c_str());
-            log_printf("EL: WAIT to SENT\n\r");
 
             //Request transition to SENT
             RequestState(EL_CMD_SENT);
