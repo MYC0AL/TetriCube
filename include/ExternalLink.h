@@ -26,6 +26,7 @@
 
 #define RBX_SOLVE_SYM '%'
 #define TETRIS_RESET_SYM 'X'
+#define TTT_RESET_SYM 'X'
 
 #define RETRY_COUNT 5
 
@@ -46,6 +47,7 @@ public:
     std::string PopLastReadCMD();
 
     std::string GetCMD();
+    bool IsCmdReady();
 
     bool IsReady();
 

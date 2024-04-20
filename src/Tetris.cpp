@@ -13,6 +13,10 @@ Tetris::Tetris() : m_level(0), m_move_delay(1000), m_mino_is_active(false),
         for (uint col = 0; col < TETRIS_WIDTH; ++col)
         {
             m_tetris_board[row][col] = AIR;
+
+            if (row > 7 && col > 1)
+             m_tetris_board[row][col] = 'G';
+
         }
     }
 }
@@ -202,6 +206,19 @@ int Tetris::GetRotationCount()
 unsigned long Tetris::GetScore()
 {
     return m_score;
+}
+
+
+/******************************************************************
+ * @brief Set the current score of Tetris
+ * @param score The new score to set
+ * @return TETRIS_SUCCESS
+******************************************************************/
+tetris_error_t Tetris::SetScore(unsigned long score)
+{
+    m_score = score;
+
+    return TETRIS_SUCCESS;
 }
 
 /******************************************************************

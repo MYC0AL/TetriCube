@@ -183,6 +183,19 @@ std::string ExternalLink::GetCMD()
     return ret_cmd;
 }
 
+/******************************************************************
+ * @brief Check if a command is ready
+ * @return CMD ready flag
+******************************************************************/
+bool ExternalLink::IsCmdReady()
+{
+    return m_cmd_ready;
+}
+
+/******************************************************************
+ * @brief Check if EL is ready for transmission
+ * @return EL ready flag
+******************************************************************/
 bool ExternalLink::IsReady()
 {
     return m_is_ready;

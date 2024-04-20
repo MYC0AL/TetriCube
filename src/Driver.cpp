@@ -44,10 +44,13 @@ void StateDriver::state_controller()
     {   
         // Check the EL if a CMD
         // is ready to be ran
-        std::string cmd = el.GetCMD();
-        if (!cmd.empty())
+        if (el.IsCmdReady())
         {
-            DecodeCMD(cmd);
+            std::string cmd = el.GetCMD();
+            if (!cmd.empty())
+            {
+                DecodeCMD(cmd);
+            }
         }
 
         // Update EL
@@ -79,6 +82,10 @@ void StateDriver::state_controller()
                     else if (dHelp.touch_decoder(UI_TETRIS) == TC_UI_TOUCH)
                     {
                         request_state_change(STATE_TETRIS);
+                    }
+                    else if (dHelp.touch_decoder(UI_TTT) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_TTT);
                     }
                     else if (dHelp.touch_decoder(UI_SETTINGS) == TC_UI_TOUCH)
                     {
@@ -162,22 +169,19 @@ void StateDriver::state_controller()
                 if (tetrisUpdateFlag == ALL && m_screen_num == 0)
                 {
                     m_tetris_updating_all = true;
-                    log_printf("---------------updating ALL\r\n");
                     m_updated_partitions = tetris.UpdatedPartitions();
                 }
                 else if (tetrisUpdateFlag == NEW_POS && m_screen_num == 0)
                 {
                     EncodeTetrominoCMD();
                 }
-                else if (m_tetris_updating_all && el.IsReady() && m_screen_num == 0)
+                else if (m_tetris_updating_all && el.IsReady() && m_screen_num == 0 && !el.IsCmdReady())
                 {
                     if (m_updated_partitions.empty()) {
                         m_tetris_updating_all = false;
-                        log_printf("---------------updating ALL off\r\n");
                     }
                     else
                     {
-                        log_printf("------------------- Trying to update all\r\n");
                         m_tetris_partition = m_updated_partitions.front();
                         m_updated_partitions.pop();
                         EncodeBoardCMD(m_tetris_partition);
@@ -193,31 +197,33 @@ void StateDriver::state_controller()
                     log_printf("DRIVER: Sending Tetris Reset CMD\n\r");
                 }
 
-                // TODO: update the score using a command instead
                 // Update the score
-                if (m_screen_num == 3)
+                if (m_screen_num == 0)
                 {
                     unsigned long new_score = tetris.GetScore();
 
                     // Only update score if new
-                    if (m_tetris_score != new_score)
+                    if (m_tetris_score != new_score) // Send out score CMD if score is new
                     {
-                        // Reset background for tetris score
-                        gfx->fillRect(230,150,30,30,BLACK);
                         m_tetris_score = new_score;
-                        CenterAndPrintInt(m_tetris_score,230,180,/*text scale*/ 5, CYAN);
+
+                        std::string scoreCMD;
+                        scoreCMD += m_screen_num + '0';
+                        scoreCMD += 'T';
+                        scoreCMD += 'S';
+                        scoreCMD += new_score;
+                        el.SendCMD(scoreCMD);
                     }
                 }
 
                 // Update the tetris frame at the end so minos have time to fall and place.
-                //if (m_screen_num != 1 && m_screen_num != 3) // The controller and score does not need to play tetris
-                //{
-                    if (tetris.PlayGame() == TETRIS_END_GAME)
+                if (!m_tetris_updating_all && tetrisUpdateFlag == NONE)
+                {
+                    if (tetris.PlayGame() == TETRIS_END_GAME && m_screen_num == 0)
                     {
                         request_state_change(STATE_TETRIS_END);
                     }
-                //}
-
+                }
             }
             break;
 
@@ -345,9 +351,36 @@ void StateDriver::state_controller()
                 }
                 break;
 
-            case STATE_RUBIKS_END:
-
-                break;
+            case STATE_TTT:
+            {
+                if (dHelp.touch_touched())
+                {
+                    if (m_screen_num == 0)
+                    {
+                        if (dHelp.touch_decoder(UI_TETRIS_RESET) == TC_UI_TOUCH)
+                        {
+                            std::string tttResetCMD;
+                            tttResetCMD += m_screen_num + '0';
+                            tttResetCMD += 'O';
+                            tttResetCMD += TTT_RESET_SYM;
+                            el.SendCMD(tttResetCMD);
+                        }
+                        else if (dHelp.touch_decoder(UI_HOME) == TC_UI_TOUCH)
+                        {
+                            request_state_change(STATE_SELECT_GAME);
+                        }
+                    }
+                    else
+                    {
+                        if (ttt.PlacePiece(DecodeTicTacToeTouch()) == TTT_SUCCESS)
+                        {
+                            gfx->fillScreen(BLACK);
+                            DisplayTicTacToe();
+                        }
+                    }
+                }
+            }
+            break;
         }
     }
 }
@@ -442,6 +475,96 @@ state_code_t StateDriver::UpdateAlphaWheels(int wheel, bool next)
     }
 
     return ret;
+}
+
+/******************************************************************
+ * @brief Display current TicTacToe board
+ * @param xPos Tiles where there is an X
+ * @param oPos Tiles where there is an O
+ * @return STATE_SUCCESS
+******************************************************************/
+state_code_t StateDriver::DisplayTicTacToe()
+{
+    // Get current board
+    int xPos, oPos;
+    ttt.getBoard(xPos,oPos);
+
+    // Setup print
+    gfx->setTextSize(15);
+
+    for (int bit = 0; bit < BOARD_SIZE; ++bit)
+    {
+        // Set cursor to next position
+        gfx->setCursor(165*(bit%3)+35,165*(bit/3)+20);
+
+        if (xPos & (1 << bit))
+        {
+            gfx->setTextColor(CYAN);
+            gfx->printf("X");
+        }
+        else if (oPos & (1 << bit))
+        {
+            gfx->setTextColor(MAGENTA);
+            gfx->printf("O");
+        }
+    }
+
+    // Draw grid lines
+    gfx->fillRect(150,0,15,480,DARKGREY);
+    gfx->fillRect(315,0,15,480,DARKGREY);
+    gfx->fillRect(0,150,480,15,DARKGREY);
+    gfx->fillRect(0,315,480,15,DARKGREY);
+
+    return STATE_SUCCESS;
+}
+
+/******************************************************************
+ * @brief Find which tile a touch is inside of
+ * @param xPos x coordinate of touch
+ * @param yPos y coordinate of touch
+ * @return The tile tapped, otherwise -1
+******************************************************************/
+int StateDriver::DecodeTicTacToeTouch()
+{
+    int ret_val = -1;
+
+    if (dHelp.touch_decoder(UI_TTT_TILE_0) == TC_UI_TOUCH)
+    {
+        ret_val = 0;
+    }
+    else if (dHelp.touch_decoder(UI_TTT_TILE_1) == TC_UI_TOUCH)
+    {
+        ret_val = 1;
+    }
+    else if (dHelp.touch_decoder(UI_TTT_TILE_2) == TC_UI_TOUCH)
+    {
+        ret_val = 2;
+    }
+        else if (dHelp.touch_decoder(UI_TTT_TILE_3) == TC_UI_TOUCH)
+    {
+        ret_val = 3;
+    }
+        else if (dHelp.touch_decoder(UI_TTT_TILE_4) == TC_UI_TOUCH)
+    {
+        ret_val = 4;
+    }
+        else if (dHelp.touch_decoder(UI_TTT_TILE_5) == TC_UI_TOUCH)
+    {
+        ret_val = 5;
+    }
+        else if (dHelp.touch_decoder(UI_TTT_TILE_6) == TC_UI_TOUCH)
+    {
+        ret_val = 6;
+    }
+        else if (dHelp.touch_decoder(UI_TTT_TILE_7) == TC_UI_TOUCH)
+    {
+        ret_val = 7;
+    }
+        else if (dHelp.touch_decoder(UI_TTT_TILE_8) == TC_UI_TOUCH)
+    {
+        ret_val = 8;
+    }
+    return ret_val;
 }
 
 /******************************************************************
@@ -668,8 +791,18 @@ void StateDriver::update_new_state(state_t new_state)
             break;
         }
 
-        case STATE_RUBIKS_END:
+        case STATE_TTT:
         {
+            if (m_screen_num == 0)
+            {
+                dHelp.drawImage(SCENE_TTT_PAUSE.image);
+                dHelp.active_ui = SCENE_TTT_PAUSE.ui_elements;
+            }
+            else
+            {
+                ttt.ResetBoard();
+                DisplayTicTacToe();
+            }
             break;
         }
     }
@@ -678,7 +811,7 @@ void StateDriver::update_new_state(state_t new_state)
     drv_state = new_state;
 
     // -----DEBUG-----
-    //dHelp.drawUI();
+    dHelp.drawUI();
 
     // Pause between state transistions
     delay(400);
@@ -725,7 +858,7 @@ state_code_t StateDriver::request_state_change(state_t new_state)
             case STATE_SELECT_GAME:
                 if (new_state == STATE_START || new_state == STATE_TETRIS ||
                     new_state == STATE_RUBIKS || new_state == STATE_SETTINGS ||
-                    new_state == STATE_HIGH_SCORES)
+                    new_state == STATE_HIGH_SCORES || new_state == STATE_TTT)
                 {
                     retCode = STATE_SUCCESS;
                 }
@@ -782,24 +915,14 @@ state_code_t StateDriver::request_state_change(state_t new_state)
                 }
                 break;
 
-            case STATE_RUBIKS_END:
-                if (new_state == STATE_RUBIKS || new_state == STATE_SELECT_GAME)
+            case STATE_TTT:
+                if (new_state == STATE_SELECT_GAME)
                 {
                     retCode = STATE_SUCCESS;
                 }
                 break;
         }
     } 
-
-    //DEBUG
-    if (!retCode)
-    {
-        log_printf("STATE: Transition valid\n\r");
-    }
-    else
-    {
-        log_printf("STATE: Transition invalid\n\r");
-    }
 
     if (retCode == STATE_SUCCESS)
     {
@@ -885,7 +1008,7 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
                         tetris.DisplayTetrisBoard();
                         tetris_reset = false;
                     }   
-                    else if (CMD[2] == 'U' && m_screen_num != 0 && m_screen_num != 1 && m_screen_num != 3) // The controller and score does not need to play tetris // Host will break if it runs these CMDs
+                    else if (CMD[2] == 'U' && m_screen_num != 0) // The controller and score does not need to play tetris // Host will break if it runs these CMDs
                     {
                         if (CMD[3] == 'P') // If the position is updating, just decode the CMD for position
                         {
@@ -895,6 +1018,19 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
                         {
                             DecodeBoardCMD(CMD);
                         }
+                    }
+                    else if (CMD[2] == 'S' && m_screen_num == 3)
+                    {
+                        unsigned long new_score = atoi(CMD.substr(3).c_str());
+                        log_printf("===============================New score: %d\r\n",new_score);
+                        // Update update the tetris score
+                        tetris.SetScore(new_score);
+
+                        // Reset background for tetris score
+                        gfx->fillRect(230,150,30,30,BLACK);
+                        m_tetris_score = new_score;
+                        CenterAndPrintInt(m_tetris_score,230,180,/*text scale*/ 5, CYAN);
+
                     }
                     else if (m_controller_active)
                     {
@@ -939,6 +1075,23 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
             }
             break;
 
+            case 'O':
+            {
+                if (drv_state == STATE_TTT)
+                {
+                    if (CMD[2] == TTT_RESET_SYM && m_screen_num != 0)
+                    {
+                        if (ttt.ResetBoard() == TTT_SUCCESS)
+                        {
+                            gfx->fillScreen(BLACK);
+                        }
+                        
+                        DisplayTicTacToe();
+                    }
+                }
+            }
+            break;
+
             default:
             {
                 ret_val = STATE_ERROR;
@@ -970,6 +1123,7 @@ char StateDriver::StateToChar(state_t state)
         case STATE_RUBIKS:      ret_val ='R'; break;
         case STATE_RUBIKS_PAUSE:ret_val ='K'; break;
         case STATE_RUBIKS_END : ret_val ='F'; break;
+        case STATE_TTT:         ret_val ='O'; break;
     }
     return ret_val;
 }
@@ -996,6 +1150,7 @@ state_t StateDriver::CharToState(char ch)
         case 'R': ret_val = STATE_RUBIKS; break;
         case 'K': ret_val = STATE_RUBIKS_PAUSE; break;
         case 'F': ret_val = STATE_RUBIKS_END; break;
+        case 'O': ret_val = STATE_TTT; break;
     }
     return ret_val;
 }

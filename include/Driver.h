@@ -5,6 +5,7 @@
 #include "Tetris.h"
 #include "ExternalLink.h"
 #include "Cube.h"
+#include "TicTacToe.h"
 #include <ctime>
 #include <cmath>
 #include <sstream>
@@ -19,11 +20,13 @@
 //      S: state transition
 //      T: tetris
 //      C: cube
+//      O: TicTacToe
 
 // Data decode:
-//      S: I,S,G,E,H,T,Y,R,F
+//      S: I,S,G,E,H,T,Y,R,F,O
 //      T: R,L,D,^,U,I,Y
 //      C: 0,1,2,3,4,5,6,7,8,9,A,B  (A: 10,  B: 11)
+//      O: R
 
 // Defines
 #define MSG_SIZE 3
@@ -41,9 +44,12 @@ typedef std::vector<entry_t> podium_t;
 #define ALPHA_WHEEL_SIZE 3
 
 // State definitions
-enum state_t {STATE_INIT, STATE_START, STATE_SELECT_GAME, STATE_SETTINGS,
-            STATE_HIGH_SCORES, STATE_TETRIS, STATE_TETRIS_PAUSE, STATE_TETRIS_END,
-            STATE_RUBIKS, STATE_RUBIKS_PAUSE, STATE_RUBIKS_END};
+enum state_t {
+            STATE_INIT, STATE_START, STATE_SELECT_GAME,
+            STATE_SETTINGS,STATE_HIGH_SCORES, STATE_TETRIS,
+            STATE_TETRIS_PAUSE, STATE_TETRIS_END, STATE_RUBIKS,
+            STATE_RUBIKS_PAUSE, STATE_RUBIKS_END, STATE_TTT,
+            STATE_PONG, STATE_PONG_PAUSE};
 
 // State return codes
 enum state_code_t {STATE_SUCCESS, STATE_ERROR};
@@ -83,6 +89,9 @@ private:
     state_code_t DisplayAlphaWheels();
     state_code_t UpdateAlphaWheels(int wheel, bool next);
 
+    state_code_t DisplayTicTacToe();
+    int DecodeTicTacToeTouch();
+
 public:
 
     // Has-a relationship with display helper
@@ -95,9 +104,10 @@ public:
     state_code_t request_state_change(state_t new_state);
     void state_controller();
 
-    // Has-a relationship with Cube and Tetris
+    // Has-a relationship with Games
     Cube rbx;
     Tetris tetris;
+    TicTacToe ttt;
 
     // Move timer for tetris
     unsigned long m_tetris_move_timer;

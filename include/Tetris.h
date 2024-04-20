@@ -64,6 +64,7 @@ public:
     tetris_error_t Reset();
     int GetRotationCount();
     unsigned long GetScore();
+    tetris_error_t SetScore(unsigned long score);
     unsigned int GetLevel();
     tetris_error_t RotateTetromino(tetromino_t& mino);
     tetris_error_t GetTetromino(tetromino_t &mino);

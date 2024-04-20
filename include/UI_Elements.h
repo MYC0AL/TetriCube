@@ -19,9 +19,10 @@ struct Scene {
 // All buttons
 const UIButton UI_START =               {145,200,200,70};
 const UIButton UI_BACK =                {10,395,85,85};
-const UIButton UI_RUBIKS =              {60,180,135,135};
-const UIButton UI_TETRIS =              {285,180,135,130};
-const UIButton UI_SETTINGS =            {140,365,200,60};
+const UIButton UI_RUBIKS =              {75,100,135,135};
+const UIButton UI_TETRIS =              {270,100,135,130};
+const UIButton UI_TTT =                 {75,255,135,135};
+const UIButton UI_SETTINGS =            {140,410,200,60};
 const UIButton UI_HIGH_SCORES =         {385,395,85,85};
 const UIButton UI_HOME =                {395,395,85,85};
 
@@ -46,11 +47,21 @@ const UIButton UI_INITIAL_DOWN2 =       {205,270,80,80};
 const UIButton UI_INITIAL_DOWN3 =       {340,270,80,80};
 const UIButton UI_SUBMIT_INITIALS =     {40,390,390,65};
 
+const UIButton UI_TTT_TILE_0 =          {0,0,150,150};
+const UIButton UI_TTT_TILE_1 =          {165,0,150,150};
+const UIButton UI_TTT_TILE_2 =          {330,0,150,150};
+const UIButton UI_TTT_TILE_3 =          {0,165,150,150};
+const UIButton UI_TTT_TILE_4 =          {165,165,150,150};
+const UIButton UI_TTT_TILE_5 =          {330,165,150,150};
+const UIButton UI_TTT_TILE_6 =          {0,330,150,150};
+const UIButton UI_TTT_TILE_7 =          {165,330,150,150};
+const UIButton UI_TTT_TILE_8 =          {330,330,150,150};
+
 // Scenes
-const Scene SCENE_HOME = {"/home_screen_comp.jpg", {UI_START} };
-const Scene SCENE_SELECT_GAME = {"/select_game_comp.jpg", {UI_BACK, UI_TETRIS, UI_RUBIKS, UI_SETTINGS, UI_HIGH_SCORES}};
-const Scene SCENE_SETTINGS = {"/settings_comp.jpg", {UI_BACK} };
-const Scene SCENE_HIGH_SCORES = {"/high_scores_comp.jpg", {UI_BACK}};
+const Scene SCENE_HOME = {"/play.jpg", {UI_START} };
+const Scene SCENE_SELECT_GAME = {"/select_game.jpeg", {UI_BACK, UI_TETRIS, UI_RUBIKS, UI_TTT, UI_SETTINGS, UI_HIGH_SCORES}};
+const Scene SCENE_SETTINGS = {"/settings.jpg", {UI_BACK} };
+const Scene SCENE_HIGH_SCORES = {"/high_scores.jpg", {UI_BACK}};
 
 // Tetris Controller
 const Scene SCENE_TETRIS_CONTROLS = {"/tetris_controller.jpg", {UI_TETRIS_LEFT, UI_TETRIS_RIGHT, UI_TETRIS_DOWN, UI_TETRIS_ROTATE,UI_TETRIS_PAUSE}};
@@ -62,7 +73,7 @@ const Scene SCENE_TETRIS_PAUSE = {"/tetris_pause.jpg", {UI_TETRIS_BACK_TO_GAME,U
 const Scene SCENE_TETRIS_GAME_OVER = {"/tetris_game_over.jpg", {UI_HOME}};
 
 // Tetris Enter Initials
-const Scene SCENE_ENTER_INITIALS = {"/small_canva.jpg",{UI_INITIAL_UP1, UI_INITIAL_UP2, UI_INITIAL_UP3,
+const Scene SCENE_ENTER_INITIALS = {"/enter_initials.jpg",{UI_INITIAL_UP1, UI_INITIAL_UP2, UI_INITIAL_UP3,
                                                              UI_INITIAL_DOWN1, UI_INITIAL_DOWN2, UI_INITIAL_DOWN3,
                                                              UI_SUBMIT_INITIALS}};
 
@@ -71,6 +82,12 @@ const Scene SCENE_RUBIKS_CONTROLS = {"/",{UI_RUBIKS_PAUSE}};
 
 // Rubiks Pause
 const Scene SCENE_RUBIKS_PAUSE = {"/cube_pause.jpg",{UI_RUBIKS_BACK_TO_GAME,UI_HOME,UI_RUBIKS_SCRAMBLE,UI_RUBIKS_SOLVE}};
+
+// TTT
+const Scene SCENE_TTT_PAUSE = {"/tic_tac_toe_reset.jpeg",{UI_TETRIS_RESET,UI_HOME}};
+
+// Pong
+const Scene SCENE_PONG_PAUSE = {"/pong_pause.jpeg",{UI_TETRIS_BACK_TO_GAME,UI_HOME,UI_TETRIS_RESET}};
 
 // DEBUG Screen Num Select
 const UIButton UI_SCREEN_0 = {120,190,100,100};
