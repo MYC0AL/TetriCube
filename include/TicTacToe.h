@@ -57,7 +57,7 @@ private:
 	int m_x_move_count = 0;
 	int m_o_move_count = 0;
 
-	bool m_hard_mode = true;
+	bool m_hard_mode = false;
 
 	ttt_status_t m_status = X_TURN;
 };

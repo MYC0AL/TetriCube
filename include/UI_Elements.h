@@ -57,10 +57,11 @@ const UIButton UI_TTT_TILE_6 =          {0,330,150,150};
 const UIButton UI_TTT_TILE_7 =          {165,330,150,150};
 const UIButton UI_TTT_TILE_8 =          {330,330,150,150};
 
+const UIButton UI_SETTINGS_TTT_MODE =   {400,90,50,50};
 // Scenes
 const Scene SCENE_HOME = {"/play.jpg", {UI_START} };
 const Scene SCENE_SELECT_GAME = {"/select_game.jpeg", {UI_BACK, UI_TETRIS, UI_RUBIKS, UI_TTT, UI_SETTINGS, UI_HIGH_SCORES}};
-const Scene SCENE_SETTINGS = {"/settings.jpg", {UI_BACK} };
+const Scene SCENE_SETTINGS = {"/settings.jpg", {UI_BACK, UI_SETTINGS_TTT_MODE} };
 const Scene SCENE_HIGH_SCORES = {"/high_scores.jpg", {UI_BACK}};
 
 // Tetris Controller

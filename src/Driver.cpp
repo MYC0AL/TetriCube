@@ -105,6 +105,15 @@ void StateDriver::state_controller()
                     {
                         request_state_change(STATE_SELECT_GAME);
                     }
+                    else if (dHelp.touch_decoder(UI_SETTINGS_TTT_MODE) == TC_UI_TOUCH)
+                    {
+                        delay(500);
+                        std::string tttModeCmd;
+                        tttModeCmd += m_screen_num + '0';
+                        tttModeCmd += 'O';
+                        tttModeCmd += TTT_HARD_MODE_SYM;
+                        el.SendCMD(tttModeCmd);
+                    }
                 }
                 break;
 
@@ -374,7 +383,7 @@ void StateDriver::state_controller()
                     {
                         if (ttt.PlacePiece(DecodeTicTacToeTouch()) == TTT_SUCCESS)
                         {
-                            gfx->fillScreen(BLACK);
+                            ClearTicTacToeTiles();
                             DisplayTicTacToe();
                         }
                     }
@@ -519,6 +528,25 @@ state_code_t StateDriver::DisplayTicTacToe()
 }
 
 /******************************************************************
+ * @brief Clear all or a specific tile in tic-tac-toe
+ * @param pos The tile which to clear, default is all tiles
+ * @return STATE_SUCCESS or STATE_ERROR when incorrect pos provided
+******************************************************************/
+state_code_t StateDriver::ClearTicTacToeTiles()
+{
+    state_code_t ret_val = STATE_ERROR;
+
+    for (int bit = 0; bit < BOARD_SIZE; ++bit)
+    {
+        gfx->fillRect(165*(bit%3)+35,165*(bit/3)+20,90,120,BLACK);
+    }
+
+    ret_val = STATE_SUCCESS;
+
+    return ret_val;
+}
+
+/******************************************************************
  * @brief Find which tile a touch is inside of
  * @param xPos x coordinate of touch
  * @param yPos y coordinate of touch
@@ -620,6 +648,23 @@ void StateDriver::update_new_state(state_t new_state)
             {
                 dHelp.drawImage(SCENE_SETTINGS.image);
                 dHelp.active_ui = SCENE_SETTINGS.ui_elements;
+
+                gfx->setCursor(15,100);
+                gfx->setTextSize(3);
+                gfx->setTextColor(WHITE);
+                gfx->print("Tic-Tac-Toe Hard Mode");
+                gfx->drawRect(UI_SETTINGS_TTT_MODE.x,UI_SETTINGS_TTT_MODE.y,
+                              UI_SETTINGS_TTT_MODE.w,UI_SETTINGS_TTT_MODE.h,
+                              LIGHTGREY);
+
+                if (m_ttt_hard_mode) 
+                {
+                    gfx->setCursor(UI_SETTINGS_TTT_MODE.x+13,UI_SETTINGS_TTT_MODE.y+5);
+                    gfx->setTextSize(5);
+                    gfx->setTextColor(GREEN);
+                    gfx->print("X");
+                }
+
             }
             else {
                 dHelp.clear_screen();           
@@ -811,7 +856,7 @@ void StateDriver::update_new_state(state_t new_state)
     drv_state = new_state;
 
     // -----DEBUG-----
-    dHelp.drawUI();
+    //dHelp.drawUI();
 
     // Pause between state transistions
     delay(400);
@@ -1022,7 +1067,7 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
                     else if (CMD[2] == 'S' && m_screen_num == 3)
                     {
                         unsigned long new_score = atoi(CMD.substr(3).c_str());
-                        log_printf("===============================New score: %d\r\n",new_score);
+
                         // Update update the tetris score
                         tetris.SetScore(new_score);
 
@@ -1054,7 +1099,6 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
                     else
                     {
                         // Rotation detection
-
                         int dirSwiped = CMD[2] - '0';
                         if (CMD[2] == 'A') {
                             dirSwiped = 10;
@@ -1077,16 +1121,37 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
 
             case 'O':
             {
-                if (drv_state == STATE_TTT)
+                if (drv_state == STATE_TTT || drv_state == STATE_SETTINGS)
                 {
                     if (CMD[2] == TTT_RESET_SYM && m_screen_num != 0)
                     {
                         if (ttt.ResetBoard() == TTT_SUCCESS)
                         {
-                            gfx->fillScreen(BLACK);
+                            ClearTicTacToeTiles();
                         }
                         
                         DisplayTicTacToe();
+                    }
+                    else if (CMD[2] == TTT_HARD_MODE_SYM)
+                    {
+                        m_ttt_hard_mode = !m_ttt_hard_mode;
+                        ttt.SetHardMode(m_ttt_hard_mode);
+
+                        if (m_screen_num == 0)
+                        {
+                            gfx->setCursor(UI_SETTINGS_TTT_MODE.x+13,UI_SETTINGS_TTT_MODE.y+5);
+                            gfx->setTextSize(5);
+                            gfx->setTextColor(GREEN);
+
+                            if (m_ttt_hard_mode) {
+                                gfx->setTextColor(GREEN);
+                            }
+                            else {
+                                gfx->setTextColor(BLACK);
+                            }
+
+                            gfx->print("X");
+                        }
                     }
                 }
             }

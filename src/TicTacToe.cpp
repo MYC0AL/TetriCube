@@ -157,7 +157,9 @@ ttt_error_t TicTacToe::UpdateHardMode(unsigned int& num, unsigned int prev_moves
 
     if (count >= 3)
     {
+        // Mask out the oldest previous move
         num ^= prev_moves[offset];
+
     }
 
     prev_moves[offset] &= 0b000000000;

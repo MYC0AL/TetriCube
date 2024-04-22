@@ -90,6 +90,7 @@ private:
     state_code_t UpdateAlphaWheels(int wheel, bool next);
 
     state_code_t DisplayTicTacToe();
+    state_code_t ClearTicTacToeTiles();
     int DecodeTicTacToeTouch();
 
 public:
@@ -137,6 +138,9 @@ public:
 
     // Initials Entering
     char m_alpha_wheel[ALPHA_WHEEL_SIZE];
+
+    // Tic-Tac-Toe Settings
+    bool m_ttt_hard_mode = false;
 
 };
 
