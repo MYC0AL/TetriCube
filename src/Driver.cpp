@@ -87,6 +87,10 @@ void StateDriver::state_controller()
                     {
                         request_state_change(STATE_TTT);
                     }
+                    else if (dHelp.touch_decoder(UI_PONG) == TC_UI_TOUCH)
+                    {
+                        request_state_change(STATE_PONG);
+                    }
                     else if (dHelp.touch_decoder(UI_SETTINGS) == TC_UI_TOUCH)
                     {
                         request_state_change(STATE_SETTINGS);
@@ -385,6 +389,29 @@ void StateDriver::state_controller()
                         {
                             ClearTicTacToeTiles();
                             DisplayTicTacToe();
+                        }
+                    }
+                }
+            }
+            break;
+
+            case STATE_PONG:
+            {
+                if (dHelp.touch_touched())
+                {
+                    if (m_screen_num == 1)
+                    {
+                        if (dHelp.touch_decoder(UI_TETRIS_RESET) == TC_UI_TOUCH)
+                        {
+                            std::string pongResetCMD;
+                            pongResetCMD += m_screen_num + '0';
+                            pongResetCMD += 'N';
+                            pongResetCMD += PONG_RESET_SYM;
+                            el.SendCMD(pongResetCMD);
+                        }
+                        else if (dHelp.touch_decoder(UI_HOME) == TC_UI_TOUCH)
+                        {
+                            request_state_change(STATE_SELECT_GAME);
                         }
                     }
                 }
@@ -850,13 +877,30 @@ void StateDriver::update_new_state(state_t new_state)
             }
             break;
         }
+
+        case STATE_PONG:
+        {
+            if (m_screen_num == 1)
+            {
+                dHelp.drawImage(SCENE_PONG_PAUSE.image);
+                dHelp.active_ui = SCENE_PONG_PAUSE.ui_elements;
+            }
+            else
+            {
+                dHelp.clear_screen();
+
+                // Reset pong
+            }
+            break;
+        }
+        
     }
 
     // Update private state variable 
     drv_state = new_state;
 
     // -----DEBUG-----
-    //dHelp.drawUI();
+    dHelp.drawUI();
 
     // Pause between state transistions
     delay(400);
@@ -882,7 +926,8 @@ state_code_t StateDriver::request_state_change(state_t new_state)
     if (m_screen_num == 0 || 
     (drv_state == STATE_TETRIS_END && m_screen_num == 4) || 
     (drv_state == STATE_TETRIS && m_screen_num == 1) ||
-    (drv_state == STATE_RUBIKS && m_screen_num == 1))
+    (drv_state == STATE_RUBIKS && m_screen_num == 1) ||
+    (drv_state == STATE_PONG && m_screen_num == 1))
     {
         switch (drv_state)
         {
@@ -903,7 +948,8 @@ state_code_t StateDriver::request_state_change(state_t new_state)
             case STATE_SELECT_GAME:
                 if (new_state == STATE_START || new_state == STATE_TETRIS ||
                     new_state == STATE_RUBIKS || new_state == STATE_SETTINGS ||
-                    new_state == STATE_HIGH_SCORES || new_state == STATE_TTT)
+                    new_state == STATE_HIGH_SCORES || new_state == STATE_TTT ||
+                    new_state == STATE_PONG)
                 {
                     retCode = STATE_SUCCESS;
                 }
@@ -966,6 +1012,13 @@ state_code_t StateDriver::request_state_change(state_t new_state)
                     retCode = STATE_SUCCESS;
                 }
                 break;
+            
+            case STATE_PONG:
+                if (new_state == STATE_SELECT_GAME)
+                {
+                    retCode = STATE_SUCCESS;
+                }
+                break;
         }
     } 
 
@@ -986,7 +1039,8 @@ state_code_t StateDriver::broadcast_state_transition(state_t new_state)
 {
     state_code_t ret_code = STATE_ERROR;
 
-    if (m_screen_num == 0 || drv_state == STATE_TETRIS || drv_state == STATE_RUBIKS || (m_screen_num == 4 && drv_state == STATE_TETRIS_END))
+    if (m_screen_num == 0 || drv_state == STATE_TETRIS || drv_state == STATE_RUBIKS ||
+       (m_screen_num == 4 && drv_state == STATE_TETRIS_END) || drv_state == STATE_PONG)
     {
         bool formedStr = false;
 
@@ -1189,6 +1243,7 @@ char StateDriver::StateToChar(state_t state)
         case STATE_RUBIKS_PAUSE:ret_val ='K'; break;
         case STATE_RUBIKS_END : ret_val ='F'; break;
         case STATE_TTT:         ret_val ='O'; break;
+        case STATE_PONG:        ret_val ='N'; break;
     }
     return ret_val;
 }
@@ -1204,18 +1259,19 @@ state_t StateDriver::CharToState(char ch)
 
     switch (ch)
     {
-        case 'I': ret_val = STATE_INIT; break;
-        case 'S': ret_val = STATE_START; break;
-        case 'G': ret_val = STATE_SELECT_GAME; break;
-        case 'E': ret_val = STATE_SETTINGS; break;
-        case 'H': ret_val = STATE_HIGH_SCORES; break;
-        case 'T': ret_val = STATE_TETRIS; break;
+        case 'I': ret_val = STATE_INIT;         break;
+        case 'S': ret_val = STATE_START;        break;
+        case 'G': ret_val = STATE_SELECT_GAME;  break;
+        case 'E': ret_val = STATE_SETTINGS;     break;
+        case 'H': ret_val = STATE_HIGH_SCORES;  break;
+        case 'T': ret_val = STATE_TETRIS;       break;
         case 'P': ret_val = STATE_TETRIS_PAUSE; break;
-        case 'Y': ret_val = STATE_TETRIS_END; break;
-        case 'R': ret_val = STATE_RUBIKS; break;
+        case 'Y': ret_val = STATE_TETRIS_END;   break;
+        case 'R': ret_val = STATE_RUBIKS;       break;
         case 'K': ret_val = STATE_RUBIKS_PAUSE; break;
-        case 'F': ret_val = STATE_RUBIKS_END; break;
-        case 'O': ret_val = STATE_TTT; break;
+        case 'F': ret_val = STATE_RUBIKS_END;   break;
+        case 'O': ret_val = STATE_TTT;          break;
+        case 'N': ret_val = STATE_PONG;         break;
     }
     return ret_val;
 }

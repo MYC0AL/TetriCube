@@ -22,6 +22,7 @@ const UIButton UI_BACK =                {10,395,85,85};
 const UIButton UI_RUBIKS =              {75,100,135,135};
 const UIButton UI_TETRIS =              {270,100,135,130};
 const UIButton UI_TTT =                 {75,255,135,135};
+const UIButton UI_PONG =                {270,255,135,135};
 const UIButton UI_SETTINGS =            {140,410,200,60};
 const UIButton UI_HIGH_SCORES =         {385,395,85,85};
 const UIButton UI_HOME =                {395,395,85,85};
@@ -60,7 +61,7 @@ const UIButton UI_TTT_TILE_8 =          {330,330,150,150};
 const UIButton UI_SETTINGS_TTT_MODE =   {400,90,50,50};
 // Scenes
 const Scene SCENE_HOME = {"/play.jpg", {UI_START} };
-const Scene SCENE_SELECT_GAME = {"/select_game.jpeg", {UI_BACK, UI_TETRIS, UI_RUBIKS, UI_TTT, UI_SETTINGS, UI_HIGH_SCORES}};
+const Scene SCENE_SELECT_GAME = {"/select_game.jpeg", {UI_BACK, UI_TETRIS, UI_RUBIKS, UI_TTT, UI_PONG, UI_SETTINGS, UI_HIGH_SCORES}};
 const Scene SCENE_SETTINGS = {"/settings.jpg", {UI_BACK, UI_SETTINGS_TTT_MODE} };
 const Scene SCENE_HIGH_SCORES = {"/high_scores.jpg", {UI_BACK}};
 
@@ -88,7 +89,7 @@ const Scene SCENE_RUBIKS_PAUSE = {"/cube_pause.jpg",{UI_RUBIKS_BACK_TO_GAME,UI_H
 const Scene SCENE_TTT_PAUSE = {"/tic_tac_toe_reset.jpeg",{UI_TETRIS_RESET,UI_HOME}};
 
 // Pong
-const Scene SCENE_PONG_PAUSE = {"/pong_pause.jpeg",{UI_TETRIS_BACK_TO_GAME,UI_HOME,UI_TETRIS_RESET}};
+const Scene SCENE_PONG_PAUSE = {"/tic_tac_toe_reset.jpeg",{UI_TETRIS_RESET,UI_HOME}};
 
 // DEBUG Screen Num Select
 const UIButton UI_SCREEN_0 = {120,190,100,100};
