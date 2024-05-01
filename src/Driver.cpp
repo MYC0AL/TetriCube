@@ -415,6 +415,15 @@ void StateDriver::state_controller()
                         }
                     }
                 }
+
+                if (m_screen_num != 1)
+                {
+                    pong.Play();
+                    if (dHelp.touch_touched())
+                    {
+                        pong.MovePaddle(480-dHelp.current_touches[0].x);
+                    }
+                }
             }
             break;
         }
@@ -659,6 +668,7 @@ void StateDriver::update_new_state(state_t new_state)
 
         case STATE_SELECT_GAME:
         {
+
             if (m_screen_num == 0) {
                 dHelp.drawImage(SCENE_SELECT_GAME.image);
                 dHelp.active_ui = SCENE_SELECT_GAME.ui_elements;
@@ -769,6 +779,7 @@ void StateDriver::update_new_state(state_t new_state)
 
         case STATE_RUBIKS:
         {// <-- must use brackets here to stop 'switch' related errors
+
             // Clear screen to reset background
             dHelp.clear_screen();
 
@@ -888,8 +899,9 @@ void StateDriver::update_new_state(state_t new_state)
             else
             {
                 dHelp.clear_screen();
-
-                // Reset pong
+                
+                pong.setScreenNum(m_screen_num);
+                pong.Reset();
             }
             break;
         }

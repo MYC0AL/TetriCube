@@ -6,6 +6,7 @@
 #include "ExternalLink.h"
 #include "Cube.h"
 #include "TicTacToe.h"
+#include "Pong.h"
 #include <ctime>
 #include <cmath>
 #include <sstream>
@@ -109,6 +110,7 @@ public:
     Cube rbx;
     Tetris tetris;
     TicTacToe ttt;
+    Pong pong;
 
     // Move timer for tetris
     unsigned long m_tetris_move_timer;

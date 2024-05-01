@@ -139,7 +139,7 @@ void DisplayHelper::gfx_init()
 {
     //TODO: update rotations, (changes where 0,0 is)
     gfx->begin();
-    gfx->setRotation(ROTATION_RIGHT);
+    gfx->setRotation(ROTATION_INVERTED);
 }
 
 /******************************************************************
@@ -174,10 +174,10 @@ tc_ret_code DisplayHelper::touch_decoder(UIButton button)
 
     for (uint8_t i = 0; i < touch_count && returnCode != TC_UI_TOUCH; ++i)
     {
-        if (current_touches[i].x > button.x && 
-            current_touches[i].x < button.x + button.w &&
-            current_touches[i].y > button.y &&
-            current_touches[i].y < button.y + button.h)
+        if (480-current_touches[i].x > button.x && 
+            480-current_touches[i].x < button.x + button.w &&
+            480-current_touches[i].y > button.y &&
+            480-current_touches[i].y < button.y + button.h)
         {
             // Set return code
             returnCode = TC_UI_TOUCH;

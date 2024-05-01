@@ -156,7 +156,7 @@ short Cube::DirSwiped()
 ******************************************************************/
 void Cube::TouchUpdate(uint16_t touch_x, uint16_t touch_y)
 {    
-    short sqTouch = SqTapped(touch_x, touch_y);
+    short sqTouch = SqTapped(480-touch_x, 480-touch_y);
     if (sqTouch != -1 && sqTouch != m_prevSq)
     {
         m_prevSq = sqTouch;

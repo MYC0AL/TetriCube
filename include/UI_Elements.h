@@ -89,7 +89,7 @@ const Scene SCENE_RUBIKS_PAUSE = {"/cube_pause.jpg",{UI_RUBIKS_BACK_TO_GAME,UI_H
 const Scene SCENE_TTT_PAUSE = {"/tic_tac_toe_reset.jpeg",{UI_TETRIS_RESET,UI_HOME}};
 
 // Pong
-const Scene SCENE_PONG_PAUSE = {"/tic_tac_toe_reset.jpeg",{UI_TETRIS_RESET,UI_HOME}};
+const Scene SCENE_PONG_PAUSE = {"/pong_pause.jpeg",{UI_TETRIS_RESET,UI_HOME}};
 
 // DEBUG Screen Num Select
 const UIButton UI_SCREEN_0 = {120,190,100,100};
