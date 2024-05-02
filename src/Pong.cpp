@@ -6,65 +6,79 @@ pong_error_t Pong::Play()
 
     static clock_t prev_tick = 0;
 
-    // Check ticks to see if ball should update
-    if (clock() - prev_tick >= (BALL_MAX_SPEED - m_ball.S) + PONG_BASE_TICK_RATE)
+    if (m_ball_on_screen)
     {
-        prev_tick = clock();
-
-        pong_collision_t coll_type = CheckWallCollision();
-        if (coll_type != NO_COLLISION) // Check if moving the ball would cause a collision
+         // Check ticks to see if ball should update
+        if (clock() - prev_tick >= (BALL_MAX_SPEED - m_ball.S) + PONG_BASE_TICK_RATE)
         {
-            if (coll_type == TOP_WALL || coll_type == BOTTOM_WALL) {
-                m_ball.Vy = abs(m_ball.Vy) < BALL_MAX_VEL ? -(m_ball.Vy) : -m_ball.Vy;
-                float new_speed = CalculateSpeed(m_ball.Vx,m_ball.Vy);
-                m_ball.S = new_speed < BALL_MAX_SPEED ? new_speed : BALL_MAX_SPEED;
-                //CheckGoal();
-            }
-            else if (coll_type == LEFT_WALL || coll_type == RIGHT_WALL) {
-                m_ball.Vx = abs(m_ball.Vx) < BALL_MAX_VEL ? -(m_ball.Vx) : -m_ball.Vx;
-                float new_speed = CalculateSpeed(m_ball.Vx,m_ball.Vy);
-                m_ball.S = new_speed < BALL_MAX_SPEED ? new_speed : BALL_MAX_SPEED;
-            }
-        }
+            prev_tick = clock();
 
-        //Render the ball every frame, the ball is always moving
-        RenderBall( (m_ball.x + m_ball.Vx), (m_ball.y + m_ball.Vy) );
+            //Render the ball every frame, the ball is always moving
+            RenderBall( (m_ball.x + m_ball.Vx), (m_ball.y + m_ball.Vy) );
 
-        // Check paddles for collision
-        pong_collision_t coll1 = CheckPaddleCollision(m_paddle_1);
-        pong_collision_t coll2 = CheckPaddleCollision(m_paddle_2);
-
-        if ( coll1 != pong_collision_t::NO_COLLISION )
-        {
-            CollideWithPaddle(coll1);
-            RenderPaddle(m_paddle_1, m_paddle_1.x);
-        }
-        else if (coll2 != pong_collision_t::NO_COLLISION )
-        {
-            CollideWithPaddle(coll2);
-            RenderPaddle(m_paddle_2, m_paddle_2.x);
-        }
-
-        // Update paddle position at end of frame
-        switch (m_paddle_move)
-        {
-            case LEFT_PADDLE_MOVE:
+            pong_collision_t coll_type = CheckWallCollision();
+            if (coll_type != NO_COLLISION) // Check if moving the ball would cause a collision
             {
-                int new_pos = m_paddle_2.x - PADDLE_SPEED < 0 ? 0 : m_paddle_2.x - PADDLE_SPEED;
-                RenderPaddle(m_paddle_2, new_pos);
-                m_paddle_move = NO_PADDLE_MOVE;
+                if (coll_type == TOP_WALL)
+                {
+                    if (m_screen_num == 5) {
+                        ret_val = ScoreGoal(true); // P1 scored
+                    }
+                    else {
+                        m_ball_move_screen = true;
+                        m_ball_on_screen = false;
+                        gfx->fillRect(m_ball.x,m_ball.y,BALL_WIDTH,BALL_HEIGHT,ARENA_BG_COLOR);
+                    }
+                }
+                else if (coll_type == BOTTOM_WALL) 
+                {
+                    if (m_screen_num == 4) {
+                        ret_val = ScoreGoal(false); // P2 scored
+                    }
+                    else {
+                        m_ball_move_screen = true;
+                        m_ball_on_screen = false;
+                        gfx->fillRect(m_ball.x,m_ball.y,BALL_WIDTH,BALL_HEIGHT,ARENA_BG_COLOR);
+                    }
+                }
+                else if (coll_type == LEFT_WALL || coll_type == RIGHT_WALL) {
+                    m_ball.Vx = abs(m_ball.Vx) < BALL_MAX_VEL ? -(m_ball.Vx) : -m_ball.Vx;
+                    float new_speed = CalculateSpeed(m_ball.Vx,m_ball.Vy);
+                    m_ball.S = new_speed < BALL_MAX_SPEED ? new_speed : BALL_MAX_SPEED;
+                }
             }
-            break;
 
-            case RIGHT_PADDLE_MOVE:
+            // Check paddles for collision
+            pong_collision_t coll = CheckPaddleCollision(m_paddle);
+
+            if ( coll != pong_collision_t::NO_COLLISION )
             {
-                int new_pos = m_paddle_2.x + PADDLE_SPEED > ARENA_MAX_WIDTH - PADDLE_WIDTH ? ARENA_MAX_WIDTH - PADDLE_WIDTH : m_paddle_2.x + PADDLE_SPEED;
-                RenderPaddle(m_paddle_2, new_pos);
-                m_paddle_move = NO_PADDLE_MOVE;
+                CollideWithPaddle(coll);
+                RenderPaddle(m_paddle, m_paddle.x);
             }
-            break;
         }
-    }    
+    }
+
+    // Update paddle position at end of frame
+    switch (m_paddle_move)
+    {
+        case LEFT_PADDLE_MOVE:
+        {
+            int new_pos = m_paddle.x - PADDLE_SPEED < 0 ? 0 : m_paddle.x - PADDLE_SPEED;
+            RenderPaddle(m_paddle, new_pos);
+            m_paddle_move = NO_PADDLE_MOVE;
+        }
+        break;
+
+        case RIGHT_PADDLE_MOVE:
+        {
+            int new_pos = m_paddle.x + PADDLE_SPEED > ARENA_MAX_WIDTH - PADDLE_WIDTH ? ARENA_MAX_WIDTH - PADDLE_WIDTH : m_paddle.x + PADDLE_SPEED;
+            RenderPaddle(m_paddle, new_pos);
+            m_paddle_move = NO_PADDLE_MOVE;
+        }
+        break;
+    }
+
     return ret_val;
 }
 
@@ -72,15 +86,15 @@ pong_error_t Pong::MovePaddle(float x)
 {
     pong_error_t ret_val = PONG_SUCCESS;
 
-    if (x >= m_paddle_2.x + PADDLE_CENTER/2 && x <= m_paddle_2.x + PADDLE_CENTER/2 + PADDLE_WIDTH)
+    if (x >= m_paddle.x + PADDLE_CENTER/2 && x <= m_paddle.x + PADDLE_WIDTH - PADDLE_CENTER/2)
     {
         m_paddle_move = NO_PADDLE_MOVE;
     }
-    else if (x < m_paddle_2.x + PADDLE_CENTER)
+    else if (x < m_paddle.x + PADDLE_CENTER)
     {
         m_paddle_move = LEFT_PADDLE_MOVE;
     }
-    else if (x > m_paddle_2.x + PADDLE_CENTER)
+    else if (x > m_paddle.x + PADDLE_CENTER)
     {
         m_paddle_move = RIGHT_PADDLE_MOVE;
     }
@@ -93,26 +107,49 @@ pong_error_t Pong::Reset()
 {
     pong_error_t ret_val = PONG_SUCCESS;
 
-    m_paddle_1.x = ARENA_MAX_WIDTH/2-PADDLE_WIDTH/2;
-    m_paddle_1.y = 60;
-    m_paddle_1.Vx = 0;
+    // Clear ball on screen flag
+    m_ball_on_screen = false;
 
-    m_paddle_2.x = ARENA_MAX_WIDTH/2-PADDLE_WIDTH/2;
-    m_paddle_2.y = ARENA_MAX_HEIGHT - 60 - PADDLE_HEIGHT;
-    m_paddle_2.Vx = 0;
+    // Reset screen
+    gfx->fillScreen(ARENA_BG_COLOR);
 
-    gfx->fillRect(m_ball.x,m_ball.y,BALL_WIDTH,BALL_HEIGHT,ARENA_BG_COLOR);
+    if (m_screen_num == 4)
+    {
+        m_paddle.x = ARENA_MAX_WIDTH/2-PADDLE_WIDTH/2;
+        m_paddle.y = ARENA_MAX_HEIGHT - 60 - PADDLE_HEIGHT;
+        m_paddle.Vx = 0;
 
-    m_ball.x = ARENA_MAX_WIDTH/2;
-    m_ball.y = ARENA_MAX_HEIGHT/2;
-    m_ball.Vx = BALL_X_START_VEL;
-    m_ball.Vy = BALL_Y_START_VEL;
+        gfx->fillRect(m_ball.x,m_ball.y,BALL_WIDTH,BALL_HEIGHT,ARENA_BG_COLOR);
 
+        m_ball.x = ARENA_MAX_WIDTH/2;
+        m_ball.y = ARENA_MAX_HEIGHT/2;
+        m_ball.Vx = BALL_X_START_VEL;
+        m_ball.Vy = BALL_Y_START_VEL;
 
-    ret_val = RenderBall(m_ball.x, m_ball.y);
+        // Set ball on screen flag
+        m_ball_on_screen = true;
 
-    ret_val = RenderPaddle(m_paddle_1, m_paddle_1.x);
-    ret_val = RenderPaddle(m_paddle_2, m_paddle_2.x);
+        RenderBall(m_ball.x, m_ball.y);
+        RenderPaddle(m_paddle, m_paddle.x);
+    }
+    else if (m_screen_num == 5)
+    {
+        m_paddle.x = ARENA_MAX_WIDTH/2-PADDLE_WIDTH/2;
+        m_paddle.y = 60;
+        m_paddle.Vx = 0;
+        RenderPaddle(m_paddle, m_paddle.x);
+    }
+    else
+    {
+        m_ball.x = ARENA_OUT;
+        m_ball.y = ARENA_OUT;
+        m_ball.Vx = 0;
+        m_ball.Vy = 0;
+
+        m_paddle.x = ARENA_OUT;
+        m_paddle.y = ARENA_OUT;
+        m_paddle.Vx = 0;
+    }
 
     return ret_val;
 }
@@ -120,6 +157,28 @@ pong_error_t Pong::Reset()
 pong_error_t Pong::setScreenNum(int screen_num)
 {
     m_screen_num = screen_num;
+    return PONG_SUCCESS;
+}
+
+pong_error_t Pong::getDetails(Ball& active_ball, bool& ball_status, bool& ball_move_screen)
+{
+    active_ball = m_ball;
+    ball_status = m_ball_on_screen;
+
+    bool temp_move_screen = m_ball_move_screen;
+    ball_move_screen = temp_move_screen;
+
+    // Reset move screen flag
+    m_ball_move_screen = false;
+
+    return PONG_SUCCESS;
+}
+
+pong_error_t Pong::setBall(const Ball &new_ball)
+{
+    m_ball = new_ball;
+    m_ball_on_screen = true;
+    m_ball.S = CalculateSpeed(m_ball.Vx,m_ball.Vy);
     return PONG_SUCCESS;
 }
 
@@ -148,7 +207,7 @@ pong_error_t Pong::RenderBall(int x, int y)
 
     // Update position of ball, and ensure it is in the arena
     m_ball.x = std::max(0, std::min(x, ARENA_MAX_WIDTH-BALL_WIDTH));
-    m_ball.y = std::max(0, std::min(y, ARENA_MAX_HEIGHT-BALL_HEIGHT));
+    m_ball.y = y;//std::max(0, std::min(y, ARENA_MAX_HEIGHT-BALL_HEIGHT));
 
     // Set ball back to ball color in new position
     gfx->fillRect(m_ball.x,m_ball.y,BALL_WIDTH,BALL_HEIGHT,BALL_COLOR);
@@ -161,16 +220,16 @@ pong_collision_t Pong::CheckWallCollision()
     pong_collision_t coll_type = NO_COLLISION;
 
     if (m_ball.x + BALL_WIDTH >= ARENA_MAX_WIDTH) {
-        coll_type = LEFT_WALL;
-    }
-    else if (m_ball.x <= 0) {
         coll_type = RIGHT_WALL;
     }
+    else if (m_ball.x <= 0) {
+        coll_type = LEFT_WALL;
+    }
     else if (m_ball.y + BALL_HEIGHT >= ARENA_MAX_HEIGHT) {
-        coll_type = TOP_WALL;
+        coll_type = BOTTOM_WALL;
     }
     else if (m_ball.y <= 0) {
-        coll_type = BOTTOM_WALL;
+        coll_type = TOP_WALL;
     }
 
     return coll_type;
@@ -247,10 +306,10 @@ pong_error_t Pong::CollideWithPaddle(pong_collision_t coll)
     return ret_val;
 }
 
-pong_error_t Pong::CheckGoal()
+pong_error_t Pong::ScoreGoal(bool p1Scored)
 {
     Reset();
-    return PONG_SUCCESS;
+    return p1Scored ? PONG_P1_SCORED : PONG_P2_SCORED;
 }
 
 float Pong::CalculateSpeed(float Vx, float Vy)

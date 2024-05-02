@@ -28,6 +28,7 @@
 #define TETRIS_RESET_SYM 'X'
 #define TTT_RESET_SYM 'X'
 #define PONG_RESET_SYM 'X'
+#define PONG_SET_BALL_SYM 'B'
 #define TTT_HARD_MODE_SYM 'H'
 
 #define RETRY_COUNT 5

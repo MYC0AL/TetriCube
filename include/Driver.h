@@ -10,6 +10,7 @@
 #include <ctime>
 #include <cmath>
 #include <sstream>
+#include <iomanip>
 
 // Transmit data structure
 // Num of sender unit symbol data
@@ -22,12 +23,14 @@
 //      T: tetris
 //      C: cube
 //      O: TicTacToe
+//      P: Pong
 
 // Data decode:
 //      S: I,S,G,E,H,T,Y,R,F,O
 //      T: R,L,D,^,U,I,Y
 //      C: 0,1,2,3,4,5,6,7,8,9,A,B  (A: 10,  B: 11)
 //      O: R
+//      P: B,S,R
 
 // Defines
 #define MSG_SIZE 3
@@ -93,6 +96,10 @@ private:
     state_code_t DisplayTicTacToe();
     state_code_t ClearTicTacToeTiles();
     int DecodeTicTacToeTouch();
+
+    state_code_t SendSetBallCMD(const Ball& active_ball, int new_y_pos);
+    std::string ftoa(float num);
+    int findIndex(const int arr[], int size, int num_to_find);
 
 public:
 

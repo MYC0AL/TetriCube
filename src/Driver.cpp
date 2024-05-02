@@ -397,15 +397,15 @@ void StateDriver::state_controller()
 
             case STATE_PONG:
             {
-                if (dHelp.touch_touched())
+                if (m_screen_num == 1)
                 {
-                    if (m_screen_num == 1)
+                    if (dHelp.touch_touched())
                     {
                         if (dHelp.touch_decoder(UI_TETRIS_RESET) == TC_UI_TOUCH)
                         {
                             std::string pongResetCMD;
                             pongResetCMD += m_screen_num + '0';
-                            pongResetCMD += 'N';
+                            pongResetCMD += 'P';
                             pongResetCMD += PONG_RESET_SYM;
                             el.SendCMD(pongResetCMD);
                         }
@@ -416,12 +416,56 @@ void StateDriver::state_controller()
                     }
                 }
 
-                if (m_screen_num != 1)
+                // If the screen is an active pong screen
+                if (m_screen_num != 1 && m_screen_num != 3)
                 {
-                    pong.Play();
-                    if (dHelp.touch_touched())
+
+                    // Update paddles on end screens
+                    if (m_screen_num == 4 || m_screen_num == 5)
                     {
-                        pong.MovePaddle(480-dHelp.current_touches[0].x);
+                        if (dHelp.touch_touched())
+                        {
+                            pong.MovePaddle(480-dHelp.current_touches[0].x);
+                        }
+                    }
+
+                    // Update the game
+                    pong_error_t pong_ret = pong.Play();
+                    if (pong_ret == PONG_P1_SCORED)
+                    {
+                        std::string pongResetCMD;
+                        pongResetCMD += m_screen_num + '0';
+                        pongResetCMD += 'P';
+                        pongResetCMD += PONG_RESET_SYM;
+                        el.SendCMD(pongResetCMD);
+                    }
+                    else if (pong_ret == PONG_P2_SCORED)
+                    {
+                        std::string pongResetCMD;
+                        pongResetCMD += m_screen_num + '0';
+                        pongResetCMD += 'P';
+                        pongResetCMD += PONG_RESET_SYM;
+                        el.SendCMD(pongResetCMD);
+                    }
+
+                    Ball active_ball;
+                    bool ball_on_screen;
+                    bool ball_move_screen;
+
+                    // Get the current details of pong
+                    pong.getDetails(active_ball,ball_on_screen,ball_move_screen);
+
+                    // If ball needs to jump screens
+                    if (ball_move_screen)
+                    {
+                        if (active_ball.y <= 0 + BALL_HEIGHT/2 && active_ball.Vy < 0) // Going up
+                        {
+                            SendSetBallCMD(active_ball, ARENA_MAX_HEIGHT-BALL_HEIGHT);
+                        }
+                        else if (active_ball.y >= ARENA_MAX_HEIGHT-BALL_HEIGHT && active_ball.Vy > 0) // Going down
+                        {
+                            SendSetBallCMD(active_ball, 0);
+                        }
                     }
                 }
             }
@@ -628,6 +672,86 @@ int StateDriver::DecodeTicTacToeTouch()
     {
         ret_val = 8;
     }
+    return ret_val;
+}
+
+/******************************************************************
+ * @brief Send the set ball CMD for pong
+ * @param active_ball Current active ball in pong
+ * @param new_y_pos New Y position of active ball
+ * @return STATE_SUCCESS
+******************************************************************/
+state_code_t StateDriver::SendSetBallCMD(const Ball &active_ball, int new_y_pos)
+{
+    std::string pongSetBallCMD; // 0 P B x 120 y 480 V 3.4 v 1.2
+    pongSetBallCMD += std::to_string(m_screen_num);
+    pongSetBallCMD += 'P';
+    pongSetBallCMD += PONG_SET_BALL_SYM;
+    pongSetBallCMD += 'x'; pongSetBallCMD += std::to_string(active_ball.x);
+    pongSetBallCMD += 'y'; pongSetBallCMD += std::to_string(new_y_pos);
+    pongSetBallCMD += 'V'; pongSetBallCMD += ftoa(active_ball.Vx);
+    pongSetBallCMD += 'v'; pongSetBallCMD += ftoa(active_ball.Vy);
+    el.SendCMD(pongSetBallCMD);
+    return STATE_SUCCESS;
+}
+
+/******************************************************************
+ * @brief Convert a float to ascii values in a string
+ * @param num Number to convert
+ * @return String containing float value
+******************************************************************/
+std::string StateDriver::ftoa(float num)
+{
+    // Convert the absolute value of the number to string
+    std::string str = std::to_string(std::abs(num));
+    
+    // Find the position of the decimal point
+    size_t decimalPos = str.find('.');
+    if (decimalPos == std::string::npos) {
+        // If there's no decimal point, add it at the end
+        str += '.';
+        decimalPos = str.size() - 1;
+    }
+    
+    // Calculate the number of digits after the decimal point
+    int decimalPlaces = std::min(2, static_cast<int>(str.size()) - static_cast<int>(decimalPos) - 1);
+    
+    // Pad with zeros if necessary
+    for (int i = decimalPlaces; i < 2; ++i) {
+        str += '0';
+    }
+    
+    // Truncate or round the string to the desired precision
+    str = str.substr(0, decimalPos + decimalPlaces + 1);
+    
+    // If the original number was negative, add the minus sign
+    if (num < 0) {
+        str.insert(0, 1, '-');
+    }
+    
+    return str;
+}
+
+/******************************************************************
+ * @brief Helper function that finds the index of a desired number
+ * in an array
+ * @param arr Array containing integers to be searched
+ * @param size Size of arr
+ * @param num_to_find Number to search for
+ * @return Index of number found or -1 if not found
+******************************************************************/
+int StateDriver::findIndex(const int arr[], int size, int num_to_find)
+{
+    int ret_val = -1;
+
+    for(int i = 0; i < size; i++)
+    {
+        if (arr[i] == num_to_find)
+        {
+            ret_val = i;
+        }
+    }
+
     return ret_val;
 }
 
@@ -1218,6 +1342,45 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
 
                             gfx->print("X");
                         }
+                    }
+                }
+            }
+            break;
+
+            case 'P':
+            {
+                if (drv_state == STATE_PONG)
+                {
+                    if (CMD[2] == PONG_SET_BALL_SYM) // 0 P B x 120 y 480 V 3.4 v 1.2
+                    {
+                        //0PBx120y480V3.4v1.2
+                        int xIdx = CMD.find('x');
+                        int yIdx = CMD.find('y');
+                        int VxIdx = CMD.find('V');
+                        int VyIdx = CMD.find('v');
+
+
+                        // Order of screens, from bottom to top
+                        const int SCREEN_ORDER[] = {4,0,5};
+                        int find_idx = findIndex(SCREEN_ORDER, 3, sender_screen);
+
+                        Ball new_ball;
+                        new_ball.x = atoi(CMD.substr(xIdx+1,yIdx-xIdx-1).c_str());
+                        new_ball.y = atoi(CMD.substr(yIdx+1,VxIdx-yIdx-1).c_str());
+                        new_ball.Vx = atof(CMD.substr(VxIdx+1,VyIdx-VxIdx-1).c_str());
+                        new_ball.Vy = atof(CMD.substr(VyIdx+1).c_str());
+
+                        int next_idx = new_ball.Vy > 0 ? find_idx - 1 : find_idx + 1;
+
+                        if (m_screen_num == SCREEN_ORDER[next_idx])
+                        {
+                            pong.setBall(new_ball);
+                            log_printf("setting ball");
+                        }
+                    }
+                    else if (CMD[2] == PONG_RESET_SYM)
+                    {
+                        pong.Reset();
                     }
                 }
             }

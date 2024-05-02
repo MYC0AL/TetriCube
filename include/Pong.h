@@ -14,18 +14,19 @@
 #define BALL_COLOR MAGENTA
 #define BALL_MAX_SPEED 10
 #define BALL_MAX_VEL 10
-#define BALL_X_START_VEL 2
-#define BALL_Y_START_VEL 3
+#define BALL_X_START_VEL 1
+#define BALL_Y_START_VEL -4
 
 // Arena Defines
 #define ARENA_MAX_HEIGHT 479
 #define ARENA_MAX_WIDTH 479
 #define ARENA_BG_COLOR BLACK
+#define ARENA_OUT -INT_MAX
 
 // General Defines
 #define PONG_BASE_TICK_RATE 5
 
-enum pong_error_t {PONG_SUCCESS, PONG_ERROR};
+enum pong_error_t {PONG_SUCCESS, PONG_ERROR, PONG_P1_SCORED, PONG_P2_SCORED};
 
 enum pong_collision_t { NO_COLLISION,
                         TOP_WALL, TOP_PADDLE,
@@ -62,6 +63,9 @@ public:
     pong_error_t Reset();
     pong_error_t setScreenNum(int screen_num);
 
+    pong_error_t getDetails(Ball& active_ball, bool& ball_status, bool& ball_move_screen);
+    pong_error_t setBall(const Ball& new_ball);
+
 private:
 
     pong_error_t RenderPaddle(Paddle& paddle, float x);
@@ -69,12 +73,12 @@ private:
     pong_collision_t CheckWallCollision();
     pong_collision_t CheckPaddleCollision(const Paddle& paddle);
     pong_error_t CollideWithPaddle(pong_collision_t coll);
-    pong_error_t CheckGoal();
+    pong_error_t ScoreGoal(bool p1Scored);
     float CalculateSpeed(float Vx, float Vy);
 
     // Objects
-    Paddle m_paddle_1;
-    Paddle m_paddle_2;
+    Paddle m_paddle;
+    //Paddle m_paddle_2;
     Ball m_ball;
 
     // Screen Num
@@ -83,5 +87,7 @@ private:
     // Flags
     bool m_has_collided = false;
     pong_paddle_move_t m_paddle_move = NO_PADDLE_MOVE;
+    bool m_ball_on_screen = false;
+    bool m_ball_move_screen = false;
 
 };
