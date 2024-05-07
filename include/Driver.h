@@ -36,7 +36,15 @@
 #define MSG_SIZE 3
 #define SCREEN_IDX 0
 #define SYMBOL_IDX 1
-//#define DATA_IDX 2
+
+// Most important defines
+#define SCREEN_NUM 2
+#define DEBUG_MODE 0
+// D    #
+// 10 - 3
+// 9 - 0
+// 5 - 5
+// 3 - 1
 
 // High Score File
 #define PODIUM_SIZE 100
@@ -62,8 +70,6 @@ enum state_code_t {STATE_SUCCESS, STATE_ERROR};
 class StateDriver
 {
 private:
-
-    state_t drv_state;
     
     state_code_t broadcast_state_transition(state_t new_state);
     void update_new_state(state_t new_state);
@@ -100,8 +106,12 @@ private:
     state_code_t SendSetBallCMD(const Ball& active_ball, int new_y_pos);
     std::string ftoa(float num);
     int findIndex(const int arr[], int size, int num_to_find);
+    state_code_t PrintPongScores();
 
 public:
+
+    // Current Driver state
+    state_t drv_state;
 
     // Has-a relationship with display helper
     DisplayHelper dHelp;
@@ -150,6 +160,10 @@ public:
 
     // Tic-Tac-Toe Settings
     bool m_ttt_hard_mode = false;
+
+    // Pong scores
+    int m_pong_p1_score;
+    int m_pong_p2_score;
 
 };
 

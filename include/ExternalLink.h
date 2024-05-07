@@ -28,6 +28,8 @@
 #define TETRIS_RESET_SYM 'X'
 #define TTT_RESET_SYM 'X'
 #define PONG_RESET_SYM 'X'
+#define PONG_P1_SCORED_SYM '1'
+#define PONG_P2_SCORED_SYM '2'
 #define PONG_SET_BALL_SYM 'B'
 #define TTT_HARD_MODE_SYM 'H'
 
@@ -55,6 +57,9 @@ public:
     bool IsReady();
 
     bool ready_to_tx = true;
+
+    el_state_t m_state;
+
 private: 
 
     el_error_t SetupState();
@@ -62,7 +67,6 @@ private:
     el_error_t CheckTimeout();
     void UpdateLog(const char* str, int status);
 
-    el_state_t m_state;
     std::string m_last_read_str;
     std::string m_loaded_cmd;
     bool m_cmd_ready;

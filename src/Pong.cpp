@@ -59,26 +59,6 @@ pong_error_t Pong::Play()
         }
     }
 
-    // Update paddle position at end of frame
-    switch (m_paddle_move)
-    {
-        case LEFT_PADDLE_MOVE:
-        {
-            int new_pos = m_paddle.x - PADDLE_SPEED < 0 ? 0 : m_paddle.x - PADDLE_SPEED;
-            RenderPaddle(m_paddle, new_pos);
-            m_paddle_move = NO_PADDLE_MOVE;
-        }
-        break;
-
-        case RIGHT_PADDLE_MOVE:
-        {
-            int new_pos = m_paddle.x + PADDLE_SPEED > ARENA_MAX_WIDTH - PADDLE_WIDTH ? ARENA_MAX_WIDTH - PADDLE_WIDTH : m_paddle.x + PADDLE_SPEED;
-            RenderPaddle(m_paddle, new_pos);
-            m_paddle_move = NO_PADDLE_MOVE;
-        }
-        break;
-    }
-
     return ret_val;
 }
 
@@ -92,11 +72,15 @@ pong_error_t Pong::MovePaddle(float x)
     }
     else if (x < m_paddle.x + PADDLE_CENTER)
     {
-        m_paddle_move = LEFT_PADDLE_MOVE;
+        int new_pos = x - PADDLE_CENTER < 0 ? 0 : x - PADDLE_CENTER;
+        RenderPaddle(m_paddle, new_pos);
+        m_paddle_move = NO_PADDLE_MOVE;
     }
     else if (x > m_paddle.x + PADDLE_CENTER)
     {
-        m_paddle_move = RIGHT_PADDLE_MOVE;
+        int new_pos = x > ARENA_MAX_WIDTH - PADDLE_WIDTH ? ARENA_MAX_WIDTH - PADDLE_WIDTH : x - PADDLE_CENTER;
+        RenderPaddle(m_paddle, new_pos);
+        m_paddle_move = NO_PADDLE_MOVE;
     }
 
     return ret_val;
@@ -207,7 +191,7 @@ pong_error_t Pong::RenderBall(int x, int y)
 
     // Update position of ball, and ensure it is in the arena
     m_ball.x = std::max(0, std::min(x, ARENA_MAX_WIDTH-BALL_WIDTH));
-    m_ball.y = y;//std::max(0, std::min(y, ARENA_MAX_HEIGHT-BALL_HEIGHT));
+    m_ball.y = y;
 
     // Set ball back to ball color in new position
     gfx->fillRect(m_ball.x,m_ball.y,BALL_WIDTH,BALL_HEIGHT,BALL_COLOR);
@@ -280,24 +264,28 @@ pong_error_t Pong::CollideWithPaddle(pong_collision_t coll)
     int pen_y = 0;
     int pen_base = BALL_HEIGHT / 2;
 
+    float ball_acc = 1.1F;
+    float new_ball_vx = abs(m_ball.Vx*ball_acc) > BALL_MAX_VEL ? BALL_MAX_VEL : -(m_ball.Vx*ball_acc);
+    float new_ball_vy = abs(m_ball.Vy*ball_acc) > BALL_MAX_VEL ? BALL_MAX_VEL : -(m_ball.Vy*ball_acc);
+
     if (coll == TOP_PADDLE)
     {
-        m_ball.Vy = -m_ball.Vy;
+        m_ball.Vy = new_ball_vy;
         pen_y = -pen_base;
     }
     else if (coll == BOTTOM_PADDLE)
     {
-        m_ball.Vy = -m_ball.Vy;
+        m_ball.Vy = new_ball_vy;
         pen_y = pen_base;
     }
     else if (coll == LEFT_PADDLE)
     {
-        m_ball.Vx = -m_ball.Vx;
+        m_ball.Vx = new_ball_vx;
         pen_x = -pen_base;
     }
     else if (coll == RIGHT_PADDLE)
     {
-        m_ball.Vx = -m_ball.Vx;
+        m_ball.Vx = new_ball_vx;
         pen_x = pen_base;
     }
 

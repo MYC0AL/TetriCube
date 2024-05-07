@@ -12,9 +12,9 @@
 #define BALL_WIDTH 20
 #define BALL_HEIGHT 20
 #define BALL_COLOR MAGENTA
-#define BALL_MAX_SPEED 10
-#define BALL_MAX_VEL 10
-#define BALL_X_START_VEL 1
+#define BALL_MAX_SPEED 9
+#define BALL_MAX_VEL 9
+#define BALL_X_START_VEL 3
 #define BALL_Y_START_VEL -4
 
 // Arena Defines

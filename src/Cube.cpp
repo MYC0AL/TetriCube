@@ -44,9 +44,7 @@ std::string Cube::PlayGame()
         short dir = DirSwiped();
         if (dir != SWIPE_ERR)
         {
-            //RotateCube(m_side_num, dir);
-            ResetVars(); //TODO Remove this and combine one below
-            //drawRubiksSide(m_side_num);
+            ResetVars();
 
             // Form CMD for ELs
             cmd += m_side_num + '0';

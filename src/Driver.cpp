@@ -9,8 +9,11 @@ StateDriver::StateDriver()
 {
     drv_state = STATE_INIT;
 
-    //DEBUG
     dHelp.clear_screen();
+    
+    m_screen_num = SCREEN_NUM;
+
+    #if (DEBUG_MODE)
     for (int i = 0; i < 6; i++)
     {
         gfx->fillRect(UI_SCREENS[i].x,UI_SCREENS[i].y,UI_SCREENS[i].w,UI_SCREENS[i].h,ORANGE);
@@ -27,11 +30,12 @@ StateDriver::StateDriver()
             }
         }
     }
-    //END DEBUG
+    #endif
 
     // Set side num for each screen
     rbx.SetSideNum(m_screen_num);
     tetris.SetSideNum(m_screen_num);
+    pong.setScreenNum(m_screen_num);
 }
 
 /******************************************************************
@@ -436,7 +440,7 @@ void StateDriver::state_controller()
                         std::string pongResetCMD;
                         pongResetCMD += m_screen_num + '0';
                         pongResetCMD += 'P';
-                        pongResetCMD += PONG_RESET_SYM;
+                        pongResetCMD += PONG_P1_SCORED_SYM;
                         el.SendCMD(pongResetCMD);
                     }
                     else if (pong_ret == PONG_P2_SCORED)
@@ -444,7 +448,7 @@ void StateDriver::state_controller()
                         std::string pongResetCMD;
                         pongResetCMD += m_screen_num + '0';
                         pongResetCMD += 'P';
-                        pongResetCMD += PONG_RESET_SYM;
+                        pongResetCMD += PONG_P2_SCORED_SYM;
                         el.SendCMD(pongResetCMD);
                     }
 
@@ -468,6 +472,11 @@ void StateDriver::state_controller()
                         }
                     }
                 }
+            }
+            break;
+
+            default:
+            {
             }
             break;
         }
@@ -756,6 +765,29 @@ int StateDriver::findIndex(const int arr[], int size, int num_to_find)
 }
 
 /******************************************************************
+ * @brief Print the current pong scores to the screen
+ * @return STATE_SUCCESS
+******************************************************************/
+state_code_t StateDriver::PrintPongScores()
+{
+    // Clear Screen
+    gfx->fillScreen(ARENA_BG_COLOR);
+
+    // Setup Cursor Details
+    gfx->setTextSize(7);
+    gfx->setTextColor(WHITE);
+
+    // Set Cursor Position and Print scores
+    gfx->setCursor(60,50);
+    gfx->setTextColor(MAGENTA);
+    gfx->printf("Player 1\n\n     %d",m_pong_p1_score);
+    gfx->setCursor(60,ARENA_MAX_HEIGHT - 200);
+    gfx->printf("Player 2\n\n     %d",m_pong_p2_score);
+
+    return STATE_SUCCESS;
+}
+
+/******************************************************************
  * @brief Function responsible for setting up each state
  * @param new_state The new state to transition to
 ******************************************************************/
@@ -1020,11 +1052,14 @@ void StateDriver::update_new_state(state_t new_state)
                 dHelp.drawImage(SCENE_PONG_PAUSE.image);
                 dHelp.active_ui = SCENE_PONG_PAUSE.ui_elements;
             }
+            else if (m_screen_num == 3)
+            {
+                PrintPongScores();
+            }
             else
             {
                 dHelp.clear_screen();
                 
-                pong.setScreenNum(m_screen_num);
                 pong.Reset();
             }
             break;
@@ -1036,7 +1071,7 @@ void StateDriver::update_new_state(state_t new_state)
     drv_state = new_state;
 
     // -----DEBUG-----
-    dHelp.drawUI();
+    //dHelp.drawUI();
 
     // Pause between state transistions
     delay(400);
@@ -1353,34 +1388,59 @@ state_code_t StateDriver::DecodeCMD(std::string CMD)
                 {
                     if (CMD[2] == PONG_SET_BALL_SYM) // 0 P B x 120 y 480 V 3.4 v 1.2
                     {
-                        //0PBx120y480V3.4v1.2
-                        int xIdx = CMD.find('x');
-                        int yIdx = CMD.find('y');
-                        int VxIdx = CMD.find('V');
-                        int VyIdx = CMD.find('v');
+                        // // Order of screens, from bottom to top
+                        const int SCREEN_ORDER[] = {4,0,2,5};
+                        int find_idx = findIndex(SCREEN_ORDER, 4, sender_screen);
 
+                        const char SEARCH_CHARS[] = {'x', 'y', 'V', 'v'};
+                        size_t indices[4];
 
-                        // Order of screens, from bottom to top
-                        const int SCREEN_ORDER[] = {4,0,5};
-                        int find_idx = findIndex(SCREEN_ORDER, 3, sender_screen);
+                        for (int i = 0; i < 4; ++i) {
+                            indices[i] = CMD.find(SEARCH_CHARS[i]);
+                        }
 
                         Ball new_ball;
-                        new_ball.x = atoi(CMD.substr(xIdx+1,yIdx-xIdx-1).c_str());
-                        new_ball.y = atoi(CMD.substr(yIdx+1,VxIdx-yIdx-1).c_str());
-                        new_ball.Vx = atof(CMD.substr(VxIdx+1,VyIdx-VxIdx-1).c_str());
-                        new_ball.Vy = atof(CMD.substr(VyIdx+1).c_str());
+                        new_ball.x = std::atoi(CMD.substr(indices[0] + 1, indices[1] - indices[0] - 1).c_str());
+                        new_ball.y = std::atoi(CMD.substr(indices[1] + 1, indices[2] - indices[1] - 1).c_str());
+                        new_ball.Vx = std::atof(CMD.substr(indices[2] + 1, indices[3] - indices[2] - 1).c_str());
+                        new_ball.Vy = std::atof(CMD.substr(indices[3] + 1).c_str());
 
                         int next_idx = new_ball.Vy > 0 ? find_idx - 1 : find_idx + 1;
 
                         if (m_screen_num == SCREEN_ORDER[next_idx])
                         {
                             pong.setBall(new_ball);
-                            log_printf("setting ball");
                         }
                     }
                     else if (CMD[2] == PONG_RESET_SYM)
                     {
-                        pong.Reset();
+                        if (m_screen_num != 1)
+                        {
+                            pong.Reset();
+                            m_pong_p1_score = 0;
+                            m_pong_p1_score = 0;
+
+                            if (m_screen_num == 3) {
+                                PrintPongScores();
+                            }
+                        }
+                    }
+                    else if (CMD[2] == PONG_P1_SCORED_SYM || CMD[2] == PONG_P2_SCORED_SYM)
+                    {
+                        if (m_screen_num == 3)
+                        {
+                            if (CMD[2] == PONG_P1_SCORED_SYM) {
+                                m_pong_p1_score++;
+                            }
+                            else {
+                                m_pong_p2_score++;
+                            }
+                            PrintPongScores();
+                        }
+                        else if (m_screen_num != 1)
+                        {
+                            pong.Reset();
+                        }
                     }
                 }
             }

@@ -74,7 +74,7 @@ el_error_t ExternalLink::SendCMD(std::string cmd)
 
     //DEBUG
     log_printf("EL: Attempting to send CMD: %s\r\n",cmd.c_str());
-
+    log_printf("m_state: %d\n\r",m_state);
     // If the Tx string is not empty and EL in WAIT
     if (!cmd.empty() && m_state == EL_CMD_WAIT)
     {

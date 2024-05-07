@@ -45,34 +45,31 @@ void DisplayHelper::touch_init(void)
 ******************************************************************/
 bool DisplayHelper::touch_touched(void)
 {
-    bool retValue = false;
-
-    // Reset old touches
+    // Reset old touches if necessary
     touch_reset();
 
-    // Read current touches
+    // Read current touches if necessary
     ts.read();
 
     // Set touch count
     touch_count = ts.touches;
 
-    if (ts.isTouched)
+    // If there are no touches, return false
+    if (touch_count == 0 || !ts.isTouched)
+        return false;
+
+    // Save all current touches
+    for (uint8_t i = 0; i < touch_count; ++i)
     {
-        // Save all current touches
-        for (uint8_t i = 0; i < touch_count; ++i)
-        {
-            current_touches[i].x = map(ts.points[i].x, TOUCH_MAP_X1, TOUCH_MAP_X2, 0, 480 - 1);
-            current_touches[i].y = map(ts.points[i].y, TOUCH_MAP_Y1, TOUCH_MAP_Y2, 0, 480 - 1);
-        }
-
-        // Reset the 'isTouched' flag
-        ts.isTouched = false;
-
-        // Set return value
-        retValue = true;
+        current_touches[i].x = map(ts.points[i].x, TOUCH_MAP_X1, TOUCH_MAP_X2, 0, 480 - 1);
+        current_touches[i].y = map(ts.points[i].y, TOUCH_MAP_Y1, TOUCH_MAP_Y2, 0, 480 - 1);
     }
 
-    return retValue;
+    // Reset the 'isTouched' flag
+    ts.isTouched = false;
+
+    // Touch was detected, return true
+    return true;
 }
 
 /******************************************************************
