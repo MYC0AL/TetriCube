@@ -30,6 +30,7 @@ StateDriver::StateDriver()
             }
         }
     }
+
     #endif
 
     // Set side num for each screen

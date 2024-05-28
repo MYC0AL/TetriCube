@@ -354,55 +354,55 @@ void Cube::RotateCube(short sideNum, short dirSwiped)
         case 0:
             switch(dirSwiped)
             {
-                case 5: prime = true; case 9: UpRotation(prime); break;
-                case 11: prime = true; case 3: DownRotation(prime); break;
-                case 8:prime = true; case 0: LeftRotation(prime); break;
-                case 2:prime = true; case 6: RightRotation(prime); break;
+                case 8:  prime = true; case 0: UpRotation(prime); break;
+                case 2: prime = true; case 6: DownRotation(prime); break;
+                case 11:  prime = true; case 3: LeftRotation(prime); break;
+                case 5:  prime = true; case 9: RightRotation(prime); break;
             }
             break;
         case 1:
             switch(dirSwiped)
             {
-                case 5: prime = true; case 9: BackRotation(prime); break;
-                case 11: prime = true; case 3: FrontRotation(prime); break;
-                case 8: prime = true; case 0: LeftRotation(prime); break;
-                case 2: prime = true; case 6: RightRotation(prime); break;
+                case 8: prime = true; case 0: BackRotation(prime); break;
+                case 2: prime = true; case 6: FrontRotation(prime); break;
+                case 11:  prime = true; case 3: LeftRotation(prime); break;
+                case 5:  prime = true; case 9: RightRotation(prime); break;
             }
             break;
         case 2:
             switch(dirSwiped)
             {
-                case 5: prime = true; case 9: UpRotation(prime); break;
-                case 11: prime = true; case 3: DownRotation(prime); break;
-                case 8: prime = true; case 0: FrontRotation(prime); break;
-                case 2: prime = true; case 6: BackRotation(prime); break;
+                case 8:  prime = true; case 0: UpRotation(prime); break;
+                case 2: prime = true; case 6: DownRotation(prime); break;
+                case 11: prime = true; case 3: FrontRotation(prime); break;
+                case 5: prime = true; case 9: BackRotation(prime); break;
             }
             break;
         case 3:
             switch(dirSwiped)
             {
-                case 5: prime = true; case 9: FrontRotation(prime); break;
-                case 11: prime = true; case 3: BackRotation(prime); break;
-                case 8: prime = true; case 0: LeftRotation(prime); break;
-                case 2: prime = true; case 6: RightRotation(prime); break;
+                case 8: prime = true; case 0: FrontRotation(prime); break;
+                case 2: prime = true; case 6: BackRotation(prime); break;
+                case 11:  prime = true; case 3: LeftRotation(prime); break;
+                case 5:  prime = true; case 9: RightRotation(prime); break;
             }
             break;
         case 4:
             switch(dirSwiped)
             {
-                case 5: prime = true; case 9: UpRotation(prime); break;
-                case 11: prime = true; case 3: DownRotation(prime); break;
-                case 8: prime = true; case 0: BackRotation(prime); break;
-                case 2: prime = true; case 6: FrontRotation(prime); break;
+                case 8:  prime = true; case 0: UpRotation(prime); break;
+                case 2: prime = true; case 6: DownRotation(prime); break;
+                case 11: prime = true; case 3: BackRotation(prime); break;
+                case 5: prime = true; case 9: FrontRotation(prime); break;
             }
             break;
         case 5:
             switch(dirSwiped)
             {
-                case 5: prime = true; case 9: UpRotation(prime); break;
-                case 11: prime = true; case 3: DownRotation(prime); break;
-                case 8: prime = true; case 0: RightRotation(prime); break;
-                case 2: prime = true; case 6: LeftRotation(prime); break;
+                case 8:  prime = true; case 0: UpRotation(prime); break;
+                case 2: prime = true; case 6: DownRotation(prime); break;
+                case 11: prime = true; case 3: RightRotation(prime); break;
+                case 5: prime = true; case 9: LeftRotation(prime); break;
             }
             break;
     }
@@ -435,12 +435,20 @@ void Cube::FrontRotation(bool prime)
 {
     int sidesToMove[MOVE_SIZE] = {1,2,3,4};
 
+    // int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
+    //                                     {6,7,8}, // 1
+    //                                     {0,3,6}, // 2
+    //                                     {2,1,0}, // 3
+    //                                     {8,5,2}  // 4
+    //                                     };
+
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
-                                        {6,7,8}, // 1
-                                        {0,3,6}, // 2
-                                        {2,1,0}, // 3
-                                        {8,5,2}  // 4
-                                        };
+                                    {2,5,8}, // 1
+                                    {6,7,8}, // 2
+                                    {0,3,6}, // 3
+                                    {0,1,2}  // 4
+                                    };
+    log_printf("Front rot\n\r");
 
     Rotate(sidesToMove, sqToMove, 0, prime);
 }
@@ -453,13 +461,21 @@ void Cube::RightRotation(bool prime)
 {
     int sidesToMove[MOVE_SIZE] = {0,1,5,3}; //Normal
 
+    // int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
+    //                                       {2,5,8},
+    //                                       {2,5,8},
+    //                                       {6,3,0},
+    //                                       {2,5,8}
+    //                                       };
+    
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
-                                          {2,5,8},
-                                          {2,5,8},
-                                          {6,3,0},
-                                          {2,5,8}
-                                          };
+                                        {0,1,2},
+                                        {0,1,2},
+                                        {6,7,8},
+                                        {0,1,2}
+                                        };
 
+    log_printf("Right rot\n\r");
     Rotate(sidesToMove, sqToMove, 2, prime);
 
 }
@@ -472,12 +488,19 @@ void Cube::UpRotation(bool prime)
 {
     int sidesToMove[MOVE_SIZE] = {0,4,5,2}; //Normal
 
+    // int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
+    //                                     {0,1,2},
+    //                                     {0,1,2},
+    //                                     {0,1,2},
+    //                                     {0,1,2}
+    //                                     };
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
-                                        {0,1,2},
-                                        {0,1,2},
-                                        {0,1,2},
-                                        {0,1,2}
-                                        };
+                                        {0,3,6},
+                                        {0,3,6},
+                                        {0,3,6},
+                                        {0,3,6}
+                                        };                                        
+    log_printf("Up rot\n\r");
 
     Rotate(sidesToMove, sqToMove, 1, prime);
 }
@@ -490,12 +513,19 @@ void Cube::BackRotation(bool prime)
 {
     int sidesToMove[MOVE_SIZE] = {4,3,2,1};
 
+    // int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
+    //                                     {6,3,0},
+    //                                     {8,7,6},
+    //                                     {2,5,8},
+    //                                     {0,1,2}
+    //                                     };
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
-                                        {6,3,0},
-                                        {8,7,6},
+                                        {6,7,8},
                                         {2,5,8},
-                                        {0,1,2}
-                                        };
+                                        {0,1,2},
+                                        {0,3,6}
+                                        };                                        
+    log_printf("Back rot\n\r");
 
     Rotate(sidesToMove, sqToMove, 5, prime);
 }
@@ -508,12 +538,19 @@ void Cube::LeftRotation(bool prime)
 {
     int sidesToMove[MOVE_SIZE] = {0,3,5,1}; //Normal
 
+    // int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
+    //                                       {0,3,6},
+    //                                       {0,3,6},
+    //                                       {8,5,2},
+    //                                       {0,3,6}
+    //                                       };
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
-                                          {0,3,6},
-                                          {0,3,6},
-                                          {8,5,2},
-                                          {0,3,6}
-                                          };
+                                            {6,7,8},
+                                            {6,7,8},
+                                            {0,1,2},
+                                            {6,7,8}
+    };
+    log_printf("Left rot\n\r");
 
     Rotate(sidesToMove, sqToMove, 4, prime);
 }
@@ -526,12 +563,19 @@ void Cube::DownRotation(bool prime)
 {
     int sidesToMove[MOVE_SIZE] = {0,2,5,4}; //Normal
 
+    // int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
+    //                                     {6,7,8},
+    //                                     {6,7,8},
+    //                                     {6,7,8},
+    //                                     {6,7,8}
+    //                                     };
     int sqToMove[MOVE_SIZE][SWIPE_SIZE] = {
-                                        {6,7,8},
-                                        {6,7,8},
-                                        {6,7,8},
-                                        {6,7,8}
-                                        };
+                                        {2,5,8},
+                                        {2,5,8},
+                                        {2,5,8},
+                                        {2,5,8}
+                                        };                                        
+    log_printf("Down rot\n\r");
 
     Rotate(sidesToMove, sqToMove, 3, prime);
 }

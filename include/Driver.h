@@ -38,7 +38,7 @@
 #define SYMBOL_IDX 1
 
 // Most important defines
-#define SCREEN_NUM 2
+#define SCREEN_NUM 1
 #define DEBUG_MODE 0
 // D    #
 // 10 - 3
